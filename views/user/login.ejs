@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mobi World</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/user/userlogin.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+</head>
+<body>
+    <input id="mes" type="hidden" value="<%= message %>">
+    <div class="login-container">
+        <div class="login-form">
+            <form>
+                <h2 class="text-center">Welcome back!</h2>
+                <p class="text-center">Enter your Credentials to access your account</p>
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                <div class="text-center mt-3">
+                    <a href="#">Forgot password?</a>
+                </div>
+                <div class="text-center mt-3">
+                    <button type="button" class="btn btn-outline-secondary btn-block">
+                        <img src="https://img.icons8.com/color/16/000000/google-logo.png"> Sign in with Google
+                    </button>
+                </div>
+                <div class="text-center mt-3">
+                    <p>Don't have an account? <a href="#" onclick="navigate('/user/register')">Sign Up</a></p>
+                </div>
+            </form>
+        </div>
+        <div class="login-image d-flex justify-content-center align-items-center">
+            <img src="https://img.freepik.com/free-photo/smartphones-shopping-bags_23-2147957620.jpg?t=st=1740068158~exp=1740071758~hmac=a44c85ad05119c530b93489a7142ca9ea428ce013282489b23b0f5f4eaa43757&w=740" alt="Mobi World">
+
+            <div class="logo">
+                <img src="/images/mobiworld-removebg-preview.png">
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+         let message = document.getElementById('mes').value
+        if(message){
+            Swal.fire(message)
+        }
+        
+        function navigate(route){
+            event.preventDefault()
+            window.location.href = route
+        }
+        const messageElement = document.getElementById('message')
+        if(messageElement && messageElement.innerText){
+           swal.fire({
+            title: 'Message',
+            text: messageElement.textContent,
+            icon: 'success'
+           })
+        }
+        
+    </script>
+</body>
+</html>
+
+
+
+ 
+

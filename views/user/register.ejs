@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mobi World</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/user/userlogin.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+</head>
+<body>
+    <input id="mes" type="hidden" value="<%= message %>">
+
+    <div class="login-container">
+        <div class="login-form">
+            <form onsubmit="return FormValidate(event)" method="post" action="/user/register">
+                <h2 class="text-center">Get started Now</h2>
+                <p class="text-center">Enter your Registration Details</p>
+                <div class="form-group">
+                    <label for="email">Name</label>
+                    <input class="form-control" id="name" name="name" placeholder="Enter your name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" class="form-control" name="password" id="password" placeholder="Enter your password">
+                </div>
+                <div class="form-group">
+                    <label for="confirmpassword">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmpass" placeholder="Enter your password">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Register</button>
+            </form>
+        </div>
+        <div class="login-image d-flex justify-content-center align-items-center">
+            <img src="https://img.freepik.com/free-photo/smartphones-shopping-bags_23-2147957620.jpg?t=st=1740068158~exp=1740071758~hmac=a44c85ad05119c530b93489a7142ca9ea428ce013282489b23b0f5f4eaa43757&w=740" alt="Mobi World">
+
+            <div class="logo">
+                <img src="/images/mobiworld-removebg-preview.png">
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let message = document.getElementById('mes').value
+        if(message){
+            Swal.fire(message)
+        }
+        
+        function FormValidate(event){
+            let email =document.getElementById('email').value
+            let name = document.getElementById('name').value
+            let pass = document.getElementById('password').value
+            let Confirmpass = document.getElementById('confirmpass').value
+            if(email == '' || name == ''|| pass == '' || confirmpass == '' ){
+                event.preventDefault()
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'All fields are required',
+                });
+            }
+            else if(pass != Confirmpass){
+                event.preventDefault()
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'password not match',
+                });
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+ 
+
