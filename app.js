@@ -16,12 +16,13 @@ app.set('view engine','ejs')
 app.set("views",[path.join(__dirname,"views/user"),path.join(__dirname,"views/admin")])
 app.use(express.static(path.join(__dirname,"public")))
 app.use(session({
-   secret: 'your-secret-key',
+   secret: process.env.SESSION_SECRET,
    resave: false,
    saveUninitialized: false, 
    cookie: { 
        secure: process.env.NODE_ENV === 'production',
-       maxAge: 24 * 60 * 60 * 1000
+       maxAge: 24 * 60 * 60 * 1000,
+       httpOnly:true,
    }
 }));
 app.use('/',homerouter)

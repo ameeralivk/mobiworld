@@ -21,10 +21,12 @@ const userschema = new Schema ({
         sparse:true,
         default:null,
     },
-    googleId:{
-        type : String,
-        unique : true,
-    },
+    // googleId:{
+    //     type : String,
+    //     required:false,
+    //     unique : true,
+    //     sparse:true,
+    // },
     isBlocked:{
         type : Boolean,
         default : false,

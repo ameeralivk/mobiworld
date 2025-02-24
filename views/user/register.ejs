@@ -27,7 +27,7 @@
                 </div>
                 <div class="form-group">
                     <label for="email">Phone Number</label>
-                    <input type="tel" class="form-control" id="number" name="number"  pattern="[0-9]{10}" placeholder="Enter the phone">
+                    <input type="tel" class="form-control" id="phone" name="phone"  pattern="[0-9]{10}" placeholder="Enter the phone">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -61,8 +61,9 @@
             let email =document.getElementById('email').value
             let name = document.getElementById('name').value
             let pass = document.getElementById('password').value
+            let phone = document.getElementById('phone').value
             let Confirmpass = document.getElementById('confirmpass').value
-            if(email == '' || name == ''|| pass == '' || confirmpass == '' ){
+            if(email == '' || name == ''|| pass == '' || confirmpass == '' || phone == '' ){
                 event.preventDefault()
                 Swal.fire({
                     icon: 'warning',
