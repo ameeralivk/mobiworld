@@ -11,13 +11,13 @@
 </head>
 <body>
     <div class="container">
-        <form action="/user/verify-otp" method="post" id="validateForm">
+        <form id="validateForm">
             <div class="form-section">
                 <h1>Signup</h1>
                 <label for="email">Enter OTP</label>
-                <input type="number" id="otp" name="otp" required>
+                <input type="number" id="otp" name="otp">
                 <button type="submit" id="otpButton">Verify Email</button>
-                <!-- <button type="button" id="resendOtpButton" style="background-color: #524e4e; color: #fff;">Resend OTP</button> -->
+                <button type="submit" id="resendOtpButton" style="display: none;">Resend OTP</button>
                 <span id="timer"></span> <!-- Timer display within the form section -->
                 <a href="#">Already a user? Sign In</a>
             </div>
@@ -36,7 +36,32 @@
             var timer = setInterval(function() {
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    timerSpan.innerHTML = 'OTP has expired.';
+                    timerSpan.innerHTML = 'OTP has expired.Please request';
+                    document.getElementById('resendOtpButton').style.display = "block"
+                    $.ajax({
+                    type: "POST",
+                    url: "resetOtp",
+                    success: function(response) {
+                        Swal.fire({
+                            icon: "info",
+                            title: "OTP has expired",
+                            text: "Please request a new OTP.",
+                        });
+                    },
+                    error: function(jqXHR) {
+                        let errorMessage = "Failed to handle OTP expiration.";
+                        if(jqXHR.responseJSON && jqXHR.responseJSON.message){
+                            errorMessage = jqXHR.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: errorMessage,
+                        });
+                    }
+                });
+                     
+
                 } else {
                     timerSpan.innerHTML = 'Time left to enter OTP: ' + timeLeft + ' seconds';
                 }
@@ -86,8 +111,50 @@
             });
             return false;
         }
-
-        document.getElementById('validateForm').addEventListener('submit', otpvalidate);
+        function resetotp(e){
+            console.log('hi');
+            e.preventDefault();  // Prevent the form from submitting
+            const otpInput = document.getElementById('otp').value;
+            console.log(otpInput);
+            $.ajax({
+                type: "GET",
+                url: "resendOtp",
+                data: { otp: otpInput },
+                success: function(response) {
+                    if (response.success) {
+                        console.log(response);
+                        Swal.fire({
+                            icon: "success",
+                            title: response.message,
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            window.location.href = response.redirectUrl;
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: response.message,
+                        });
+                    }
+                },
+                error: function(jqXHR) {
+                    let errorMessage = "please try again";
+                    if(jqXHR.responseJSON && jqXHR.responseJSON.message){
+                        errorMessage = jqXHR.responseJSON.message;
+                    }
+                    Swal.fire({
+                        icon: "error",
+                        title: "Invalid OTP",
+                        text: errorMessage
+                    });
+                }
+            });
+            return false;
+        }
+        document.getElementById('otpButton').addEventListener('click', otpvalidate);
+        document.getElementById('resendOtpButton').addEventListener('click',resetotp);
         startOtpTimer();  // Start the timer when the page is rendered
     </script>
 </body>

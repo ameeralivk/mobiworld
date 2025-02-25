@@ -3,7 +3,11 @@ const userschema = require('../models/user')
 const bcrypt = require('bcrypt')
 const salt = 10
 const nodemailer = require('nodemailer')
+const { ConnectionStates } = require('mongoose')
 const env = require('dotenv').config()
+const loadverify = async(req,res)=>{
+   return res.render('verify-otp')
+}
 const loadregisterpage = async(req,res)=>{
     try {
         let message;
@@ -35,8 +39,78 @@ const login = async(req,res)=>{
         
     }
 }
+const resendOtp = async (req,res)=>{
+    function generateotp() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    } 
+    const email = req.session.email;
+    console.log(email)
+    const otp = generateotp()
+    req.session.userOtp = otp
+    console.log(otp)
+    async function sendVerificationEmail(email,otp){
+        try {
+         const transporter = nodemailer.createTransport({
+             service:'gmail',
+             port:587,
+             secure:false,
+             requireTLS:true,
+             auth:{
+                user:process.env.NODEMAILER_EMAIL,
+                pass:process.env.NODEMAILER_PASSWORD
+             }
+         })
+         const info = await transporter.sendMail({
+             from:process.env.NODEMAILER_EMAIL,
+             to:email,
+             subject:"verify your account",
+             text:`your otp is ${otp}`,
+             html:`<b>your otp ${otp} </b>`,
+         })
+         return info.accepted.length>0
+        } catch (error) {
+         console.error('error sending email',error);
+         return false;
+        }
+      }
+      try {
+       sendemail = sendVerificationEmail(email,otp)
+       if(sendemail){
+        res.status(200).json({
+            success: true,
+            message: "OTP resended successfully",
+            redirectUrl: "verify-otp"  // Change this to the desired URL
+        });
+        // res.status(200).json({ success: true, message: "OTP resended successfully" });
+       }
+      } catch (error) {
+        console.error("Error in resetOtp function:", error);
+        res.status(500).json({ success: false, message: "An Error Occurred" });
+      }
+ 
+}
+const resetOtp = async (req, res) => {
+    function generateotp() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    try {
+        console.log('resetOtp function called');
+        const newpass = generateotp();
+        req.session.userOtp = newpass;
+        console.log('New OTP:', newpass); 
+        console.log('Session OTP:', req.session.userOtp); 
+        res.status(200).json({ success: true, message: "OTP reset successfully" });
+
+    } catch (error) {
+        console.error("Error in resetOtp function:", error);
+        res.status(500).json({ success: false, message: "An Error Occurred" });
+    }
+}
+
+
 const register = async(req,res)=>{
     const {name,email,password,phone} = req.body
+    req.session.email = email;
     const isexist = await userschema.findOne({email})
      function generateotp(){
         return Math.floor(100000 + Math.random()*900000).toString()
@@ -73,15 +147,6 @@ const register = async(req,res)=>{
         res.redirect('register')
     }
     else{
-        
-
-        // const hashedpass = await bcrypt.hash(password,salt)
-        // const newUser = new userschema({
-        //     name,
-        //     email,
-        //     phone,
-        //     password:hashedpass,
-        // })
         const otp = generateotp()
         const emailsent = await sendVerificationEmail(email,otp)
         if(!emailsent){
@@ -92,10 +157,6 @@ const register = async(req,res)=>{
         req.session.userData = {name,phone,email,password};
         res.render('verify-otp')
         console.log('OTP Sent',otp)
-        
-        // await newUser.save()
-        // req.session.msg = "user created successfully"
-        // res.redirect('login')
 
     }
     
@@ -104,15 +165,10 @@ const register = async(req,res)=>{
     console.error('signu error',error)
     res.redirect('/pageNotfound')
 }
-//   catch (error){
-//       console.error('error for save user',error)
-//       res.status(500).send("enternal server error")
-//   }
 }
 const verifyOtp = async (req,res)=>{
+     const {otp} = req.body;
     try {
-        const {otp} = req.body;
-        console.log(otp)
         if(otp===req.session.userOtp){
          const user = req.session.userData
          const hashedpass = await bcrypt.hash(user.password,salt)
@@ -130,9 +186,6 @@ const verifyOtp = async (req,res)=>{
         req.session.userOtp = null;
         req.session.userData = null;
         res.json({success:true,redirectUrl:"/"})
-        console.log('hi')
-        // req.session.msg = "user created successfully"
-        // res.redirect('/user/login')  
         }else{
             res.status(400).json({success:false,message:"invalid Otp please try again"})
         }
@@ -148,4 +201,7 @@ module.exports = {
     login,
     register,
     verifyOtp,
+    resetOtp,
+    resendOtp,
+    loadverify,
 }
