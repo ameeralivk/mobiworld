@@ -12,7 +12,7 @@ const userschema = new Schema ({
     },
     password:{
         type:String,
-        required:true,
+        required:false,
     },
     phone: {
         type: String,
@@ -27,6 +27,10 @@ const userschema = new Schema ({
     //     unique : true,
     //     sparse:true,
     // },
+    googleId:{
+        type:String,
+        unique:true
+    },
     isBlocked:{
         type : Boolean,
         default : false,

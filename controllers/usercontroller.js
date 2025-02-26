@@ -8,12 +8,19 @@ const env = require('dotenv').config()
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
+const pageNotFound = async (req,res)=>{
+    try {
+        res.render('page-404')
+    } catch (error) {
+        res.redirect('/pageNotFound')
+    }
+}
 const loadregisterpage = async(req,res)=>{
     try {
-        let message;
-        if(req.session.msg){
-            message = req.session.msg
-            req.session.msg = null
+        let message = '';
+        if(req.session.message){
+            message = req.session.message
+            req.session.message = null
         }
 
         return res.render('register',{ message })
@@ -24,19 +31,44 @@ const loadregisterpage = async(req,res)=>{
         
     }
 }
-const login = async(req,res)=>{
+const Loadlogin= async(req,res)=>{
     try {
-        let message;
-        if(req.session.msg){
-             message = req.session.msg
-            req.session.msg = null
+        let message = '';
+        if(req.session.message){
+             message = req.session.message
+            req.session.message = null
         }
         return res.render('login',{ message })
         
     } catch (error) {
-        console.log('home page not found')
-        res.status(500).send('server error')
+       res.redirect('/pageNotFound')
         
+    }
+}
+const login = async (req,res)=>{
+    try {
+        const {email,password} = req.body
+        const findUser = await userschema.findOne({isAdmin:0,email:email})
+        if(!findUser){
+            
+           return res.render("login",{message:"User not found" })
+        }
+        if(findUser.isBlocked){
+        
+            return res.render('login',{ message:  "User is blocked by admin"})
+        }
+        if(findUser.password){
+            const passwordMatch =await bcrypt.compare(password,findUser.password)
+            if(!passwordMatch){
+              return  res.render('login',{ message:"incorrect Password"})
+            }
+        }
+        req.session.User = findUser._id
+       return res.redirect('/')
+    } catch (error) {
+        console.error('login err',error);
+        
+       return res.render('login',{ message:"Loginfailed,please try again"})
     }
 }
 const resendOtp = async (req,res)=>{
@@ -198,10 +230,12 @@ const verifyOtp = async (req,res)=>{
 
 module.exports = { 
     loadregisterpage,
-    login,
+    Loadlogin,
     register,
     verifyOtp,
     resetOtp,
     resendOtp,
     loadverify,
+    pageNotFound,
+    login,
 }

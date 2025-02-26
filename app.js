@@ -7,6 +7,7 @@ const userRouter = require('./routes/userRouter')
 const homerouter = require('./routes/homeRouter')
 const ejs = require('ejs')
 const session = require('express-session')
+const passport =require('./config/passport')
 dotenv.config()
 db()
 
@@ -25,6 +26,8 @@ app.use(session({
        httpOnly:true,
    }
 }));
+app.use(passport.initialize())
+app.use(passport.session())
 app.use('/',homerouter)
 app.use('/user',userRouter)
 app.listen(process.env.PORT,()=>{

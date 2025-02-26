@@ -13,25 +13,25 @@
     <input id="mes" type="hidden" value="<%= message %>">
     <div class="login-container">
         <div class="login-form">
-            <form>
+            <form action="/user/login" method="post">
                 <h2 class="text-center">Welcome back!</h2>
                 <p class="text-center">Enter your Credentials to access your account</p>
                 <div class="form-group">
                     <label for="email">Email address</label>
-                    <input type="email" class="form-control" id="email" placeholder="Enter your email">
+                    <input type="email" name="email" class="form-control" id="email" placeholder="Enter your email">
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" placeholder="Enter your password">
+                    <input type="password" name="password" class="form-control" id="password" placeholder="Enter your password">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Login</button>
                 <div class="text-center mt-3">
                     <a href="#">Forgot password?</a>
                 </div>
                 <div class="text-center mt-3">
-                    <button type="button" class="btn btn-outline-secondary btn-block">
+                    <a href="/user/auth/google" class="btn btn-outline-secondary btn-block">
                         <img src="https://img.icons8.com/color/16/000000/google-logo.png"> Sign in with Google
-                    </button>
+                    </a>
                 </div>
                 <div class="text-center mt-3">
                     <p>Don't have an account? <a href="#" onclick="navigate('/user/register')">Sign Up</a></p>
