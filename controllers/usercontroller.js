@@ -33,6 +33,10 @@ const loadregisterpage = async(req,res)=>{
 }
 const Loadlogin= async(req,res)=>{
     try {
+        
+        if(req.session.User){
+          return res.redirect('/')
+        }
         let message = '';
         if(req.session.message){
              message = req.session.message
@@ -175,7 +179,7 @@ const register = async(req,res)=>{
   try {
     
     if(isexist){
-        req.session.msg = "user already exists"
+        req.session.message = "user already exists"
         res.redirect('register')
     }
     else{
