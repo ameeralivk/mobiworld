@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { search } = require('../app');
 const {Schema} = mongoose;
 const userschema = new Schema ({
     name: {
@@ -29,7 +28,9 @@ const userschema = new Schema ({
     // },
     googleId:{
         type:String,
-        unique:true
+        unique:true,
+        required:false,
+        sparse:true,
     },
     isBlocked:{
         type : Boolean,

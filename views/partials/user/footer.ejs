@@ -1,4 +1,4 @@
-<footer class="ftco-footer ftco-section">
+<!-- <footer class="ftco-footer ftco-section">
     <div class="container">
         <div class="row">
             <div class="mouse">
@@ -63,11 +63,123 @@
       <div class="row">
         <div class="col-md-12 text-center">
 
-          <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+          <p>
                         Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="icon-heart color-danger" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                        <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                        
                       </p>
         </div>
       </div>
     </div>
-  </footer>
+  </footer> -->
+  <footer class="footer">
+    <!-- Scroll to top button -->
+    <div class="scroll-top">
+        <i class="fas fa-chevron-up"></i>
+    </div>
+    
+    <div class="container">
+        <div class="row">
+            <!-- Brand Column -->
+            <div class="col-lg-3 col-md-6 footer-column">
+                <h4 class="footer-heading">MOBIWORLD</h4>
+                <p class="footer-text">Let your skin say a story about you.</p>
+                
+                <!-- Social Icons -->
+                <div class="social-icons">
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Menu Column -->
+            <div class="col-lg-3 col-md-6 footer-column">
+                <h4 class="footer-heading">MENU</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Shop</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Journal</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            
+            <!-- Help Column -->
+            <div class="col-lg-3 col-md-6 footer-column">
+                <h4 class="footer-heading">HELP</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Shipping Information</a></li>
+                    <li><a href="#">Returns & Exchange</a></li>
+                    <li><a href="#">FAQs</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Terms & Conditions</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact Column -->
+            <div class="col-lg-3 col-md-6 footer-column">
+                <h4 class="footer-heading">CARE FOR A VISIT?</h4>
+                
+                <div class="contact-info">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>Koltra Industrial Park,<br>Kakkanadery, Kochinside,<br>Kerala</p>
+                </div>
+                
+                <div class="contact-info">
+                    <i class="fas fa-phone-alt"></i>
+                    <p>+91 0000000000</p>
+                </div>
+                
+                <div class="contact-info">
+                    <i class="fas fa-envelope"></i>
+                    <p>silversoul@gmail.com</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Copyright Section -->
+        <div class="footer-bottom">
+            <p>Copyright ©2024 All rights reserved</p>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Optional JavaScript for scroll to top functionality -->
+    <script>
+        document.querySelector('.scroll-top').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close navbar when clicking outside
+            document.addEventListener('click', function(event) {
+                const navbarMenu = document.getElementById('navbarContent');
+                const navbarToggler = document.querySelector('.navbar-toggler');
+                
+                const isClickInsideNavbar = navbarMenu.contains(event.target);
+                const isClickOnToggler = navbarToggler.contains(event.target);
+                
+                if (!isClickInsideNavbar && !isClickOnToggler && navbarMenu.classList.contains('show')) {
+                    const bsCollapse = new bootstrap.Collapse(navbarMenu);
+                    bsCollapse.hide();
+                }
+            });
+        });
+    </script>
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
