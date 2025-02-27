@@ -5,6 +5,7 @@ const db = require('./config/db')
 const dotenv = require('dotenv')
 const userRouter = require('./routes/userRouter')
 const homerouter = require('./routes/homeRouter')
+const adminRouter = require('./routes/adminRouter')
 const ejs = require('ejs')
 const session = require('express-session')
 const passport =require('./config/passport')
@@ -28,8 +29,9 @@ app.use(session({
 }));
 app.use(passport.initialize())
 app.use(passport.session())
-app.use('/',homerouter)
+app.use('/',userRouter)
 app.use('/user',userRouter)
+app.use('/admin',adminRouter)
 app.listen(process.env.PORT,()=>{
    console.log('server is started')
 

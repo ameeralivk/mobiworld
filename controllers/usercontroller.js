@@ -15,6 +15,28 @@ const pageNotFound = async (req,res)=>{
         res.redirect('/pageNotFound')
     }
 }
+
+const loadhome = async (req,res)=>{
+    try {
+      const user = req.session.User
+      if(user){
+        const userData = await userschema.findOne({_id:user._id})
+        console.log(userData)
+        res.render('home',{user:userData})
+      }
+      else{
+        return res.render('home')
+      }
+      
+    } catch (error) {
+      console.log("home page not loading",error);
+      res.status(500).send('Server Error');
+    }
+  
+  }
+
+
+
 const loadregisterpage = async(req,res)=>{
     try {
         let message = '';
@@ -33,17 +55,19 @@ const loadregisterpage = async(req,res)=>{
 }
 const Loadlogin= async(req,res)=>{
     try {
-        
         if(req.session.User){
           return res.redirect('/')
         }
-        let message = '';
-        if(req.session.message){
-             message = req.session.message
-            req.session.message = null
+        // let message = '';
+        // if(req.session.message){
+        //      message = req.session.message
+        //     req.session.message = null
+        //     return res.render('login',{ message })
+        // }
+        else{
+            return res.render('login')
         }
-        return res.render('login',{ message })
-        
+      
     } catch (error) {
        res.redirect('/pageNotFound')
         
@@ -67,7 +91,7 @@ const login = async (req,res)=>{
               return  res.render('login',{ message:"incorrect Password"})
             }
         }
-        req.session.User = findUser._id
+        req.session.User = findUser
        return res.redirect('/')
     } catch (error) {
         console.error('login err',error);
@@ -221,6 +245,7 @@ const verifyOtp = async (req,res)=>{
         console.log(req.session.user)
         req.session.userOtp = null;
         req.session.userData = null;
+        req.session.User = newUser
         res.json({success:true,redirectUrl:"/"})
         }else{
             res.status(400).json({success:false,message:"invalid Otp please try again"})
@@ -229,6 +254,22 @@ const verifyOtp = async (req,res)=>{
     } catch (error) {
         console.error("Error Verifying OTP",error)
         res.status(500).json({success:false,message:"An Error Occured"})
+    }
+}
+
+const logout = async (req,res)=>{
+    try {
+        req.session.destroy((err)=>{
+            if(err){
+                console.log('session destruction error')
+                return res.redirect('/pageNotFound')
+            }
+            return res.redirect('/login')
+        })
+       
+    } catch (error) {
+        console.log("logout error")
+        res.redirect('/pageNotFound')
     }
 }
 
@@ -242,4 +283,6 @@ module.exports = {
     loadverify,
     pageNotFound,
     login,
+    loadhome,
+    logout,
 }

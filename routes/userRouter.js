@@ -12,9 +12,11 @@ router.post('/resetOtp',usercontroller.resetOtp);
 router.get('/resendOtp',usercontroller.resendOtp)
 router.get('/pageNotFound',usercontroller.pageNotFound)
 router.post('/login',usercontroller.login)
+router.get('/',usercontroller.loadhome)
+router.get('/logout',usercontroller.logout)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{
-
+      req.session.User = req.user
       res.redirect('/')
     });
 module.exports = router;

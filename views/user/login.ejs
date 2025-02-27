@@ -10,19 +10,20 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
 </head>
 <body>
-    <input id="mes" type="hidden" value="<%= message %>">
     <div class="login-container">
         <div class="login-form">
-            <form action="/user/login" method="post">
+            <form id="form" action="/user/login" method="post">
                 <h2 class="text-center">Welcome back!</h2>
                 <p class="text-center">Enter your Credentials to access your account</p>
                 <div class="form-group">
                     <label for="email">Email address</label>
-                    <input type="email" name="email" class="form-control" id="email" placeholder="Enter your email">
+                    <input name="email" class="form-control" id="email" placeholder="Enter your email">
+                    <p style="color: red;" id="message"></p>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" name="password" class="form-control" id="password" placeholder="Enter your password">
+                    <p id="passerror" style="color: red;"></p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Login</button>
                 <div class="text-center mt-3">
@@ -34,7 +35,7 @@
                     </a>
                 </div>
                 <div class="text-center mt-3">
-                    <p>Don't have an account? <a href="#" onclick="navigate('/user/register')">Sign Up</a></p>
+                    <p>Don't have an account? <a href="/user/register">Sign Up</a></p>
                 </div>
             </form>
         </div>
@@ -50,24 +51,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-         let message = document.getElementById('mes').value
-        if(message){
-            Swal.fire(message)
-        }
-        
-        function navigate(route){
-            event.preventDefault()
-            window.location.href = route
-        }
-        const messageElement = document.getElementById('message')
-        if(messageElement && messageElement.innerText){
-           swal.fire({
-            title: 'Message',
-            text: messageElement.textContent,
-            icon: 'success'
-           })
-        }
-        
+    
+
     </script>
 </body>
 </html>

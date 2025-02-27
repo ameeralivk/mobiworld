@@ -1,9 +1,19 @@
 
 const loadhome = async (req,res)=>{
   try {
-     res.render('home')
+    const user = req.session.user
+    console.log(user)
+    if(user){
+      const userData = await user.findOne({_id:user._id})
+      res.render('home',{user:userData})
+    }
+    else{
+      return res.render('home')
+    }
+    
   } catch (error) {
-    console.log(error)
+    console.log("home page not loading",error);
+    res.status(500).send('Server Error');
   }
 
 }
