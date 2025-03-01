@@ -67,7 +67,8 @@ passport.use(new GoogleStrategy({
       user = new User({
         name: profile.displayName,
         email: profile.emails[0].value,
-        googleId: googleId
+        googleId: googleId,
+        isGoogleUser:true,
       });
       await user.save();
       return done(null, user);

@@ -14,7 +14,10 @@
         <div class="login-form">
             <form id="form" action="/user/login" method="post">
                 <h2 class="text-center">Welcome back!</h2>
-                <p class="text-center">Enter your Credentials to access your account</p>
+                <% if (typeof message !== 'undefined' && message) { %>
+                    <p id="mess" class="error-message" ><%= message %></p>
+                <% } %>
+                
                 <div class="form-group">
                     <label for="email">Email address</label>
                     <input name="email" class="form-control" id="email" placeholder="Enter your email">
@@ -25,9 +28,9 @@
                     <input type="password" name="password" class="form-control" id="password" placeholder="Enter your password">
                     <p id="passerror" style="color: red;"></p>
                 </div>
-                <button type="submit" class="btn btn-primary btn-block">Login</button>
+                <button type="submit" id="button" class="btn btn-primary btn-block">Login</button>
                 <div class="text-center mt-3">
-                    <a href="#">Forgot password?</a>
+                    <a href="/user/forgetOtp">Forgot password?</a>
                 </div>
                 <div class="text-center mt-3">
                     <a href="/user/auth/google" class="btn btn-outline-secondary btn-block">
@@ -51,7 +54,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-    
+    // Add this script to your HTML file, preferably before the closing </body> tag
+  const message = document.getElementById('mess')
+   setTimeout(()=>{
+    if(message){
+        message.style.display = 'none';
+    }
+   },3000)
+
+
 
     </script>
 </body>

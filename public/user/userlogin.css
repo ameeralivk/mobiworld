@@ -43,4 +43,18 @@
      margin-bottom: 45px;
      font-size: 50px;
  }
+ /* Add this to your CSS file */
+
+.error-message {
+    color: red;
+    font-weight: bold;
+    border: 2px solid red;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 5px;
+    text-align: center;
+}
+/* Add this to your CSS file */
+
+
 
