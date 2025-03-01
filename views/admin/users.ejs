@@ -1,0 +1,111 @@
+<%- include("../../views/partials/admin/layout") %>
+<link rel="stylesheet" href="\css\admin css\users.css">
+<body>
+    <div class="container mt-4">
+        <h1 class="page-header">Users</h1>
+        
+        <div class="card shadow-sm mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark mb-0">
+                        <thead>
+                            <tr>
+                                <th scope="col">USER IMAGE</th>
+                                <th scope="col">USER NAME</th>
+                                <th scope="col">EMAIL</th>
+                                <th scope="col">PHONE</th>
+                                <th scope="col">DATE OF CREATION</th>
+                                <th scope="col" class="text-center">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% users.forEach(user => { %>
+                            <tr>
+                                <td data-label="USER IMAGE">
+                                    <div class="user-avatar">
+                                        <i class="fa fa-user text-white"></i>
+                                    </div>
+                                </td>
+                                <td data-label="USER NAME"><%= user.name %></td>
+                                <td data-label="EMAIL"><%= user.email %></td>
+                                <td data-label="ADDRESS"><%= user.phone %></td>
+                                <td data-label="DATE OF CREATION"><%= new Date(user.createdOn).toLocaleDateString() %></td>
+                                <td data-label="ACTION" class="text-center">
+                                    <form action="/admin/blockUnblock/<%= user._id %>" method="post">
+                                    <button class="btn btn-block btn-sm text-white px-3" id="button" style="background-color: <%= user.isBlocked ? 'green' : 'red' %>" onclick="alert('Do you Wand tO Proceed')"><%= user.isBlocked ? 'Unblock' : 'Block' %></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <% }) %>
+                          
+      
+
+
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted">SHOWING 1 OF 10</div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item active"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item"><a class="page-link" href="#">4</a></li>
+                    <li class="page-item"><a class="page-link" href="#">...</a></li>
+                    <li class="page-item"><a class="page-link" href="#">8</a></li>
+                    <li class="page-item"><a class="page-link" href="#">9</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function change(){
+            const users = document.getElementById('users')
+            const dashboard = document.getElementById('dashboard')
+            
+            console.log("hi")
+            users.style.color = "white"
+            users.style.backgroundColor = "#252830"
+            users.style.borderColor = "#333"
+            dashboard.style.backgroundColor = "#1e1e1e"
+            dashboard.style.color = "#adb5bd"
+          
+        }
+        document.addEventListener('DOMContentLoaded',function(event){
+            event.preventDefault()
+            change()
+            window.location.href('/admin/users')
+        })
+        function logout(){
+            window.location.href = "/admin/login"
+        }
+        function alert(message){
+        var confirmation = confirm(message)
+        if(confirmation){
+            window.location.href = "/admin/login"
+        }
+        else{
+            event.preventDefault()
+        }
+    }
+      </script>
+</body>
+</html>

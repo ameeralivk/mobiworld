@@ -170,12 +170,6 @@ const Loadlogin= async(req,res)=>{
         if(req.session.User){
           return res.redirect('/')
         }
-        // let message = '';
-        // if(req.session.message){
-        //      message = req.session.message
-        //     req.session.message = null
-        //     return res.render('login',{ message })
-        // }
         else{
             return res.render('login')
         }

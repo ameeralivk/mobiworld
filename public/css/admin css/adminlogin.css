@@ -99,3 +99,12 @@ body {
         padding: 1.5rem;
     }
 }
+.error-message {
+    color: red;
+    font-weight: bold;
+    border: 2px solid red;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 5px;
+    text-align: center;
+}

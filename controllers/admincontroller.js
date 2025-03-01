@@ -1,14 +1,79 @@
 const User = require("../models/user")
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
+const user = require('../models/user')
 
 const loadlogin = async (req,res)=>{
+    if(req.session.message){
+        const message = req.session.message;
+        req.session.message = null
+       return res.render('admin-login',{message})
+    }
     if(req.session.admin){
         return res.redirect('/admin/dashboard')
     }
     res.render('admin-login',{message:null})
 }
+const dashboard = async(req,res)=>{
+   return res.render('dashboard')
+}
+const loadusers = async(req,res)=>{
+    const users = await user.find({})
+    return res.render('users',{ users })
+    try {
+        
+    } catch (error) {
+        console.log(error)
+    }
+}
+const loginverification = async(req,res)=>{
+    const {email,password} = req.body
+    const admin = await User.findOne({isAdmin:true,email:email})
+    try {
+        if(!admin){
+            req.session.message = "Not an Admin"
+            return res.redirect('/admin/login')
+    
+        }
+        if(admin){
+            const isMatch = await bcrypt.compare(password, admin.password);
+            if(!isMatch){
+                req.session.message = "password Not Match"
+                return res.redirect('/admin/login')
+            }
+           return res.redirect('/admin/dashboard')
+        }
+        else{
+           return res.redirect('/admin/login')
+        }
+      
+       
+    } catch (error) {
+        console.log(error)
+    }
+}
+const blockUnblock = async(req,res)=>{
+    const users = await user.findById(req.params.id)
+    try {
+        if(users.isBlocked == true){
+            console.log('hi')
+            users.isBlocked = false;
+            await users.save()
+        }
+        else{
+            users.isBlocked = true;
+            await users.save()
+        }
+        res.redirect('/admin/users')
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 module.exports ={
     loadlogin,
+    loginverification,
+    dashboard,
+    loadusers,
+    blockUnblock,
 }
