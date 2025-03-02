@@ -1,0 +1,81 @@
+body {
+    background-color: #111;
+    color: #fff;
+  }
+  
+  .categories-container {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  
+  .categories-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .table {
+    color: #fff;
+  }
+  
+  .table thead th {
+    border-bottom: 1px solid #333;
+    color: #999;
+    font-weight: 500;
+    padding: 12px 8px;
+  }
+  
+  .table tbody td {
+    border-color: #333;
+    padding: 12px 8px;
+  }
+  
+  .add-category-btn {
+    background-color: #8EE4AF;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 500;
+  }
+  
+  .action-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 5px;
+  }
+  
+  .pagination {
+    margin-top: 20px;
+  }
+  
+  .pagination .page-item .page-link {
+    background-color: #2a2a2a;
+    border-color: #333;
+    color: #fff;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #8EE4AF;
+    border-color: #8EE4AF;
+    color: #000;
+  }
+  
+  .pagination-info {
+    color: #999;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 768px) {
+    .table-responsive {
+      overflow-x: auto;
+    }
+    
+    .categories-header h2 {
+      font-size: 1.5rem;
+    }
+  }

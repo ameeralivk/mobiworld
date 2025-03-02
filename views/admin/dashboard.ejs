@@ -151,47 +151,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-          function otpvalidate(e) {
-            console.log('hi')
-            e.preventDefault();  // Prevent the form from submitting
-            const otpInput = document.getElementById('otp').value;
-            console.log(otpInput)
-            $.ajax({
-                type: "POST",
-                url: "verify-otp",
-                data: { otp: otpInput },
-                success: function(response) {
-                    if (response.success) {
-                        console.log(response)
-                        Swal.fire({
-                            icon: "success",
-                            title: "OTP verified successfully",
-                            showConfirmButton: false,
-                            timer: 1500
-                        }).then(() => {
-                            window.location.href = response.redirectUrl;
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Error",
-                            text: response.message,
-                        });
-                    }
-                },
-                error: function(jqXHR) {
-                    let errormessage = "please try again"
-                    if(jqXHR.responseJSON && jqXHR.responseJSON.message){
-                        errorMessage = jqXHR.responseJSON.message;
-                    }
-                    Swal.fire({
-                        icon: "error",
-                        title: "Invalid OTP",
-                        text: errormessage
-                    });
-                }
-            });
-            return false;
+         function logout(){
+            window.location.href = "/admin/logout"
         }
     </script>
 </body>

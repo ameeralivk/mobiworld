@@ -1,7 +1,11 @@
-const User = require("../models/user")
+
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const user = require('../models/user')
+const { query } = require("express")
+const connectDB = require('../config/db')
+
+connectDB()
 
 const loadlogin = async (req,res)=>{
     if(req.session.message){
@@ -17,18 +21,53 @@ const loadlogin = async (req,res)=>{
 const dashboard = async(req,res)=>{
    return res.render('dashboard')
 }
+
+
+const logout = async (req,res)=>{
+try {
+    req.session.destroy(err=>{
+        if(err){
+            console.log("Error destroyin session",err)
+            res.render('page-404').send('error occured')
+          
+        }
+        else{
+            res.render('admin-login',{message:''})
+        }
+    })
+} catch (error) {
+    console.log("error occured at admincontroller",error);
+    
+}
+
+}
+
+
 const loadusers = async(req,res)=>{
     const users = await user.find({})
-    return res.render('users',{ users })
-    try {
-        
-    } catch (error) {
-        console.log(error)
-    }
+    
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const paginatedData = await getPaginatedData(page, limit);
+   
+
+    res.render('users', {
+        users:paginatedData.data,
+        data: paginatedData.data,
+        totalPages: paginatedData.totalPages,
+        currentPage: paginatedData.currentPage,
+        limit,
+        clearInput:false,
+    });
+
+
+
+
 }
 const loginverification = async(req,res)=>{
     const {email,password} = req.body
-    const admin = await User.findOne({isAdmin:true,email:email})
+    const admin = await user.findOne({isAdmin:true,email:email})
     try {
         if(!admin){
             req.session.message = "Not an Admin"
@@ -69,6 +108,71 @@ const blockUnblock = async(req,res)=>{
         console.log(error)
     }
 }
+const  searchuser = async(req,res)=>{
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const paginatedData = await getPaginatedData(page, limit);
+    const searchquary = req.query.Search
+    console.log(searchquary)
+    const users = await user.find({ name: { $regex: searchquary, $options: 'i' } });
+try {
+    return res.render('users',{  users,
+                                 data:'',
+                                 totalPages:'',
+                                 currentPage:'',
+                                 limit:'',
+                                 clearInput:false,})
+} catch (error) {
+    console.log(error)
+}
+}
+const clear = async(req,res)=>{
+    const users = await user.find({})
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    const paginatedData = await getPaginatedData(page, limit);
+    try { 
+        res.render('users',{users ,
+                            clearInput:true,
+                            data:'',
+                            totalPages:'',
+                            currentPage:'',
+                            limit:'',
+                        })
+    } catch (error) { 
+        console.log(error)         
+    }
+}
+
+
+
+async function getPaginatedData(page, limit) {
+    try {
+        const skip = (page - 1) * limit;
+        const data = await user.find().sort({createdOn:-1}).skip(skip).limit(limit).exec();
+        const totalDocuments = await user.countDocuments();
+
+        return {
+            data,
+            totalPages: Math.ceil(totalDocuments / limit),
+            currentPage: page,
+        };
+    } catch  {
+        console.error('Error fetching paginated data:', error);
+        return {
+            data: [],
+            totalPages: 0,
+            currentPage: page,
+            totalDocuments: 0,
+        };
+    }
+        
+}
+
+
+
 
 module.exports ={
     loadlogin,
@@ -76,4 +180,7 @@ module.exports ={
     dashboard,
     loadusers,
     blockUnblock,
+    searchuser,
+    clear, 
+    logout,
 }

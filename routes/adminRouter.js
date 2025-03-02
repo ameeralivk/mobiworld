@@ -1,11 +1,18 @@
 const express = require('express')
 const router = express.Router()
 const admincontroller = require('../controllers/admincontroller')
-
+const {adminAuth,userAuth} = require('../middlewares/auth')
+const categorycontroller = require('../controllers/categorycontroller')
 router.get('/login',admincontroller.loadlogin)
 router.post('/login',admincontroller.loginverification)
-router.get('/dashboard',admincontroller.dashboard)
+router.get('/dashboard',adminAuth,admincontroller.dashboard)
 router.get('/users',admincontroller.loadusers)
 router.post('/blockUnblock/:id',admincontroller.blockUnblock)
+router.get('/user/Search',admincontroller.searchuser)
+router.post('/user/clear',admincontroller.clear)
+router.get('/logout',admincontroller.logout)
+router.get('/addcategory',categorycontroller.addcategorypage)
+router.get('/Category',adminAuth,categorycontroller.categoryInfo)
+router.post('/addcategory',categorycontroller.addcategory)
 
 module.exports = router;
