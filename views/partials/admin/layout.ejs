@@ -16,16 +16,16 @@
         <div class="logo">mobiworld</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a id="dashboard" class="nav-link active" href="/admin/dashboard">
+                <a id="dashboard" class="nav-link" href="/admin/dashboard">
                     <i class="fas fa-th-large"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a id="product" class="nav-link" href="/admin/product">
                     <i class="fas fa-box"></i> Product
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item ">
                 <a class="nav-link" href="#">
                     <i class="fas fa-shopping-cart"></i> Orders
                 </a>
@@ -40,12 +40,12 @@
                     <i class="fas fa-tags"></i> Categories
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item ">
                 <a class="nav-link" href="#">
                     <i class="fas fa-gift"></i> Offers
                 </a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item ">
                 <a class="nav-link" href="#">
                     <i class="fas fa-cog"></i> Settings
                 </a>
@@ -60,8 +60,8 @@
                     <i class="fas fa-ticket-alt"></i> Coupons
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link logout-btn" onclick="logout()" href="#">
+            <li class="nav-item ">
+                <a class="nav-link logout-btn" onclick="logout()" href="/admin/logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </a>
             </li>
@@ -74,3 +74,76 @@
             <h2>Dashboard</h2>
             <!-- <button class="btn btn-lg btn-danger me-3" >Logout</button> -->
         </div> 
+
+
+        <script>
+        //       function change(){
+        //     const users = document.getElementById('product')
+        //     // const dashboard = document.getElementById('dashboard')
+        //     users.style.color = "white"
+        //     users.style.backgroundColor = "#252830"
+        //     users.style.borderColor = "#333"
+        //     dashboard.style.backgroundColor = "#1e1e1e"
+        //     dashboard.style.color = "#adb5bd"
+          
+        // }
+        // document.addEventListener('DOMContentLoaded',function(event){
+        //     event.preventDefault()
+        //     change()
+        //     // window.location.href('/admin/users')
+        // })
+
+        // const boxes = document.querySelectorAll('.nav-link');
+        // boxes.forEach(navLink => {
+        //     navLink.addEventListener('click', (event) => {
+        //         event.preventDefault()
+        //         console.log('hi')
+        //         // Remove active class from all boxes
+        //         boxes.forEach(b => b.classList.remove('active'));
+        //         // Add active class to the clicked box
+        //         navLink.classList.add('active');
+        //         const href = navLink.getAttribute('href');
+        //         console.log(href)
+        //         setTimeout(() => {
+        //             window.location.href = href
+        //         }, 1000);
+               
+        //     });
+        // });
+
+
+        // Apply the active class on page load based on localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLinkId = localStorage.getItem('activeLinkId');
+            if (activeLinkId) {
+                const activeLink = document.getElementById(activeLinkId);
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+        });
+
+        const boxes = document.querySelectorAll('.nav-link');
+        boxes.forEach(navLink => {
+            navLink.addEventListener('click', (event) => {
+                event.preventDefault();
+                console.log('hi');
+                // Remove active class from all boxes
+                boxes.forEach(b => b.classList.remove('active'));
+                // Add active class to the clicked box
+                navLink.classList.add('active');
+                // Save the active link id in localStorage
+                const activeLinkId = navLink.getAttribute('id');
+                localStorage.setItem('activeLinkId', activeLinkId);
+                // Navigate to the URL specified in the href attribute
+                const href = navLink.getAttribute('href');
+                console.log(href);
+                // Delay navigation to ensure active class is applied
+               
+                    window.location.href = href;
+                 // 100 milliseconds delay
+            });
+        });
+
+
+        </script>

@@ -1,0 +1,126 @@
+<%- include("../../views/partials/admin/layout") %>
+<link rel="stylesheet" href="\css\admin css\addproduct.css">
+<body>
+    <div class="container">
+        <% if (msg) { %>
+            <div id="message" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Failed!</strong> <%= msg %>
+            </div>
+            <% } %>
+    
+        <h2 class="mb-4">Add Products</h2>
+
+        <div class="form-container">
+            <form action="/admin/upload" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="productImage" class="form-label">Card Image:</label>
+                            <div class="image-preview" id="imagePreview" onclick="document.getElementById('productImage').click()"></div>
+                            <input name="productImage" type="file" class="form-control d-none" id="productImage" multiple>
+                        </div>
+                        <!-- <input name="recimage" type="file" multiple> -->
+                    </div>
+                     
+                    
+                    <div class="col-md-8">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productName" class="form-label">Product Name:</label>
+                                    <input name="productName" type="text" class="form-control" id="productName">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productDescription" class="form-label">Product Description:</label>
+                                    <input name="productDescription" type="text" class="form-control" id="productDescription">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Brand:</label>
+                                    <input name="brand" type="text" class="form-control" id="brand">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productAmount" class="form-label">Product Amount:</label>
+                                    <input name="price" type="number" class="form-control" id="productAmount">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="stockCount" class="form-label">Stock Count:</label>
+                                    <input name="count" type="number" class="form-control" id="stockCount">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Colours Available:</label>
+                            <input type="text" name="color">
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="add-btn">ADD PRODUCT</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Image preview functionality
+        document.getElementById('productImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').style.backgroundImage = `url(${e.target.result})`;
+                    document.getElementById('imagePreview').style.backgroundSize = 'cover';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+
+ 
+
+
+
+        const mess = document.getElementById('message')
+        setTimeout(() => {
+            if(mess){
+                mess.style.display = 'none'
+            }
+        },3000);
+
+  
+        // function change(){
+        //     const users = document.getElementById('product')
+        //     const dashboard = document.getElementById('dashboard')
+        //     users.style.color = "white"
+        //     users.style.backgroundColor = "#252830"
+        //     users.style.borderColor = "#333"
+        //     dashboard.style.backgroundColor = "#1e1e1e"
+        //     dashboard.style.color = "#adb5bd"
+          
+        // }
+        // document.addEventListener('DOMContentLoaded',function(event){
+        //     event.preventDefault()
+        //     change()
+        //     // window.location.href('/admin/users')
+        // })
+    </script>
+</body>
+</html>

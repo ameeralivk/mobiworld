@@ -10,6 +10,10 @@ const categorySchema = new Schema({
         type: String,
         required: true,
     },
+    isDeleted:{
+        type:Boolean,
+        default:false,
+    },
     isListed:{
         type: Boolean,
         default:true,

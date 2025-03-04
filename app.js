@@ -11,7 +11,6 @@ const session = require('express-session')
 const passport =require('./config/passport')
 dotenv.config()
 db()
-
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.set('view engine','ejs')

@@ -47,7 +47,7 @@ const loadusers = async(req,res)=>{
     const users = await user.find({})
     
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 1;
 
     const paginatedData = await getPaginatedData(page, limit);
    
@@ -95,7 +95,6 @@ const blockUnblock = async(req,res)=>{
     const users = await user.findById(req.params.id)
     try {
         if(users.isBlocked == true){
-            console.log('hi')
             users.isBlocked = false;
             await users.save()
         }
@@ -114,21 +113,20 @@ const  searchuser = async(req,res)=>{
 
     const paginatedData = await getPaginatedData(page, limit);
     const searchquary = req.query.Search
-    console.log(searchquary)
-    const users = await user.find({ name: { $regex: searchquary, $options: 'i' } });
+    const users = await user.find({ name: { $regex: searchquary, $options: 'i' } }).sort({createdOn:-1});
 try {
     return res.render('users',{  users,
-                                 data:'',
-                                 totalPages:'',
-                                 currentPage:'',
-                                 limit:'',
+                                 data:paginatedData.data,
+                                 totalPages:paginatedData.totalPages,
+                                 currentPage:paginatedData.currentPage,
+                                 limit,
                                  clearInput:false,})
 } catch (error) {
     console.log(error)
 }
 }
 const clear = async(req,res)=>{
-    const users = await user.find({})
+    const users = await user.find({}).sort({createdOn:-1})
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
@@ -136,10 +134,10 @@ const clear = async(req,res)=>{
     try { 
         res.render('users',{users ,
                             clearInput:true,
-                            data:'',
-                            totalPages:'',
-                            currentPage:'',
-                            limit:'',
+                            data:paginatedData.data,
+                            totalPages:paginatedData.totalPages,
+                            currentPage:paginatedData.currentPage,
+                            limit,
                         })
     } catch (error) { 
         console.log(error)         

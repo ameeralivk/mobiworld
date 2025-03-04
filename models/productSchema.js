@@ -18,11 +18,11 @@ const productSchema = new Schema({
     category:{
         type:Schema.Types.ObjectId,
         ref : "Category",
-        required: true,
+        required: false,
     },
     regularPrice:{
         type : Number,
-        required: true,
+        required: false,
     },
     salePrice:{
         type: Number,
@@ -48,12 +48,12 @@ const productSchema = new Schema({
         type:Boolean,
         default:false,
     },
-    status:{
-        type:String,
-        enum:["Available","out of stock","Discountinued"],
-        required:true,
-        default:"Available"
-    }
+    // status:{
+    //     type:String,
+    //     enum:["Available","out of stock","Discountinued"],
+    //     required:true,
+    //     default:"Available"
+    // }
 },{timestamps:true});
 const Product  = mongoose.model("Product",productSchema)
 

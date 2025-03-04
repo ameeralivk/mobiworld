@@ -121,6 +121,10 @@ body {
     border-color: #7b3fe4;
     color: white;
 }
+.active {
+    background-color: #433a5b;
+    color: white;
+}
 
 .logout-btn {
     color: #ff4757;

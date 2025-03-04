@@ -137,7 +137,7 @@ const loadhome = async (req,res)=>{
         res.render('home',{user:userData})
       }
       else{
-        return res.render('home')
+        return res.render('home',{user:''})
       }
       
     } catch (error) {

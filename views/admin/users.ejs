@@ -81,22 +81,22 @@
                 <ul class="pagination">
                     <% if (currentPage > 1) { %>
                     <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
+                        <a class="page-link" href="?page=<%= currentPage-1 %>" aria-label="Previous">
                             <span aria-hidden="true">&laquo;</span>
                         </a>
                     </li>
                     <% } %>
 
 
-                    <% for (let i = 1; i <= totalPages; i++) { %>
-                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-                            <a class="page-link" href="/admin/users?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                   
+                        <li class="page-item">
+                            <a class="page-link" href="#"><%= currentPage %></a>
                         </li>
-                    <% } %>
+                 
 
                     <% if (currentPage < totalPages) { %>
                     <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
+                        <a class="page-link" href="?page=<%= currentPage+1 %>" aria-label="Next">
                             <span aria-hidden="true">&raquo;</span>
                         </a>
                     </li>
@@ -109,21 +109,21 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
-        function change(){
-            const users = document.getElementById('users')
-            const dashboard = document.getElementById('dashboard')
-            users.style.color = "white"
-            users.style.backgroundColor = "#252830"
-            users.style.borderColor = "#333"
-            dashboard.style.backgroundColor = "#1e1e1e"
-            dashboard.style.color = "#adb5bd"
+        // function change(){
+        //     const users = document.getElementById('users')
+        //     const dashboard = document.getElementById('dashboard')
+        //     users.style.color = "white"
+        //     users.style.backgroundColor = "#252830"
+        //     users.style.borderColor = "#333"
+        //     dashboard.style.backgroundColor = "#1e1e1e"
+        //     dashboard.style.color = "#adb5bd"
           
-        }
-        document.addEventListener('DOMContentLoaded',function(event){
-            event.preventDefault()
-            change()
-            // window.location.href('/admin/users')
-        })
+        // }
+        // document.addEventListener('DOMContentLoaded',function(event){
+        //     event.preventDefault()
+        //     change()
+        //     // window.location.href('/admin/users')
+        // })
         function logout(){
             window.location.href = "/admin/logout"
         }
