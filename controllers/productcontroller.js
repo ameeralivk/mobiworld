@@ -3,10 +3,13 @@ const multer = require('multer')
 const mongoose = require('mongoose')
 const path = require('path')
 const Product = require('../models/productSchema')
+const { triggerAsyncId } = require('async_hooks')
+const { findByIdAndUpdate } = require('../models/user')
 
 
 const addproductpage = async(req,res)=>{
   try {
+     
      res.render('addproduct',{msg:''})
   } catch (error) {
     
@@ -14,11 +17,20 @@ const addproductpage = async(req,res)=>{
 }
 
 const productpage = async(req,res)=>{
-   const product = await Product.find({})
+   const page = parseInt(req.query.page) || 1;
+   const limit = parseInt(req.query.limit) || 1;
+   const paginatedData = await getPaginatedData(page, limit);
      try {
-        res.render('product',{product,msg:''})
-     } catch (error) {
-        
+         console.log(paginatedData.totalPages)
+         return res.render('product',{product:paginatedData.data,
+                                      msg:'',
+                                      data:paginatedData.data,
+                                      currentPage:paginatedData.currentPage,
+                                       totalPages:paginatedData.totalPages,
+                                       limit, })
+        }
+      catch (error) {
+        console.log(error)
      }
 }
 
@@ -26,10 +38,11 @@ const addproduct = async (req,res)=>{
    const prod = await Product.find({})
    try {
       upload(req, res, (err) => {
+         
          if (err) {
           console.log(err)
          } else {
-           if (req.files == undefined) {
+           if (req.files.length == 0) {
              res.render('addproduct', { product:prod,
                                      msg: 'No file selected!' });
            } else {
@@ -37,10 +50,10 @@ const addproduct = async (req,res)=>{
             const newProduct = new product({
                productName: req.body.productName,
                description: req.body.productDescription,
-               productImage:imagePaths ,
+               productImage:imagePaths,
                brand:req.body.brand,
                salePrice:req.body.price,
-               color:req.body.color,
+               color:req.body.color.split(','),
                quantity:req.body.count,
              });
              newProduct.save()
@@ -48,6 +61,62 @@ const addproduct = async (req,res)=>{
            }
          }
        });   
+   } catch (error) {
+      console.log('productcontroler errorr',error)
+   }
+}
+
+
+const editproduct = async(req,res)=>{
+   const {id} = req.params
+   const prod = await Product.findById(id)
+   const fullproduct = await Product.find({})
+   try {
+     upload(req, res,async(err) => {
+           console.log(req.files)
+         if (err) {
+          console.log(err)
+         } else {
+            let imagePaths = prod.productImage;
+            // let imagePaths = prod.productImage;
+            // if (req.files.length > 0) {
+            //   const newImagePaths = req.files.map((file) => `/cardimages/${file.filename}`);
+    
+            //   for (let i = 0; i <newImagePaths.length; i++) {
+            //     if(imagePaths[i] != newImagePaths[i]){
+            //         imagePaths[i] = newImagePaths[i]
+            //     }
+            //     imagePaths[i] = imagePaths[i]
+            //   }
+            // }
+
+
+            if (req.files.productImage1) {
+               imagePaths[0] = `/cardimages/${req.files.productImage1[0].filename}`;
+             }
+             if (req.files.productImage2) {
+               imagePaths[1] = `/cardimages/${req.files.productImage2[0].filename}`;
+             }
+             if (req.files.productImage3) {
+               imagePaths[2] = `/cardimages/${req.files.productImage3[0].filename}`;
+             }
+
+              console.log(imagePaths)
+
+             await Product.findByIdAndUpdate(prod,{
+               productName: req.body.productName,
+               description: req.body.productDescription,
+               productImage:imagePaths,
+               brand:req.body.brand,
+               salePrice:req.body.price,
+               color:req.body.color.split(','),
+               quantity:req.body.count,
+
+             })
+             res.redirect('/admin/product')
+           }
+         }
+       );   
    } catch (error) {
       console.log('productcontroler errorr',error)
    }
@@ -80,11 +149,96 @@ const upload = multer({
    fileFilter: (req, file, cb) => {
      checkFileType(file, cb);
    }
- }).array('productImage', 3);
+ }).fields([
+   { name: 'productImage1', maxCount: 1 },
+   { name: 'productImage2', maxCount: 1 },
+   { name: 'productImage3', maxCount: 1 }
+ ]);
+
+
+const deleteProduct = async(req,res)=>{
+     const id = req.params.id
+     const prod = await product.findById(id)
+try {
+   if(prod.isDeleted == false){
+      await product.findByIdAndUpdate(id,{isDeleted:true})
+      return res.redirect('/admin/product')
+   }
+   else{
+      await product.findByIdAndUpdate(id,{isDeleted:false})
+      return res.redirect('/admin/product')
+   }
+   
+} catch (error) {
+   console.error('error in deleting product ',error)
+}
+}
+
+
+const searchproduct = async(req,res)=>{
+   const page = parseInt(req.query.page) || 1;
+   const limit = parseInt(req.query.limit) || 10;
+
+   const paginatedData = await getPaginatedData(page, limit);
+   const {Searchval} = req.query
+   const product = await Product.find({$and :[{productName: { $regex: Searchval, $options: 'i' }},{isDeleted:false}]}).sort({createdAt:-1});
+   try {
+      return  res.render('product',{ product,
+           data:paginatedData.data,
+           totalPages:paginatedData.totalPages,
+           currentPage:paginatedData.currentPage,
+           limit,
+           clearInput:false,})
+   } catch (error) {
+       console.log("category contorller error",error)
+   }
+}
+
+
+ const editproductpage = async(req,res)=>{
+   const id =  req.params.id
+   const product = await Product.findById(id)
+   const fullproduct = await Product.find({})
+   try { 
+      console.log(product)   
+      res.render('editproduct',{msg:'',product,fullproduct})
+   } catch (error) {    
+      console.log(error)  
+   }
+ }
+
+ async function getPaginatedData(page, limit) {
+   try {
+       const skip = (page - 1) * limit;
+       const data = await Product.find({isDeleted:false}).sort({createdAt:-1}).skip(skip).limit(limit).exec();
+       const totalDocuments = await Product.countDocuments({isDeleted:false});
+
+       return {
+           data,
+           totalPages: Math.ceil(totalDocuments / limit),
+           currentPage: page,
+       };
+   } catch  {
+       console.error('Error fetching paginated data:', error);
+       return {
+           data: [],
+           totalPages: 0,
+           currentPage: page,
+           totalDocuments: 0,
+       };
+   }
+       
+}
+
+
 
 
 module.exports = {
     addproductpage,
     productpage,
     addproduct,
+    deleteProduct,
+    editproductpage,
+    searchproduct,
+    editproduct,
 }

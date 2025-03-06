@@ -45,17 +45,17 @@
     const description = document.getElementById('description').value
     console.log(category)
     console.log(description)
-    if(category == '' || description == ''){
-      if(category == ''){
+    if(category.trim() == '' || description.trim() == ''){
+      if(category.trim() == ''){
       event.preventDefault()
-      document.getElementById('categoryerror').innerText = "category field is mandatory"
+      document.getElementById('categoryerror').innerText = "category field is not empty"
       
       document.getElementById('categoryerror').style.display = "block"
       
     }
-     if(description == ""){
+     if(description.trim() == ""){
       event.preventDefault()
-      document.getElementById('descriptionerror').innerText = "description field is mandatory"
+      document.getElementById('descriptionerror').innerText = "description field is not empty"
       document.getElementById('descriptionerror').style.display = "block"
     }
     }

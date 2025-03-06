@@ -22,23 +22,27 @@ const userAuth = (req,res,next)=>{
 }
 
 const adminAuth =(req,res,next)=>{
-    user.findOne({isAdmin:true})
-       .then(data=>{
+    const data = req.session.data
         if(data){
             next()
         }
         else{
             res.redirect('/admin/login')
         }
-       })
-    .catch((error)=>{
-        console.log("error in adminauth middlewaree")
-        res.status(500).send('Internal server error')
-        
-    })
-}
+       }
 
+const login = (req,res,next)=>{
+    const data = req.session.data
+    if(data){
+        res.redirect('/admin/dashboard')
+    }
+    else{
+        next()
+    }
+   
+}
 module.exports = {
     userAuth,
     adminAuth,
+    login,
 }

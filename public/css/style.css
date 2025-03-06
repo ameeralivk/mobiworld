@@ -423,3 +423,6 @@ ul {
   margin: 0.5rem 0;
   opacity: 0.1;
 }
+.search-button i {
+  color: black; /* Change the color to black */
+}

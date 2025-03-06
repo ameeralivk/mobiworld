@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer')
 const { ConnectionStates } = require('mongoose')
 const { render } = require('ejs')
 const env = require('dotenv').config()
+const productSchema = require('../models/productSchema')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
@@ -129,15 +130,16 @@ const resetpassOtp = async (req,res)=>{
 }
  
 const loadhome = async (req,res)=>{
+    product = await productSchema.find({isDeleted:false})
     try {
       const user = req.session.User
       if(user){
         const userData = await userschema.findOne({_id:user._id})
         console.log(userData)
-        res.render('home',{user:userData})
+        res.render('home',{user:userData,product})
       }
       else{
-        return res.render('home',{user:''})
+        return res.render('home',{user:'',product})
       }
       
     } catch (error) {

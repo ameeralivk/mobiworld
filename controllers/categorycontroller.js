@@ -4,17 +4,18 @@ const Category = require("../models/categorySchema")
 const categoryInfo = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 1;
-    
         const paginatedData = await getPaginatedData(page, limit);
     try {
-        const category = await Category.find({})
-        res.render('category',{category:paginatedData.data,
-                               data: paginatedData.data,
-                               totalPages: paginatedData.totalPages,
-                               currentPage: paginatedData.currentPage,
-                               limit,
-                               clearInput:false,  })
-    } catch (error) {
+           return  res.render('category',{category:paginatedData.data,
+                data: paginatedData.data,
+                totalPages: paginatedData.totalPages,
+                currentPage: paginatedData.currentPage,
+                limit,
+                clearInput:false,  })
+
+        }
+       
+     catch (error) {
         console.log(error)
     }
 }
@@ -40,8 +41,8 @@ const addcategory = async(req,res)=>{
 async function getPaginatedData(page, limit) {
     try {
         const skip = (page - 1) * limit;
-        const data = await Category.find().sort({createdAt:-1}).skip(skip).limit(limit).exec();
-        const totalDocuments = await Category.countDocuments();
+        const data = await Category.find({isDeleted:false}).sort({createdAt:-1}).skip(skip).limit(limit).exec();
+        const totalDocuments = await Category.countDocuments({isDeleted:false});
 
         return {
             data,
@@ -66,7 +67,7 @@ const categorySearch =async(req,res)=>{
 
     const paginatedData = await getPaginatedData(page, limit);
     const {Searchval} = req.query
-    const category = await Category.find({ name: { $regex: Searchval, $options: 'i' } }).sort({createdAt:-1});
+    const category = await Category.find({ $and:[{name: { $regex: Searchval, $options: 'i' } },{isDeleted:false}]}).sort({createdAt:-1});
     try {
        return  res.render('category',{ category,
             data:paginatedData.data,

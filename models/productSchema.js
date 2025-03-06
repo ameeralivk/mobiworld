@@ -37,7 +37,7 @@ const productSchema = new Schema({
         default: true,
     },
     color:{
-        type:String,
+        type:[String],
         required:true,
     },
     productImage:{
@@ -48,6 +48,10 @@ const productSchema = new Schema({
         type:Boolean,
         default:false,
     },
+    isDeleted:{
+        type:Boolean,
+        default:false,
+    }
     // status:{
     //     type:String,
     //     enum:["Available","out of stock","Discountinued"],

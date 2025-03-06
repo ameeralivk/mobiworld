@@ -8,6 +8,7 @@ const connectDB = require('../config/db')
 connectDB()
 
 const loadlogin = async (req,res)=>{
+    console.log('hifdf')
     if(req.session.message){
         const message = req.session.message;
         req.session.message = null
@@ -32,7 +33,7 @@ try {
           
         }
         else{
-            res.render('admin-login',{message:''})
+            res.redirect('/admin/login')
         }
     })
 } catch (error) {
@@ -41,6 +42,7 @@ try {
 }
 
 }
+
 
 
 const loadusers = async(req,res)=>{
@@ -80,6 +82,7 @@ const loginverification = async(req,res)=>{
                 req.session.message = "password Not Match"
                 return res.redirect('/admin/login')
             }
+            req.session.data = admin
            return res.redirect('/admin/dashboard')
         }
         else{

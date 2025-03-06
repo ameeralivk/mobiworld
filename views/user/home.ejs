@@ -65,16 +65,16 @@
 </section>
 
 <!-- Bestsellers Section -->
+
 <section class="bestsellers-section">
 	<div class="container">
 		<h2 class="section-title">Our Bestsellers</h2>
 		<p class="section-subtitle">These are our assets that we sell without telling a client to think twice while buying</p>
-		
 		<div class="row">
-			<!-- iPhone 14 Pro Max -->
+			<% product.forEach(function(product) { %>
 			<div class="col-lg-3 col-md-6">
 				<div class="product-card">
-					<img src="https://via.placeholder.com/250x300" alt="iPhone 14 Pro Max 5G" class="product-img">
+					<img src="<%= product.productImage[0] %>" alt="iPhone 14 Pro Max 5G" class="product-img">
 					<div class="product-rating">
 						<i class="fas fa-star"></i>
 						<i class="fas fa-star"></i>
@@ -82,59 +82,14 @@
 						<i class="fas fa-star"></i>
 						<i class="fas fa-star"></i>
 					</div>
-					<h4 class="product-name">iPhone 14 Pro Max 5G</h4>
-					<p class="product-price">₹177,900</p>
+					<h4 class="product-name"><%= product.productName %></h4>
+					<p class="product-price">₹<%= product.salePrice %></p>
 				</div>
 			</div>
-			
-			<!-- iPhone 14 5G -->
-			<div class="col-lg-3 col-md-6">
-				<div class="product-card">
-					<img src="https://via.placeholder.com/250x300" alt="iPhone 14 5G" class="product-img">
-					<div class="product-rating">
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-					</div>
-					<h4 class="product-name">iPhone 14 5G</h4>
-					<p class="product-price">₹73,900</p>
-				</div>
-			</div>
-			
-			<!-- Samsung Galaxy S23 Ultra -->
-			<div class="col-lg-3 col-md-6">
-				<div class="product-card">
-					<img src="https://via.placeholder.com/250x300" alt="Samsung Galaxy S23 Ultra 5G" class="product-img">
-					<div class="product-rating">
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-					</div>
-					<h4 class="product-name">Samsung Galaxy S23 Ultra 5G</h4>
-					<p class="product-price">₹71,999</p>
-				</div>
-			</div>
-			
-			<!-- Vivo V40 5G -->
-			<div class="col-lg-3 col-md-6">
-				<div class="product-card">
-					<img src="https://via.placeholder.com/250x300" alt="Vivo V40 5G" class="product-img">
-					<div class="product-rating">
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-						<i class="fas fa-star"></i>
-					</div>
-					<h4 class="product-name">Vivo V40 5G</h4>
-					<p class="product-price">₹34,999</p>
-				</div>
-			</div>
+			<% }); %>
 		</div>
+		
 	</div>
 </section>
+
 <%- include("../../views/partials/user/footer") %>
