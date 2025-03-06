@@ -37,7 +37,8 @@ const productpage = async(req,res)=>{
 const addproduct = async (req,res)=>{
    const prod = await Product.find({})
    try {
-      upload(req, res, (err) => {
+      firstupload(req, res, (err) => {
+         console.log(req.files)
          
          if (err) {
           console.log(err)
@@ -73,7 +74,6 @@ const editproduct = async(req,res)=>{
    const fullproduct = await Product.find({})
    try {
      upload(req, res,async(err) => {
-           console.log(req.files)
          if (err) {
           console.log(err)
          } else {
@@ -155,6 +155,13 @@ const upload = multer({
    { name: 'productImage3', maxCount: 1 }
  ]);
 
+ const firstupload = multer({
+   storage: storage,
+   limits: { fileSize: 1000000 }, 
+   fileFilter: (req, file, cb) => {
+     checkFileType(file, cb);
+   }
+ }).array('productImage', 3);
 
 const deleteProduct = async(req,res)=>{
      const id = req.params.id
