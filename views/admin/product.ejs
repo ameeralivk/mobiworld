@@ -56,7 +56,7 @@
                             <th>STATUS</th>
                             <th>AMOUNT</th>
                             <th>LAST UPDATED</th>
-                            <th>COLOR AVAILABLE</th>
+                            <!-- <th>COLOR AVAILABLE</th> -->
                             <th>ACTIONS</th>
                         </tr>
                     </thead>
@@ -71,12 +71,12 @@
                             <td><%= product.isDeleted ? 'Deleted' :'Active' %></td>
                             <td><%= product.salePrice %></td>
                             <td><%= new Date(product.createdAt).toLocaleDateString() %></td>
-                            <td>
+                          
                                 <!-- <span class="color-dot color-red"></span>
                                 <span class="color-dot color-black"></span>
                                 <span class="color-dot color-blue"></span> -->
-                                <span><%= product.color %></span>
-                            </td>
+                                <!-- <span><%= product.color %></span> -->
+                            
                             <td>
                                 <button onclick="editproduct('<%= product._id %>')" class="action-btn"><i class="fas fa-edit"></i></button>
                                 <button onclick="deleteproduct('<%= product._id %>')" class="action-btn"><i class="fas fa-trash"></i></button>

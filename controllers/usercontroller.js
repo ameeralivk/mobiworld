@@ -395,10 +395,11 @@ const logout = async (req,res)=>{
     }
 }
 const shoppage = async(req,res)=>{
+    const product = await productSchema.find({})
     try {
-        res.render('shoppage')
+        res.render('shoppage',{product,count:product.length})
     } catch (error) {
-        
+        console.error('error from usercontroller',error)
     }
 }
 module.exports = { 

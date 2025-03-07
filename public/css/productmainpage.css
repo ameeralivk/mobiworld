@@ -1,0 +1,43 @@
+.color-option {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+}
+.color-option.beige {
+    background-color: #e3d0ba;
+}
+.color-option.gray {
+    background-color: #808080;
+}
+.color-option.red {
+    background-color: #cc0000;
+}
+.color-option.blue {
+    background-color: #0066cc;
+}
+.color-option.active {
+    border: 2px solid #000;
+}
+.product-image {
+    max-height: 400px;
+    object-fit: contain;
+}
+.price-section .original-price {
+    text-decoration: line-through;
+    color: #999;
+}
+.price-section .sale-price {
+    font-weight: bold;
+    color: #000;
+    font-size: 1.5rem;
+}
+.box-contents img {
+    max-height: 120px;
+}
+.feature-section {
+    margin-bottom: 30px;
+}

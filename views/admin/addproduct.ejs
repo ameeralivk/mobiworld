@@ -68,12 +68,12 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <!-- <div class="mb-3">
                             <label class="form-label">Colours Available:</label>
                             <input type="text" name="color">
                             <p id="colorerror" class="error-message" style="display: none" ></p>
                         </div>
-                        
+                         -->
                         <div class="text-end">
                             <button type="submit" class="add-btn">ADD PRODUCT</button>
                         </div>
@@ -201,7 +201,7 @@
     const branderror = document.getElementById('branderror');
     const rateerror = document.getElementById('rateerror');
     const stockerror = document.getElementById('stockerror');
-    const colorerror = document.getElementById('colorerror');
+    // const colorerror = document.getElementById('colorerror');
 
     form.addEventListener('submit', function(event) {
         const name = document.getElementById('productName').value;
@@ -209,7 +209,7 @@
         const brand = document.getElementById('brand').value;
         const rate = document.getElementById('productAmount').value;
         const stock = document.getElementById('stockCount').value;
-        const color = document.getElementsByName('color')[0].value;
+        // const color = document.getElementsByName('color')[0].value;
 
 
         const nameerror = document.getElementById('nameerror');
@@ -217,9 +217,9 @@
     const branderror = document.getElementById('branderror');
     const rateerror = document.getElementById('rateerror');
     const stockerror = document.getElementById('stockerror');
-    const colorerror = document.getElementById('colorerror');
+    // const colorerror = document.getElementById('colorerror');
 
-        if (name.trim() === '' || description.trim() === '' || brand.trim() === '' || rate.trim() === '' || stock.trim() === '' || color.trim() === '') {
+        if (name.trim() === '' || description.trim() === '' || brand.trim() === '' || rate.trim() === '' || stock.trim() === '' ) {
             if (name.trim() === '') {
                 event.preventDefault();
                 nameerror.innerText = "Name field is empty";
@@ -245,11 +245,11 @@
                 stockerror.innerText = "Stock field is empty";
                 stockerror.style.display = "block";
             }
-            if (color.trim() === '') {
-                event.preventDefault();
-                colorerror.innerText = "Color field is empty";
-                colorerror.style.display = "block";
-            }
+            // if (color.trim() === '') {
+            //     event.preventDefault();
+            //     colorerror.innerText = "Color field is empty";
+            //     colorerror.style.display = "block";
+            // }
         }
 
         setTimeout(() => {
@@ -268,9 +268,9 @@
             if (stockerror.style.display === 'block') {
                 stockerror.style.display = 'none';
             }
-            if (colorerror.style.display === 'block') {
-                colorerror.style.display = 'none';
-            }
+            // if (colorerror.style.display === 'block') {
+            //     colorerror.style.display = 'none';
+            // }
         }, 3000);
     });
 

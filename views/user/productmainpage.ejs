@@ -1,0 +1,188 @@
+<%- include("../../views/partials/user/shoppage_header") %>
+    <link rel="stylesheet" href="\css\productmainpage.css">
+    <!-- Add necessary styles for zoom functionality -->
+    <style>
+        .product-image-container {
+            position: relative;
+            overflow: hidden;
+            cursor: zoom-in;
+        }
+        
+        .product-image {
+            transition: transform 0.3s ease;
+            width: 100%;
+        }
+        
+        .product-image.zoomed {
+            transform: scale(1.8);
+            cursor: zoom-out;
+        }
+        
+        /* Modal for larger zoom view */
+        .zoom-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        
+        .zoom-modal-content {
+            display: block;
+            margin: auto;
+            max-width: 80%;
+            max-height: 80%;
+        }
+        
+        .zoom-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 35px;
+            color: #f1f1f1;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+    
+    <div class="container mt-5">
+        <div class="row">
+            <!-- Product Images Section -->
+            <div class="col-md-6">
+                <div class="row mb-4">
+                    <div class="col-6 mb-3">
+                        <div class="product-image-container">
+                            <img src="<%= product.productImage[0] %>" alt="iPhone 16 Pro Max Front View" class="img-fluid product-image rounded" data-index="0">
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="product-image-container">
+                            <img src="<%= product.productImage[1] %>" alt="iPhone 16 Pro Max Back View" class="img-fluid product-image rounded" data-index="1">
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="product-image-container">
+                            <img src="<%= product.productImage[2] %>" alt="iPhone 16 Pro Max Side View" class="img-fluid product-image rounded" data-index="2">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- What's in the Box Section -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h5 class="mb-3">What's in the Box</h5>
+                        <!-- Box content section is commented out in original code -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Product Details Section -->
+            <div class="col-md-6">
+                <h2 class="mb-2"><%= product.productName %></h2>
+                
+                <!-- Price Section -->
+                <div class="price-section mb-4">
+                    <span class="original-price me-2"></span>
+                    <span class="sale-price"><%= product.salePrice %></span>
+                </div>
+                
+                <!-- Product Information -->
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        About This Product
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Storage: 1TB</li>
+                        <li class="list-group-item">6.9" Super Retina XDR Display</li>
+                        <li class="list-group-item">A18 Pro Chip</li>
+                        <li class="list-group-item">48MP Main Camera</li>
+                        <li class="list-group-item">Water and Dust Resistant (IP68)</li>
+                        <li class="list-group-item">Quantity: 1</li>
+                    </ul>
+                </div>
+                
+                <!-- Quantity Selector -->
+                <div class="mb-4">
+                    <label for="quantity" class="form-label">Quantity:</label>
+                    <select class="form-select w-25" id="quantity">
+                        <% for (var i = 1; i <= 3; i++) { %>
+                        <option value="<%= i %>"><%= i %></option>
+                        <% } %>
+                    </select>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-info text-white">Add to Cart</button>
+                    <button class="btn btn-dark">Buy Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zoom Modal -->
+    <div id="imageZoomModal" class="zoom-modal">
+        <span class="zoom-modal-close">&times;</span>
+        <img class="zoom-modal-content" id="zoomedImage">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Image zoom functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const productImages = document.querySelectorAll('.product-image');
+            const zoomModal = document.getElementById('imageZoomModal');
+            const zoomedImage = document.getElementById('zoomedImage');
+            const closeModal = document.querySelector('.zoom-modal-close');
+            
+            // Toggle zoom on image click
+            productImages.forEach(img => {
+                // Simple zoom on hover/click
+                img.addEventListener('click', function() {
+                    if (this.classList.contains('zoomed')) {
+                        this.classList.remove('zoomed');
+                    } else {
+                        // Open modal with larger image
+                        zoomedImage.src = this.src;
+                        zoomModal.style.display = 'block';
+                    }
+                });
+                
+                // Hover zoom functionality for container
+                const container = img.parentElement;
+                container.addEventListener('mousemove', function(e) {
+                    if (img.classList.contains('zoomed')) {
+                        const rect = container.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        
+                        // Calculate position percentages
+                        const xPercent = x / rect.width * 100;
+                        const yPercent = y / rect.height * 100;
+                        
+                        // Move the image opposite to the cursor to show that part
+                        img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+                    }
+                });
+            });
+            
+            // Close modal when clicking the close button
+            closeModal.addEventListener('click', function() {
+                zoomModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside the image
+            zoomModal.addEventListener('click', function(e) {
+                if (e.target === zoomModal) {
+                    zoomModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+     <%- include("../../views/partials/user/shoppage_footer") %>
+</body>
+</html>

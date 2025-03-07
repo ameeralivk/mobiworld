@@ -3,6 +3,7 @@ const router = express.Router()
 const usercontroller = require('../controllers/usercontroller')
 const passport =  require('passport')
 const userschema = require('../models/user')
+const homecontroller = require('../controllers/homecontroller')
 router.get('/register',usercontroller.loadregisterpage)
 router.get('/verify-otp',usercontroller.loadverify)
 router.post('/register',usercontroller.register)
@@ -25,3 +26,9 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
       res.redirect('/')
     });
 module.exports = router;
+
+
+
+//home routes
+router.get('/productmainpage/:id',homecontroller.getproductmainpage)
+router.get('/getfilterpage',homecontroller.getfilterpage)

@@ -63,7 +63,6 @@ const addproduct = async (req,res)=>{
                productImage:imagePaths,
                brand:req.body.brand,
                salePrice:req.body.price,
-               color:req.body.color.split(','),
                quantity:req.body.count,
              });
              newProduct.save()
@@ -118,7 +117,6 @@ const editproduct = async(req,res)=>{
                productImage:imagePaths,
                brand:req.body.brand,
                salePrice:req.body.price,
-               color:req.body.color.split(','),
                quantity:req.body.count,
 
              })

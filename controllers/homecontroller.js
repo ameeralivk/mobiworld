@@ -1,32 +1,36 @@
+const Product = require('../models/productSchema')
 
-// const loadhome = async (req,res)=>{
-//   try {
-//     const user = req.session.user
-//     console.log(user)
-//     if(user){
-//       const userData = await user.findOne({_id:user._id})
-//       res.render('home',{user:userData})
-//     }
-//     else{
-//       return res.render('home')
-//     }
+const getproductmainpage = async(req,res)=>{
+    const {id} = req.params
+    const product = await Product.findById(id)
+  try {
+    console.log('hi')
+    res.render('productmainpage',{product:product})
+  } catch (error) {
     
-//   } catch (error) {
-//     console.log("home page not loading",error);
-//     res.status(500).send('Server Error');
-//   }
+  }
+}
+const getfilterpage = async(req,res)=>{
+    try {
+        const { category, priceFrom, priceTo } = req.query;
+        let filter = {}
+        if(category){
+            filter.brand = category;
+        }
+        if (priceFrom || priceTo) {
+            filter.salePrice = {};
+            if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
+            if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
+          }
+          const products = await Product.find(filter);
+          res.render('shoppage', { product: products });
+    } catch (error) {
+        
+    }
+}
 
-// }
-// const pagenotfound = async (req,res)=>{
-//     try {
-//         res.render("page-404")
-//     } catch (error) {
-//         res.redirect('pageNotFound')
-//     }
-// }
 
-
-// module.exports ={
-//     loadhome,
-//     pagenotfound,
-// }
+module.exports= {
+    getproductmainpage,
+    getfilterpage,
+}
