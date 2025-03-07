@@ -11,7 +11,7 @@
         <h2 class="mb-4">Add Products</h2>
 
         <div class="form-container">
-            <form action="/admin/upload" method="post" enctype="multipart/form-data">
+            <form id="form" action="/admin/upload" method="post" enctype="multipart/form-data">
                 <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
@@ -29,12 +29,14 @@
                                 <div class="mb-3">
                                     <label for="productName" class="form-label">Product Name:</label>
                                     <input name="productName" type="text" class="form-control" id="productName">
+                                    <p id="nameerror" class="error-message" style="display: none" ></p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="productDescription" class="form-label">Product Description:</label>
                                     <input name="productDescription" type="text" class="form-control" id="productDescription">
+                                    <p id="descriptionerror" class="error-message" style="display: none" ></p>
                                 </div>
                             </div>
                         </div>
@@ -44,6 +46,7 @@
                                 <div class="mb-3">
                                     <label for="brand" class="form-label">Brand:</label>
                                     <input name="brand" type="text" class="form-control" id="brand">
+                                    <p id="branderror" class="error-message" style="display: none" ></p>
                                 </div>
                             </div>
                         </div>
@@ -53,12 +56,14 @@
                                 <div class="mb-3">
                                     <label for="productAmount" class="form-label">Product Amount:</label>
                                     <input name="price" type="number" class="form-control" id="productAmount">
+                                    <p id="rateerror" class="error-message" style="display: none" ></p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="stockCount" class="form-label">Stock Count:</label>
                                     <input name="count" type="number" class="form-control" id="stockCount">
+                                    <p id="stockerror" class="error-message" style="display: none" ></p>
                                 </div>
                             </div>
                         </div>
@@ -66,6 +71,7 @@
                         <div class="mb-3">
                             <label class="form-label">Colours Available:</label>
                             <input type="text" name="color">
+                            <p id="colorerror" class="error-message" style="display: none" ></p>
                         </div>
                         
                         <div class="text-end">
@@ -81,64 +87,193 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Image preview functionality
-        document.getElementById('productImage').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreview').style.backgroundImage = `url(${e.target.result})`;
-                    document.getElementById('imagePreview').style.backgroundSize = 'cover';
-                }
-                reader.readAsDataURL(file);
-            }
-        });
+//         document.getElementById('productImage').addEventListener('change', function(e) {
+//             const file = e.target.files[0];
+//             if (file) {
+//                 const reader = new FileReader();
+//                 reader.onload = function(e) {
+//                     document.getElementById('imagePreview').style.backgroundImage = `url(${e.target.result})`;
+//                     document.getElementById('imagePreview').style.backgroundSize = 'cover';
+//                 }
+//                 reader.readAsDataURL(file);
+//             }
+//         });
 
 
 
-        const mess = document.getElementById('message')
-        setTimeout(() => {
-            if(mess){
-                mess.style.display = 'none'
-            }
-        },3000);
+//         const mess = document.getElementById('message')
+//         setTimeout(() => {
+//             if(mess){
+//                 mess.style.display = 'none'
+//             }
+//         },3000);
 
 
-    const form = document.getElementById('form')
-   const  categoryerror = document.getElementById('categoryerror')
-   const descriptionerror = document.getElementById('descriptionerror')
+//     const form = document.getElementById('form')
+//    const  nameerror = document.getElementById('nameerror')
+//    const descriptionerror = document.getElementById('descriptionerror')
+//    const branderror = document.getElementById('branderror')
+//    const rateerror =  document.getElementById('rateerror')
+//    const stockerror = document.getElementById('stockerror')
+//    const colorerror = document.getElementById('colorerror')
   
 
-   form.addEventListener('submit',function(event){
-    const category =  document.getElementById('categoryName').value
-    const description = document.getElementById('description').value
-    console.log(category)
-    console.log(description)
-    if(category.trim() == '' || description.trim() == ''){
-      if(category.trim() == ''){
-      event.preventDefault()
-      document.getElementById('categoryerror').innerText = "category field is not empty"
+//          form.addEventListener('submit',function(event){
+//     console.log('hello')
+//     const name =  document.getElementById('nameerror').value
+//     const description = document.getElementById('description').value
+//     const brand = document.getElementById('branderror')
+//    const rate =  document.getElementById('rateerror')
+//    const stock = document.getElementById('stockerror')
+//    const color= document.getElementById('colorerror')
+    
+//     if(category.trim() == '' || description.trim() == '' || brand.trim() == '' || rate.trim() == '' || stock.trim() == '' || color.trim() == ''){
+//       if(name.trim() == ''){
+//       event.preventDefault()
+//       document.getElementById('nameerror').innerText = "name field is empty"
       
-      document.getElementById('categoryerror').style.display = "block"
+//       document.getElementById('nameerror').style.display = "block"
       
-    }
-     if(description.trim() == ""){
-      event.preventDefault()
-      document.getElementById('descriptionerror').innerText = "description field is not empty"
-      document.getElementById('descriptionerror').style.display = "block"
-    }
-    }
+//     }
+//      if(description.trim() == ""){
+//       event.preventDefault()
+//       document.getElementById('descriptionerror').innerText = "description field is not empty"
+//       document.getElementById('descriptionerror').style.display = "block"
+//     }
+//     if(brand.trim() == ""){
+//       event.preventDefault()
+//       document.getElementById('branderror').innerText = "brand field is not empty"
+//       document.getElementById('branderror').style.display = "block"
+//     }
+//     if(rate.trim() == ""){
+//       event.preventDefault()
+//       document.getElementById('rateerror').innerText = "brand field is not empty"
+//       document.getElementById('rateerror').style.display = "block"
+//     }
+//     if(stock.trim() == ""){
+//       event.preventDefault()
+//       document.getElementById('stockerror').innerText = "brand field is not empty"
+//       document.getElementById('stockerror').style.display = "block"
+//     }
+//     if(color.trim() == ""){
+//       event.preventDefault()
+//       document.getElementById('colorerror').innerText = "brand field is not empty"
+//       document.getElementById('colorerror').style.display = "block"
+//     }
+    
+//         }
    
-    setTimeout(()=>{
-          if(categoryerror.style.display == 'block'){
-            categoryerror.style.display = 'none'
-          }
-          if(descriptionerror.style.display == 'block'){
-            descriptionerror.style.display = 'none'
-          }
-     },3000)
+//     setTimeout(()=>{
+//           if(categoryerror.style.display == 'block'){
+//             categoryerror.style.display = 'none'
+//           }
+//           if(descriptionerror.style.display == 'block'){
+//             descriptionerror.style.display = 'none'
+//           }
+//      },3000)
   
 
-   })
+//    })
+
+    // Image preview functionality
+    document.getElementById('productImage').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').style.backgroundImage = `url(${e.target.result})`;
+                document.getElementById('imagePreview').style.backgroundSize = 'cover';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    const mess = document.getElementById('message');
+    setTimeout(() => {
+        if (mess) {
+            mess.style.display = 'none';
+        }
+    }, 3000);
+
+    const form = document.getElementById('form');
+    const nameerror = document.getElementById('nameerror');
+    const descriptionerror = document.getElementById('descriptionerror');
+    const branderror = document.getElementById('branderror');
+    const rateerror = document.getElementById('rateerror');
+    const stockerror = document.getElementById('stockerror');
+    const colorerror = document.getElementById('colorerror');
+
+    form.addEventListener('submit', function(event) {
+        const name = document.getElementById('productName').value;
+        const description = document.getElementById('productDescription').value;
+        const brand = document.getElementById('brand').value;
+        const rate = document.getElementById('productAmount').value;
+        const stock = document.getElementById('stockCount').value;
+        const color = document.getElementsByName('color')[0].value;
+
+
+        const nameerror = document.getElementById('nameerror');
+    const descriptionerror = document.getElementById('descriptionerror');
+    const branderror = document.getElementById('branderror');
+    const rateerror = document.getElementById('rateerror');
+    const stockerror = document.getElementById('stockerror');
+    const colorerror = document.getElementById('colorerror');
+
+        if (name.trim() === '' || description.trim() === '' || brand.trim() === '' || rate.trim() === '' || stock.trim() === '' || color.trim() === '') {
+            if (name.trim() === '') {
+                event.preventDefault();
+                nameerror.innerText = "Name field is empty";
+                nameerror.style.display = "block";
+            }
+            if (description.trim() === '') {
+                event.preventDefault();
+                descriptionerror.innerText = "Description field is empty";
+                descriptionerror.style.display = "block";
+            }
+            if (brand.trim() === '') {
+                event.preventDefault();
+                branderror.innerText = "Brand field is empty";
+                branderror.style.display = "block";
+            }
+            if (rate.trim() === '') {
+                event.preventDefault();
+                rateerror.innerText = "Rate field is empty";
+                rateerror.style.display = "block";
+            }
+            if (stock.trim() === '') {
+                event.preventDefault();
+                stockerror.innerText = "Stock field is empty";
+                stockerror.style.display = "block";
+            }
+            if (color.trim() === '') {
+                event.preventDefault();
+                colorerror.innerText = "Color field is empty";
+                colorerror.style.display = "block";
+            }
+        }
+
+        setTimeout(() => {
+            if (nameerror.style.display === 'block') {
+                nameerror.style.display = 'none';
+            }
+            if (descriptionerror.style.display === 'block') {
+                descriptionerror.style.display = 'none';
+            }
+            if (branderror.style.display === 'block') {
+                branderror.style.display = 'none';
+            }
+            if (rateerror.style.display === 'block') {
+                rateerror.style.display = 'none';
+            }
+            if (stockerror.style.display === 'block') {
+                stockerror.style.display = 'none';
+            }
+            if (colorerror.style.display === 'block') {
+                colorerror.style.display = 'none';
+            }
+        }, 3000);
+    });
+
 
  
     </script>

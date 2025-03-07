@@ -18,6 +18,7 @@ router.get('/forgetOtp',usercontroller.forgetOtp)
 router.post('/resetpassOtp',usercontroller.resetpassOtp)
 router.get('/passresetpage',usercontroller.passresetpage)
 router.post('/passreset',usercontroller.passreset)
+router.get('/shoppage',usercontroller.shoppage)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{
       req.session.User = req.user

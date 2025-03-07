@@ -28,6 +28,8 @@ router.post('/category/clear',categorycontroller.categoryclear)
 router.post('/addcategory',categorycontroller.addcategory)
 router.delete('/Category/categories/:id',categorycontroller.deleteCategory)
 router.get('/deleteCategory',categorycontroller.loadDeleteCategory)
+router.get('/editCategorypage/:id',categorycontroller.editcategorypage)
+router.post('/editcategory',categorycontroller.editcategory)
 
 
 
@@ -41,5 +43,6 @@ router.post('/upload',productcontroller.addproduct)
 router.get('/editproductpage/:id',productcontroller.editproductpage)
 router.get('/product/search',productcontroller.searchproduct)
 router.post('/editproduct/:id',productcontroller.editproduct)
+router.post('/product/clear',productcontroller.productclear)
 
 module.exports = router;  

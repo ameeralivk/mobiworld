@@ -1,0 +1,48 @@
+
+    body {
+      background-color: #1a1a1a;
+      color: white;
+    }
+    
+    .form-container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .heading {
+      margin-bottom: 40px;
+    }
+    
+    .form-control {
+      background-color: white;
+      border: none;
+    }
+    
+    .form-label {
+      margin-bottom: 10px;
+    }
+    
+    textarea.form-control {
+      min-height: 100px;
+    }
+    
+    .update-btn {
+      background-color: #8CEA9C;
+      color: #000;
+      border: none;
+      width: 100px;
+      margin: 20px auto;
+      display: block;
+    }
+    
+    .update-btn:hover {
+      background-color: #7AD889;
+      color: #000;
+    }
+    
+    @media (max-width: 768px) {
+      .form-container {
+        padding: 15px;
+      }
+    }

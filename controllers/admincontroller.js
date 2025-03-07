@@ -49,7 +49,7 @@ const loadusers = async(req,res)=>{
     const users = await user.find({})
     
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 1;
+    const limit = parseInt(req.query.limit) || 2;
 
     const paginatedData = await getPaginatedData(page, limit);
    
@@ -131,17 +131,18 @@ try {
 const clear = async(req,res)=>{
     const users = await user.find({}).sort({createdOn:-1})
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 2;
 
     const paginatedData = await getPaginatedData(page, limit);
     try { 
-        res.render('users',{users ,
-                            clearInput:true,
-                            data:paginatedData.data,
-                            totalPages:paginatedData.totalPages,
-                            currentPage:paginatedData.currentPage,
-                            limit,
-                        })
+        // res.render('users',{users ,
+        //                     clearInput:true,
+        //                     data:paginatedData.data,
+        //                     totalPages:paginatedData.totalPages,
+        //                     currentPage:paginatedData.currentPage,
+        //                     limit,
+        //                 })
+        res.redirect('/admin/users')
     } catch (error) { 
         console.log(error)         
     }

@@ -20,22 +20,27 @@
                 <div class="form-group">
                     <label for="email">Name</label>
                     <input class="form-control" id="name" name="name" placeholder="Enter your name">
+                    <p id="nameerror" class="error-message" style="display: none" ></p>
                 </div>
                 <div class="form-group">
                     <label for="email">Email Address</label>
-                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email">
+                    <input  class="form-control" id="email" name="email" placeholder="Enter your email">
+                    <p id="emailerror" class="error-message" style="display: none" ></p>
                 </div>
                 <div class="form-group">
                     <label for="email">Phone Number</label>
                     <input type="tel" class="form-control" id="phone" name="phone"  pattern="[0-9]{10}" placeholder="Enter the phone">
+                    <p id="phoneerror" class="error-message" style="display: none" ></p>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" class="form-control" name="password" id="password" placeholder="Enter your password">
+                    <p id="passworderror" class="error-message" style="display: none" ></p>
                 </div>
                 <div class="form-group">
                     <label for="confirmpassword">Confirm Password</label>
                     <input type="password" class="form-control" id="confirmpass" placeholder="Enter your password">
+                    <p id="confirmpasserror" class="error-message" style="display: none" ></p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Register</button>
                 <p>If you have an account, please <a href="/user/login" class="custom-link">sign in</a>.
@@ -53,32 +58,107 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        let message = document.getElementById('mes').value
-        if(message){
-            Swal.fire(message)
+        // let message = document.getElementById('mes').value
+        // if(message){
+        //     Swal.fire(message)
+        // }
+        // function FormValidate(event){
+        //     let email =document.getElementById('email').value
+        //     let name = document.getElementById('name').value
+        //     let pass = document.getElementById('password').value
+        //     let phone = document.getElementById('phone').value
+        //     let Confirmpass = document.getElementById('confirmpass').value
+        //     if(email == '' || name == ''|| pass == '' || confirmpass == '' || phone == '' ){
+        //         event.preventDefault()
+        //         Swal.fire({
+        //             icon: 'warning',
+        //             title: 'All fields are required',
+        //         });
+        //     }
+        //     else if(pass != Confirmpass){
+        //         event.preventDefault()
+        //         Swal.fire({
+        //             icon: 'warning',
+        //             title: 'password not match',
+        //         });
+        //     }
+        // }
+
+          
+        let message = document.getElementById('mes').value;
+        if (message) {
+            Swal.fire(message);
         }
+
+        function FormValidate(event) {
+            let email = document.getElementById('email').value;
+            let name = document.getElementById('name').value;
+            let pass = document.getElementById('password').value;
+            let phone = document.getElementById('phone').value;
+            let confirmpass = document.getElementById('confirmpass').value;
+
+            let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            let passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
+            let valid = true;
+
+            if (name.trim() === '') {
+                event.preventDefault();
+                valid = false;
+                document.getElementById('nameerror').innerText = "Name field is empty";
+                document.getElementById('nameerror').style.display = "block";
+            }
+            if (email.trim() === '' || !emailRegex.test(email)) {
+                event.preventDefault();
+                valid = false;
+                document.getElementById('emailerror').innerText = "Invalid email format";
+                document.getElementById('emailerror').style.display = "block";
+            }
+            if (phone.trim() === '') {
+                event.preventDefault();
+                valid = false;
+                document.getElementById('phoneerror').innerText = "Phone field is empty";
+                document.getElementById('phoneerror').style.display = "block";
+            }
+            if (pass.trim() === '' || !passwordRegex.test(pass)) {
+                event.preventDefault();
+                valid = false;
+                document.getElementById('passworderror').innerText = "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one digit";
+                document.getElementById('passworderror').style.display = "block";
+            }
+            if (confirmpass.trim() === '') {
+                event.preventDefault();
+                valid = false;
+                document.getElementById('confirmpasserror').innerText = "Confirm Password field is empty";
+                document.getElementById('confirmpasserror').style.display = "block";
+            }
+            if (pass !== confirmpass) {
+                event.preventDefault();
+                valid = false;
+                document.getElementById('confirmpasserror').innerText = "Passwords do not match";
+                document.getElementById('confirmpasserror').style.display = "block";
+            }
+
+            if (!valid) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Please fix the errors above and try again.'
+                });
+            
+            setTimeout(() => {
+                    document.getElementById('nameerror').style.display = 'none';
+                    document.getElementById('emailerror').style.display = 'none';
+                    document.getElementById('phoneerror').style.display = 'none';
+                    document.getElementById('passworderror').style.display = 'none';
+                    document.getElementById('confirmpasserror').style.display = 'none';
+                }, 3000);
+            }
+
+            return valid;
+        }
+
         
-        function FormValidate(event){
-            let email =document.getElementById('email').value
-            let name = document.getElementById('name').value
-            let pass = document.getElementById('password').value
-            let phone = document.getElementById('phone').value
-            let Confirmpass = document.getElementById('confirmpass').value
-            if(email == '' || name == ''|| pass == '' || confirmpass == '' || phone == '' ){
-                event.preventDefault()
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'All fields are required',
-                });
-            }
-            else if(pass != Confirmpass){
-                event.preventDefault()
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'password not match',
-                });
-            }
-        }
+
     </script>
 </body>
 </html>

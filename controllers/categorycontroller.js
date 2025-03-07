@@ -3,10 +3,23 @@ const Category = require("../models/categorySchema")
 
 const categoryInfo = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 1;
+        const limit = parseInt(req.query.limit) || 2;
         const paginatedData = await getPaginatedData(page, limit);
     try {
+
+        if(req.session.msg){
+           const msg = req.session.msg
+           req.session.msg = null
+            return  res.render('category',{category:paginatedData.data,
+                data: paginatedData.data,
+                msg:msg,
+                totalPages: paginatedData.totalPages,
+                currentPage: paginatedData.currentPage,
+                limit,
+                clearInput:false,  })
+        }
            return  res.render('category',{category:paginatedData.data,
+                msg:'',
                 data: paginatedData.data,
                 totalPages: paginatedData.totalPages,
                 currentPage: paginatedData.currentPage,
@@ -63,13 +76,14 @@ async function getPaginatedData(page, limit) {
 
 const categorySearch =async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 2;
 
     const paginatedData = await getPaginatedData(page, limit);
     const {Searchval} = req.query
     const category = await Category.find({ $and:[{name: { $regex: Searchval, $options: 'i' } },{isDeleted:false}]}).sort({createdAt:-1});
     try {
        return  res.render('category',{ category,
+            msg:'',
             data:paginatedData.data,
             totalPages:paginatedData.totalPages,
             currentPage:paginatedData.currentPage,
@@ -83,18 +97,20 @@ const categorySearch =async(req,res)=>{
 
 const categoryclear = async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 2;
 
     const paginatedData = await getPaginatedData(page, limit);
-    const category = await Category.find({}).sort({createdAt:-1})
+    const category = await Category.find({isDeleted:false}).sort({createdAt:-1})
     try { 
-        res.render('category',{category ,
-                            clearInput:true,
-                            data:paginatedData.data,
-                            totalPages:paginatedData.totalPages,
-                            currentPage:paginatedData.currentPage,
-                            limit,
-                        })
+        // res.render('category',{category ,
+        //                     msg:'',
+        //                     clearInput:true,
+        //                     data:paginatedData.data,
+        //                     totalPages:paginatedData.totalPages,
+        //                     currentPage:paginatedData.currentPage,
+        //                     limit,
+        //                 })
+        res.redirect('/admin/category')
     } catch (error) { 
         console.log(error)         
     }
@@ -126,9 +142,32 @@ const deleteCategory = async(req,res)=>{
     
   }
 }
+const editcategorypage = async(req,res)=>{
+  const {id} = req.params
+  const category = await Category.findById(id)
+  console.log(category)
+try {
+    res.render('editcategory',{category,msg:''})
+} catch (error) {
+   console.error('error from category controller',error)
+}
+}
 
+const editcategory = async (req,res)=>{
+    const{name,description,id} = req.body
+    console.log(id)
+    try {
+        const edited = await Category.findByIdAndUpdate(id,{name:name,description:description})
+        if(edited){
+          req.session.msg = 'category edited successfully'
+          res.redirect('/admin/Category')
+        }
+    } catch (error) {
+        
+    }
+}
 
-module.exports = {
+module.exports = { 
     categoryInfo,
     addcategorypage,
     addcategory,
@@ -136,4 +175,6 @@ module.exports = {
     categoryclear,
     deleteCategory,
     loadDeleteCategory,
+    editcategorypage,
+    editcategory,
 }

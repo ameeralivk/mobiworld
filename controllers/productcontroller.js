@@ -18,10 +18,19 @@ const addproductpage = async(req,res)=>{
 
 const productpage = async(req,res)=>{
    const page = parseInt(req.query.page) || 1;
-   const limit = parseInt(req.query.limit) || 1;
+   const limit = parseInt(req.query.limit) || 2;
    const paginatedData = await getPaginatedData(page, limit);
+   if(req.session.msg){
+      const msg = req.session.msg
+      req.session.msg = null
+      return res.render('product',{product:paginatedData.data,
+         msg:msg,
+         data:paginatedData.data,
+         currentPage:paginatedData.currentPage,
+          totalPages:paginatedData.totalPages,
+          limit, })
+   }
      try {
-         console.log(paginatedData.totalPages)
          return res.render('product',{product:paginatedData.data,
                                       msg:'',
                                       data:paginatedData.data,
@@ -113,6 +122,7 @@ const editproduct = async(req,res)=>{
                quantity:req.body.count,
 
              })
+             req.session.msg = 'product updated successfull'
              res.redirect('/admin/product')
            }
          }
@@ -184,13 +194,14 @@ try {
 
 const searchproduct = async(req,res)=>{
    const page = parseInt(req.query.page) || 1;
-   const limit = parseInt(req.query.limit) || 10;
+   const limit = parseInt(req.query.limit) || 2;
 
    const paginatedData = await getPaginatedData(page, limit);
    const {Searchval} = req.query
    const product = await Product.find({$and :[{productName: { $regex: Searchval, $options: 'i' }},{isDeleted:false}]}).sort({createdAt:-1});
    try {
       return  res.render('product',{ product,
+           msg:'',
            data:paginatedData.data,
            totalPages:paginatedData.totalPages,
            currentPage:paginatedData.currentPage,
@@ -199,6 +210,27 @@ const searchproduct = async(req,res)=>{
    } catch (error) {
        console.log("category contorller error",error)
    }
+}
+
+const productclear =async(req,res)=>{
+         const page = parseInt(req.query.page) || 1;
+           const limit = parseInt(req.query.limit) || 2;
+       
+           const paginatedData = await getPaginatedData(page, limit);
+           const product = await Product.find({isDeleted:false}).sort({createdAt:-1})
+           try { 
+               // res.render('product',{product:paginatedData.data ,
+               //                      msg:'',
+               //                     clearInput:true,
+               //                     data:paginatedData.data,
+               //                     totalPages:paginatedData.totalPages,
+               //                     currentPage:paginatedData.currentPage,
+               //                     limit,
+               //                 })
+               res.redirect('/admin/product')
+           } catch (error) { 
+               console.log(error)         
+           }
 }
 
 
@@ -239,7 +271,6 @@ const searchproduct = async(req,res)=>{
 
 
 
-
 module.exports = {
     addproductpage,
     productpage,
@@ -248,4 +279,5 @@ module.exports = {
     editproductpage,
     searchproduct,
     editproduct,
+    productclear,
 }

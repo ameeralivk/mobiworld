@@ -394,7 +394,13 @@ const logout = async (req,res)=>{
         res.redirect('/pageNotFound')
     }
 }
-
+const shoppage = async(req,res)=>{
+    try {
+        res.render('shoppage')
+    } catch (error) {
+        
+    }
+}
 module.exports = { 
     loadregisterpage,
     Loadlogin,
@@ -411,4 +417,5 @@ module.exports = {
     resetpassOtp,
     passresetpage,
     passreset,
+    shoppage,
 }
