@@ -1,0 +1,76 @@
+<%- include("../../views/partials/user/shoppage_header") %>
+<body>
+    <link rel="stylesheet" href="\css\editprofile.css">
+    <!-- Account Header -->
+     <div class="main">
+    <div class="account-header">
+        <div class="container">
+            <h1 class="head">Edit Account</h1>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mb-5">
+        <div class="row">
+
+            <!-- Content Area -->
+            <div class="col-md-9 main">
+                <!-- Basic Info Section -->
+                <div class="mb-5">
+                    <h2 class="section-heading">Basic Info</h2>
+                    <div class="row mb-4">
+                        <!-- <a href="#" style="text-decoration: none;">
+                        <div class="col-md-3">
+                            <div class="image-upload">
+                            </div>
+                        </div>
+                    </a> -->
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="firstName">
+                                </div>
+                                <!-- <div class="col-md-6 mb-3">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="lastName">
+                                </div> -->
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="phone">
+                                </div>
+                                <!-- <div class="col-md-6 mb-3">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select form-control" id="gender">
+                                        <option selected>Select gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div> -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Details Section -->
+                <div>
+                    <h2 class="section-heading">Login Details</h2>
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3 text-end button">
+                            <button type="submit" class="btn btn-primary" onclick="toggleButtonClass(this)">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>

@@ -1,9 +1,10 @@
 const user = require('../models/user')
 const userAuth = (req,res,next)=>{
-    if(req.session.user){
-        user.findById(req.session.user)
+    if(req.session.User){
+       user.findById(req.session.User)
         .then(data=>{
-            if(data && data.isBlocked){
+            if(data){
+            
                 next()
             }
             else{
@@ -17,6 +18,7 @@ const userAuth = (req,res,next)=>{
         })
     }
     else{
+        req.session.message = 'user not found'
         res.redirect('/login')
     }
 }
@@ -24,10 +26,12 @@ const userAuth = (req,res,next)=>{
 const adminAuth =(req,res,next)=>{
     const data = req.session.data
         if(data){
+            console.log('next')
             next()
         }
         else{
-            res.redirect('/admin/login')
+            console.log('not next')
+            res.render('admin-login',{message:''})
         }
        }
 

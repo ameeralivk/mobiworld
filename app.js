@@ -9,8 +9,10 @@ const adminRouter = require('./routes/adminRouter')
 const ejs = require('ejs')
 const session = require('express-session')
 const passport =require('./config/passport')
+const nocache = require('nocache')
 dotenv.config()
 db()
+app.use(nocache())
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.set('view engine','ejs')
@@ -21,7 +23,7 @@ app.use(session({
    resave: false,
    saveUninitialized: false, 
    cookie: { 
-       secure: process.env.NODE_ENV === 'production',
+       secure: false,
        maxAge: 24 * 60 * 60 * 1000,
        httpOnly:true,
    }

@@ -1,5 +1,6 @@
 const { trusted } = require("mongoose");
-const Category = require("../models/categorySchema")
+const Category = require("../models/categorySchema");
+const { deserializeUser } = require("passport");
 
 const categoryInfo = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
@@ -76,17 +77,19 @@ async function getPaginatedData(page, limit) {
 
 const categorySearch =async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 2;
-
-    const paginatedData = await getPaginatedData(page, limit);
-    const {Searchval} = req.query
-    const category = await Category.find({ $and:[{name: { $regex: Searchval, $options: 'i' } },{isDeleted:false}]}).sort({createdAt:-1});
+    const limit = parseInt(req.query.limit) || 10;
+    const Searchval = req.query.Searchval||''
+    const searchfilter = {name:{$regex:Searchval,$options:'i'},isDeleted:false}
+   const categories = await Category.find(searchfilter).skip((page - 1)*limit).limit(limit).sort({createdAt:-1});
+   const totalCount = await Category.countDocuments(searchfilter);
+   const currentPage = page
+   const totalPages = Math.ceil(totalCount / limit);
     try {
-       return  res.render('category',{ category,
+       return  res.render('category',{ category:categories,
             msg:'',
-            data:paginatedData.data,
-            totalPages:paginatedData.totalPages,
-            currentPage:paginatedData.currentPage,
+            data:categories,
+            totalPages:totalPages,
+            currentPage:currentPage,
             limit,
             clearInput:false,})
     } catch (error) {
@@ -155,15 +158,14 @@ try {
 
 const editcategory = async (req,res)=>{
     const{name,description,id} = req.body
-    console.log(id)
+    console.log(name,description,id)
     try {
         const edited = await Category.findByIdAndUpdate(id,{name:name,description:description})
-        if(edited){
           req.session.msg = 'category edited successfully'
           res.redirect('/admin/Category')
-        }
     } catch (error) {
-        
+        req.session.msg = 'category should be unique'
+        res.redirect('/admin/Category')
     }
 }
 

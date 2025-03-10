@@ -1,7 +1,7 @@
 .form-control, .form-select {
     background-color: transparent;
     border: 1px solid white;
-    color: white;
+    color: rgb(255, 255, 255);
 }
 .form-control::placeholder {
     color: rgba(255,255,255,0.5);
@@ -63,5 +63,8 @@
 #cropper-container {
     display: none;
 }
-
+.form-select option {
+    background-color: black; 
+    color: white;
+}
  

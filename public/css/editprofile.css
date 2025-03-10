@@ -1,0 +1,126 @@
+body {
+    background-color: #f8f8f8;
+    font-family: Arial, sans-serif;
+}
+
+.account-header {
+    background-color: #f5f3e4;
+    padding: 50px 0;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.account-header h1 {
+    font-size: 50px;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.settings-sidebar {
+    background-color: #eee;
+    padding: 0;
+}
+
+.settings-sidebar .nav-link {
+    color: #333;
+    padding: 12px 20px;
+    border-bottom: 1px solid #ddd;
+    border-radius: 0;
+    transition: background-color 0.3s;
+}
+
+.settings-sidebar .nav-link:hover {
+    background-color: #e5e5e5;
+}
+
+/* Add styling for clicked state */
+.settings-sidebar .nav-link.clicked {
+    background-color: #9a9f77;
+    color: white;
+}
+
+.section-heading {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+}
+
+.form-control {
+    border-radius: 0;
+    padding: 10px;
+    height: auto;
+}
+
+.btn {
+    border-radius: 0;
+    padding: 10px 25px;
+    transition: background-color 0.3s;
+}
+
+.btn-primary {
+    background-color: #9a9f77;
+    border-color: #9a9f77;
+}
+
+.btn-primary:hover {
+    background-color: #8a8f67;
+    border-color: #8a8f67;
+}
+
+/* Add styling for clicked state */
+.btn-primary.clicked {
+    background-color: #5a5f47;
+    border-color: #5a5f47;
+}
+
+.btn-secondary {
+    background-color: #9a9f77;
+    border-color: #9a9f77;
+    opacity: 0.85;
+}
+
+/* Add styling for clicked state */
+.btn-secondary.clicked {
+    background-color: #5a5f47;
+    border-color: #5a5f47;
+    opacity: 1;
+}
+
+.btn-outline-secondary {
+    color: #9a9f77;
+    border-color: #9a9f77;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #9a9f77;
+    border-color: #9a9f77;
+    color: white;
+}
+
+/* Add styling for clicked state */
+.btn-outline-secondary.clicked {
+    background-color: #5a5f47;
+    border-color: #5a5f47;
+    color: white;
+}
+
+.image-upload {
+    width: 120px;
+    height: 120px;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    margin-bottom: 15px;
+}
+.main{
+    margin-left: 200px;
+    margin-right: 200px;
+}
+.button{
+    margin-left: 400px;
+}
+

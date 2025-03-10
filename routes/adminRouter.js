@@ -8,9 +8,9 @@ const productcontroller = require('../controllers/productcontroller')
 
 
 //admin controller and user controller
-router.get('/login',admincontroller.loadlogin)
+router.get('/login',adminAuth,admincontroller.loadlogin)
 router.post('/login',admincontroller.loginverification)
-router.get('/dashboard',admincontroller.dashboard)
+router.get('/dashboard',adminAuth,admincontroller.dashboard)
 router.get('/users',admincontroller.loadusers)
 router.post('/blockUnblock/:id',admincontroller.blockUnblock)
 router.get('/user/Search',admincontroller.searchuser)

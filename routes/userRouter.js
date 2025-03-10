@@ -3,6 +3,7 @@ const router = express.Router()
 const usercontroller = require('../controllers/usercontroller')
 const passport =  require('passport')
 const userschema = require('../models/user')
+const {userAuth,login} = require('../middlewares/auth')
 const homecontroller = require('../controllers/homecontroller')
 router.get('/register',usercontroller.loadregisterpage)
 router.get('/verify-otp',usercontroller.loadverify)
@@ -32,3 +33,5 @@ module.exports = router;
 //home routes
 router.get('/productmainpage/:id',homecontroller.getproductmainpage)
 router.get('/getfilterpage',homecontroller.getfilterpage)
+router.get('/profile',userAuth,homecontroller.getprofilepage)
+router.get('/editprofile',homecontroller.geteditpage)

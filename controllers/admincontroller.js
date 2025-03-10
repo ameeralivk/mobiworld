@@ -8,13 +8,12 @@ const connectDB = require('../config/db')
 connectDB()
 
 const loadlogin = async (req,res)=>{
-    console.log('hifdf')
     if(req.session.message){
         const message = req.session.message;
         req.session.message = null
        return res.render('admin-login',{message})
     }
-    if(req.session.admin){
+    if(req.session.data){
         return res.redirect('/admin/dashboard')
     }
     res.render('admin-login',{message:null})
@@ -26,16 +25,9 @@ const dashboard = async(req,res)=>{
 
 const logout = async (req,res)=>{
 try {
-    req.session.destroy(err=>{
-        if(err){
-            console.log("Error destroyin session",err)
-            res.render('page-404').send('error occured')
-          
-        }
-        else{
-            res.redirect('/admin/login')
-        }
-    })
+    req.session.data = null
+    console.log(req.session.data)
+    res.render('admin-login',{message:''})
 } catch (error) {
     console.log("error occured at admincontroller",error);
     

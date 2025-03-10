@@ -83,22 +83,11 @@ const editproduct = async(req,res)=>{
    try {
      upload(req, res,async(err) => {
          if (err) {
-          console.log(err)
+          console.log(err) 
          } else {
-            let imagePaths = prod.productImage;
-            // let imagePaths = prod.productImage;
-            // if (req.files.length > 0) {
-            //   const newImagePaths = req.files.map((file) => `/cardimages/${file.filename}`);
-    
-            //   for (let i = 0; i <newImagePaths.length; i++) {
-            //     if(imagePaths[i] != newImagePaths[i]){
-            //         imagePaths[i] = newImagePaths[i]
-            //     }
-            //     imagePaths[i] = imagePaths[i]
-            //   }
-            // }
-
-
+            if(req.files){
+               let imagePaths = prod.productImage;
+             
             if (req.files.productImage1) {
                imagePaths[0] = `/cardimages/${req.files.productImage1[0].filename}`;
              }
@@ -122,6 +111,10 @@ const editproduct = async(req,res)=>{
              })
              req.session.msg = 'product updated successfull'
              res.redirect('/admin/product')
+            }
+            else{
+               res.redirect('/admin/product')
+            }
            }
          }
        );   
@@ -192,17 +185,22 @@ try {
 
 const searchproduct = async(req,res)=>{
    const page = parseInt(req.query.page) || 1;
-   const limit = parseInt(req.query.limit) || 2;
+   const limit = parseInt(req.query.limit) || 10;
 
-   const paginatedData = await getPaginatedData(page, limit);
-   const {Searchval} = req.query
-   const product = await Product.find({$and :[{productName: { $regex: Searchval, $options: 'i' }},{isDeleted:false}]}).sort({createdAt:-1});
+   // const paginatedData = await getPaginatedData(page, limit);
+   const Searchval = req.query.Searchval||''
+   // const product = await Product.find({$and :[{productName: { $regex: Searchval, $options: 'i' }},{isDeleted:false}]}).sort({createdAt:-1});
+   const searchfilter = {productName:{$regex:Searchval,$options:'i'},isDeleted:false}
+   const products  = await Product.find(searchfilter).skip((page - 1)*limit).limit(limit).sort({createdAt:-1});
+   const totalCount = await Product.countDocuments(searchfilter);
+   const currentPage = page
+   const totalPages = Math.ceil(totalCount / limit);
    try {
-      return  res.render('product',{ product,
+      return  res.render('product',{ product:products,
            msg:'',
-           data:paginatedData.data,
-           totalPages:paginatedData.totalPages,
-           currentPage:paginatedData.currentPage,
+           data:products,
+           totalPages:totalPages,
+           currentPage:currentPage,
            limit,
            clearInput:false,})
    } catch (error) {

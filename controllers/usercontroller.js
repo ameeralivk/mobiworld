@@ -173,7 +173,11 @@ const Loadlogin= async(req,res)=>{
           return res.redirect('/')
         }
         else{
-            return res.render('login')
+            if(req.session.message){
+                const message = req.session.message
+                return res.render('login',{message:message})
+            }
+            return res.render('login',{message:''})
         }
       
     } catch (error) {
@@ -208,7 +212,7 @@ const login = async (req,res)=>{
     } catch (error) {
         console.error('login err',error);
         
-       return res.render('login',{ message:"Loginfailed,please try again"})
+       return res.render('login',{ message:""})
     }
 }
 const resendOtp = async (req,res)=>{

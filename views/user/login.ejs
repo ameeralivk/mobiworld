@@ -21,7 +21,7 @@
                 <div class="form-group">
                     <label for="email">Email address</label>
                     <input name="email" class="form-control" id="email" placeholder="Enter your email">
-                    <p style="color: red;" id="message"></p>
+                    <p style="color: red;" id="email-error"></p>
                 </div>
                 <div class="form-group">
                     <label for="password">Password</label>
@@ -53,18 +53,60 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-    // Add this script to your HTML file, preferably before the closing </body> tag
-  const message = document.getElementById('mess')
-   setTimeout(()=>{
-    if(message){
-        message.style.display = 'none';
+   <script>
+
+    
+
+
+    const form = document.getElementById('form');
+form.addEventListener('submit', (event) => {
+    let isvalid = true;
+    event.preventDefault();
+
+    const password = document.getElementById('password').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const passerror = document.getElementById('passerror');
+    const mess = document.getElementById('email-error');
+
+    // Reset error visibility before validation
+    passerror.style.display = 'none';
+    mess.style.display = 'none';
+
+    // Email validation
+    if (email === '') {
+        mess.style.display = 'block'; // Show error message
+        mess.innerText = 'Email required';
+        isvalid = false;
+    } else {
+        mess.innerText = '';
     }
-   },3000)
 
+    // Password validation
+    if (password === '') {
+        passerror.style.display = 'block'; // Show error message
+        passerror.innerText = 'Password required';
+        isvalid = false;
+    } else {
+        passerror.innerText = '';
+    }
 
+    setTimeout(() => {
+    if (mess) {
+        mess.innerText = '';
+        mess.style.display = 'none';
+    }
+    if (passerror) {
+        passerror.innerText = '';
+        passerror.style.display = 'none';
+    }
+}, 3000);
 
-    </script>
+    // Submit the form only if valid
+    if (isvalid) {
+        form.submit();
+    }
+});
+   </script>
 </body>
 </html>
 
