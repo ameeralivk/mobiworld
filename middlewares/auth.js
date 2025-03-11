@@ -18,7 +18,7 @@ const userAuth = (req,res,next)=>{
         })
     }
     else{
-        req.session.message = 'user not found'
+        req.session.message = 'please login '
         res.redirect('/login')
     }
 }

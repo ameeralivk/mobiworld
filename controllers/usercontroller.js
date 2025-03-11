@@ -175,6 +175,7 @@ const Loadlogin= async(req,res)=>{
         else{
             if(req.session.message){
                 const message = req.session.message
+                req.session.message = null
                 return res.render('login',{message:message})
             }
             return res.render('login',{message:''})
@@ -188,16 +189,17 @@ const Loadlogin= async(req,res)=>{
 const login = async (req,res)=>{
     try {
         const {email,password} = req.body
-        const findUser = await userschema.findOne({isAdmin:0,email:email})
+        console.log(email,password)
+        const findUser = await userschema.findOne({isAdmin:false,email:email})
+        if(!findUser){
+            
+            return res.render("login",{message:"User not found" })
+         }
         if(findUser.isGoogleUser){
             const message = "you signedup with gooogle please login with google signing in"
             res.render('login',{message})
         }
-        if(!findUser){
-            
-           return res.render("login",{message:"User not found" })
-        }
-        if(findUser.isBlocked){
+        if(findUser.isBlocked){ 
         
             return res.render('login',{ message:  "User is blocked by admin"})
         }

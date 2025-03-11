@@ -1,0 +1,24 @@
+.form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.add-btn {
+    background-color: #5DCCC4;
+    border-color: #5DCCC4;
+    padding: 8px 30px;
+    border-radius: 25px;
+}
+.add-btn:hover {
+    background-color: #4ab8b0;
+    border-color: #4ab8b0;
+}
+.form-label {
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+.form-control {
+    border-radius: 4px;
+    padding: 10px 12px;
+}
+

@@ -21,10 +21,6 @@ const addressSchema = new Schema ({
             type: String,
             required : true,
         },
-        landMark:{
-            type: String,
-            required : true,
-        },
         state:{
             type: String,
             required: true,
@@ -46,6 +42,6 @@ const addressSchema = new Schema ({
 
 const Address = mongoose.model('Address',addressSchema)
 
-module.exports ={
+module.exports ={ 
     Address
 }

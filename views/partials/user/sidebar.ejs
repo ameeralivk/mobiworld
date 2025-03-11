@@ -1,0 +1,67 @@
+ <link rel="stylesheet" href="\css\profilepage.css">
+ <body>
+ 
+              <div class="settings-sidebar">
+                    <h5 class="p-3 mb-0 bg-light">SETTINGS</h5>
+                    <div class="nav flex-column nav-pills">
+                        <a class="nav-link" id="ordersLink" href="/user/profile" onclick="toggleNavActive(this)">Personal Info</a>
+                        <a class="nav-link" id="personalInfoLink" href="#" onclick="toggleNavActive(this)">Orders</a>
+                        <a class="nav-link" href="/user/addresspage" onclick="toggleNavActive(this)">Addresses</a>
+                        <a class="nav-link" href="#" onclick="toggleNavActive(this)">Wallet</a>
+                    </div>
+                </div>
+            
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+
+                // Function to toggle active state for sidebar navigation
+                // function toggleNavActive(element) {
+                //   // Remove active class from all nav links
+                //   const navLinks = document.querySelectorAll('.settings-sidebar .nav-link');
+                //   navLinks.forEach(link => {
+                //       link.classList.remove('clicked');
+                //   });
+                  
+                //   // Add clicked class to the clicked element
+                //   element.classList.add('clicked');
+                // }
+
+                const navLinks = document.querySelectorAll('.settings-sidebar .nav-link');
+                const currentUrl = window.location.pathname
+                navLinks.forEach(link => {
+                    if(link.getAttribute('href') === currentUrl){
+                        link.classList.add('clicked')
+                    }
+                })
+
+              
+              // Function to toggle clicked state for buttons
+            //   function toggleButtonClass(element) {
+            //       // Toggle the clicked class
+            //       element.classList.toggle('clicked');
+                  
+            //       // Remove the clicked class after 300ms (visual feedback)
+            //       setTimeout(() => {
+            //           element.classList.remove('clicked');
+            //       }, 300);
+            //   }
+              
+              // Apply click effect to the first button (Orders) when the page loads
+            //   window.onload = function() {
+            //       // Apply clicked style to the Orders link by default
+            //       const ordersLink = document.getElementById('ordersLink');
+            //       ordersLink.classList.add('clicked');
+                  
+            //       // Apply clicked effect to the Edit button briefly
+            //       const editButton = document.getElementById('editButton');
+            //       editButton.classList.add('clicked');
+                  
+            //       // Remove clicked effect from Edit button after 500ms
+            //       setTimeout(() => {
+            //           editButton.classList.remove('clicked');
+            //       }, 500);
+            //   };
+      
+             
+          </script>
+          </body>
