@@ -112,7 +112,6 @@ const editprofile = async (req, res) => {
       res.render('otp-checking')
     }
     else {
-      console.log('ameer')
       try {
         const newuser = await userschema.findByIdAndUpdate(user._id, { name: data.name, email: data.email, phone: data.phone })
         await newuser.save()
@@ -191,34 +190,83 @@ const addaddress = async(req,res)=>{
 const registeraddress = async(req,res)=>{
   const user = req.session.User
   const data = req.body
-  console.log(data,'this is data')
+  console.log(user)
   try {
-      const adduser = new addressSchema.Address({
-        userId:user,
-        address:[{
-          addressType:data.address,
-          name:data.name,
-          city:data.City,
-          pincode:data.pincode,
-          phone:data.phone, 
-          altPhone:data.altphone,
-          state:data.state,
-        }] 
-      })
-     const save = await adduser.save()
-     if(save){
-      req.session.message = 'address created succesfully'
+      if(user){
+        const adduser = new addressSchema.Address({
+          userId:user._id,
+          address:[{
+            addressType:data.address,
+            name:data.name,
+            city:data.City,
+            pincode:data.pincode,
+            phone:data.phone, 
+            altPhone:data.altphone,
+            state:data.state,
+          }] 
+        })
+       const save = await adduser.save()
+       if(save){
+        req.session.message = 'address created succesfully'
+          res.redirect('/user/addresspage')
+       }
+       else{
+        req.session.message = 'addresss created failed'
         res.redirect('/user/addresspage')
-     }
-     else{
-      req.session.message = 'addresss created failed'
-      res.redirect('/user/addresspage')
-     }
+       }
+      }
+      else{
+        req.session.message = 'user not found'
+        res.redirect('/user/addresspage')
+      }
+     
   } catch (error) { 
     console.error('error from homecontroller regesteraddress',error)
   }
 }
 
+const editaddress = async(req,res)=>{
+  const {id} = req.params
+  console.log(id)
+ const address = await addressSchema.Address.findOne({_id:id})
+ console.log(address)
+  try {
+    res.render('editaddress',{address:address.address[0]})
+  } catch (error) {
+    console.log('error from homecontroller',error)
+  }
+}
+const editaddresspost = async(req,res)=>{
+  const {id} = req.params
+  console.log(id)
+  const {name,state,address,City,pincode,phone,altphone} = req.body
+  try {
+    const result = await addressSchema.Address.updateOne(
+      { "address._id": id }, // Match the document with the specific address ID
+      {
+        $set: {
+          "address.$.name": name,
+          "address.$.state": state,
+          "address.$.addressType": address,
+          "address.$.City": City,
+          "address.$.pincode": pincode,
+          "address.$.phone": phone,
+          "address.$.altPhone": altphone
+        }
+      }
+    );
+    if(result){
+      req.session.message = 'address edited successfully'
+      res.redirect('/user/addresspage')
+    }
+    else{
+      req.session.message = 'address edited failed'
+      res.redirect('/user/addresspage')
+    }
+  } catch (error) {
+    console.log('error from homecontroller editaddresspost',error)
+  }
+}
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -229,4 +277,6 @@ module.exports = {
   addresspage,
   addaddress,
   registeraddress,
+  editaddress,
+  editaddresspost,
 }

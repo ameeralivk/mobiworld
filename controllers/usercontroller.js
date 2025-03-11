@@ -78,6 +78,59 @@ const resetpassOtp = async (req,res)=>{
     req.session.data = isexist
     console.log(req.session.data)
     try {
+        if(req.session.User){
+              if(req.session.User.email == email){
+                async function sendVerificationEmail(email,otp){
+                    try {
+                     const transporter = nodemailer.createTransport({
+                         service:'gmail',
+                         port:587,
+                         secure:false, 
+                         requireTLS:true,
+                         auth:{
+                            user:process.env.NODEMAILER_EMAIL,
+                            pass:process.env.NODEMAILER_PASSWORD
+                         }
+                     })
+                     const info = await transporter.sendMail({
+                         from:process.env.NODEMAILER_EMAIL,
+                         to:email,
+                         subject:"verify your account",
+                         text:`your otp is ${otp}`,
+                         html:`<b>your otp ${otp} </b>`,
+                     })
+                     return info.accepted.length>0
+                    } catch (error) {
+                     console.error('error sending email',error);
+                     return false;
+                    }
+                  }               
+               
+                  try {
+                    const otp = generateotp() 
+                    req.session.userOtp = otp 
+                    console.log(req.session.userOtp)
+                     const emailsent = await sendVerificationEmail(email,otp)
+                     if(!emailsent){
+                         return res.json("email error")
+                     }   
+                     res.redirect('/verify-otp')
+                     console.log('OTP Sent',otp) 
+                  
+
+
+                  } catch (error) {
+                    console.error('signu error',error)
+                    res.redirect('/pageNotfound')
+                  }
+
+              }
+              else{
+                req.session.message = "username not match"
+                res.redirect('/forgetOtp') 
+              }
+        }
+        else{
         if(isexist){
         async function sendVerificationEmail(email,otp){
             try {
@@ -124,11 +177,12 @@ const resetpassOtp = async (req,res)=>{
         req.session.message = "user not  exist"
         res.redirect('/forgetOtp') 
     }
+}
     } catch (error) {
         console.log("eroor",error)
     } 
 }
- 
+
 const loadhome = async (req,res)=>{
     product = await productSchema.find({isDeleted:false})
     try {

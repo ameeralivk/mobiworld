@@ -40,4 +40,6 @@ router.post('/otpcheck',homecontroller.checkotp)
 router.get('/addresspage',homecontroller.addresspage)
 router.post('/addaddress',homecontroller.addaddress)
 router.post('/registeraddress',homecontroller.registeraddress)
+router.get('/editaddress/:id',homecontroller.editaddress)
+router.post('/editaddress/:id',homecontroller.editaddresspost)
 
