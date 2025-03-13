@@ -20,7 +20,7 @@ router.get('/forgetOtp',usercontroller.forgetOtp)
 router.post('/resetpassOtp',usercontroller.resetpassOtp)
 router.get('/passresetpage',usercontroller.passresetpage)
 router.post('/passreset',usercontroller.passreset)
-router.get('/shoppage',usercontroller.shoppage)
+router.get('/shoppage',userAuth,usercontroller.shoppage)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{
       req.session.User = req.user
@@ -33,6 +33,11 @@ module.exports = router;
 //home routes
 router.get('/productmainpage/:id',homecontroller.getproductmainpage)
 router.get('/getfilterpage',homecontroller.getfilterpage)
+router.post('/add-to-cart',homecontroller.addtocart)
+router.get('/addtocartpage/:id/:quantity',homecontroller.addtocartpage)
+router.get('/getcart',homecontroller.getcart)
+
+//profile routes
 router.get('/profile',userAuth,homecontroller.getprofilepage)
 router.get('/editprofile',homecontroller.geteditpage)
 router.post('/editprofile',homecontroller.editprofile)
@@ -42,4 +47,7 @@ router.post('/addaddress',homecontroller.addaddress)
 router.post('/registeraddress',homecontroller.registeraddress)
 router.get('/editaddress/:id',homecontroller.editaddress)
 router.post('/editaddress/:id',homecontroller.editaddresspost)
+router.get('/deleteaddress/:id',homecontroller.deleteaddress)
+
+
 

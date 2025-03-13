@@ -8,6 +8,9 @@ const cartSchema = new Schema({
        type:Schema.Types.ObjectId,
        ref:"User",
        required:true
+    },totalPrice:{
+        type:Number,
+        default:0,
     },
     items:[{
         productId :{
@@ -37,6 +40,10 @@ const cartSchema = new Schema({
         }
     }]
 })
+cartSchema.methods.calculateTotalPrice = function () {
+    this.totalPrice = this.items.reduce((sum, item) => sum + item.totalPrice, 0);
+    return this.totalPrice;
+};
 
 const Cart = mongoose.model('Cart',cartSchema)
 module.exports = Cart;

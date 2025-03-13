@@ -33,13 +33,14 @@
                                     <div class="me-2">•</div>
                                     <div>
                                         <strong><%= address.name %></strong><br>
-                                        <%= address.addressType %>,<%= address.city %>,<%= address.state %>,<%= address.pincode %>
+                                        <%= address.addressType %>,<%= address.city %>,<%= address.state %>,<%= address.pincode %><br>
+                                        <strong><%= address.phone %></strong>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4 text-md-end mt-2 mt-md-0">
                                 <button onclick="edit('<%= entry._id %>')"  class="btn btn-sm edit-btn text-white me-2">Edit</button>
-                                <button class="btn btn-sm delete-btn text-white">Delete</button>
+                                <button onclick="delet('<%= entry._id %>')" class="btn btn-sm delete-btn text-white">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -75,6 +76,9 @@
         }, 3000);
       function edit(data){
         window.location.href = '/user/editaddress/'+data
+      }
+      function delet(data){
+        window.location.href = '/user/deleteaddress/'+data
       }
 
     </script>

@@ -1,0 +1,88 @@
+.cart-header {
+    background-color: #5bc0de;
+    color: #000;
+    padding: 30px 0;
+    height: 200px;
+}
+
+.cart-header h1 {
+    font-family: serif;
+    text-align: center;
+    font-size: 50px;
+    font-weight: 400;
+    margin-top: 30px;
+}
+
+.table-header {
+    background-color: #2980b9;
+    color: white;
+}
+
+.cart-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quantity-input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #ced4da;
+    border-radius: 0;
+    height: 30px;
+}
+
+.quantity-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #5bc0de;
+    color: white;
+    border: none;
+}
+
+.remove-btn {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cart-totals {
+    margin-top: 30px;
+    padding: 20px;
+    border-top: 1px solid #eee;
+}
+
+.checkout-btn {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    width: 100%;
+}
+
+.apply-coupon-btn {
+    background-color: #0c3953;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+}

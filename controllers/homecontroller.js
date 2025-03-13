@@ -2,15 +2,18 @@ const nodemailer = require('nodemailer')
 const Product = require('../models/productSchema')
 const userschema = require('../models/user')
 const addressSchema = require('../models/addressSchema')
+const { render } = require('ejs')
+const { compareSync } = require('bcrypt')
+const cartSchema = require('../models/cartSchema')
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
   const { id } = req.params
+  req.session.code = id
   const product = await Product.findById(id)
   const priceless = product.salePrice - 15000
   const pricemore = product.salePrice + 15000
   const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
   try {
-    console.log('hi')
     res.render('productmainpage', { product: product, recomended: recomended })
   } catch (error) {
 
@@ -165,7 +168,8 @@ const checkotp = async (req, res) => {
 
 
 const addresspage = async(req,res)=>{
-     const addresses = await addressSchema.Address.find({})
+     const user = req.session.User
+     const addresses = await addressSchema.Address.find({userId:user._id})
      console.log(addresses)
   try {
     if(req.session.message){
@@ -267,6 +271,89 @@ const editaddresspost = async(req,res)=>{
     console.log('error from homecontroller editaddresspost',error)
   }
 }
+
+const deleteaddress = async(req,res)=>{
+  const {id} = req.params
+  try {
+    const isdeleted = await addressSchema.Address.findByIdAndDelete(id)
+    if(isdeleted){
+      req.session.message = 'Address deleted successfully'
+      res.redirect('/user/addresspage')
+    }
+    else{
+      req.session.message = 'Address deletion failed'
+      res.redirect('/user/addresspage')
+    }
+  } catch (error) {
+    console.error('error from home controller',error)
+  }
+}
+
+const addtocart = async(req,res)=>{
+  const { productId, quantity } = req.body;
+  const redirectUrl = `/user/addtocartpage/${productId}/${quantity}`
+  try {
+    res.status(200).json({ message: 'Item added to cart successfully!', redirectUrl})
+    
+  } catch (error) {
+    console.error('error from homecontrller addtocart',error)
+  }
+}
+
+
+
+const addtocartpage = async(req,res)=>{
+     const product = await Product.findOne({_id:req.params.id})
+     const user = req.session.User
+     const isexist = await cartSchema.find({userId:user._id})
+     const quantity = req.params.quantity
+  try {
+    const item = isexist[0].items.map(item=>item.productId)
+    const products = await Product.find({ _id: { $in: item } });
+      if(isexist.length == 0){
+        console.log('ready')
+         const newcartschema = new cartSchema({
+          userId:user._id,
+          items:[{
+            productId:product._id,
+            quantity:quantity,
+            price:product.salePrice,
+            totalPrice:product.salePrice * quantity,
+          }]
+         })
+         newcartschema.calculateTotalPrice();
+        const saved = await newcartschema.save()
+       return res.render('addtocart',{products,quantity})
+      }else{
+        const includes = item.some(id=>id.toString() === product._id.toString())
+          if(includes != true){
+            isexist[0].items.push({
+              productId:product._id,
+              quantity:quantity,
+              price:product.salePrice,
+              totalPrice:product.salePrice * quantity,
+            })
+            isexist[0].calculateTotalPrice();
+          const saved = await isexist[0].save()
+          return res.render('addtocart',{products,quantity})
+          if(saved){
+            console.log('added')
+          }
+          }
+          else{
+            console.log('item already placed')
+          }
+         
+      }
+   
+  } catch (error) {
+    console.error('error from the homecontroller',error)
+  }
+}
+const getcart = async(req,res)=>{
+  res.render('addtocart')
+}
+
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -279,4 +366,8 @@ module.exports = {
   registeraddress,
   editaddress,
   editaddresspost,
+  deleteaddress,
+  addtocart,
+  addtocartpage,
+  getcart,
 }
