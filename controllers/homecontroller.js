@@ -325,7 +325,11 @@ const addtocartpage = async(req,res)=>{
         if(saved){
           const item =newcartschema.items.map(item=>item.productId)
           const products = await Product.find({ _id: { $in: item } });
-          return res.render('addtocart',{products:products,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
+          const combineddata = products.map((product,index)=>({
+            ...product._doc,
+           quantity:quantity[index]
+         }))
+          return res.render('addtocart',{combineddata,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
         }
       
       }else{
@@ -350,7 +354,11 @@ const addtocartpage = async(req,res)=>{
             const product = await Product.findOne({_id:req.params.id})
             const quantity = isexist.items.map(item=>item.quantity)
             const products = await Product.find({ _id: { $in: item } });
-            return res.render('addtocart',{products:products,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
+            const combineddata = products.map((product,index)=>({
+              ...product._doc,
+             quantity:quantity[index]
+           }))
+            return res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
           }
           }
           else{
@@ -369,8 +377,11 @@ const addtocartpage = async(req,res)=>{
                 const item =isexist.items.map(item=>item.productId)
                 const quantity = isexist.items.map(item=>item.quantity)
                 const products = await Product.find({ _id: { $in: item } });
-                console.log(isexist[0])
-                return res.render('addtocart',{products:products,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
+                const combineddata = products.map((product,index)=>({
+                  ...product._doc,
+                 quantity:quantity[index]
+               }))
+                return res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
                 console.log('upadated successfully')
               }
           }
@@ -389,8 +400,12 @@ try {
   const item =isexist.items.map(item=>item.productId)
   const quantity = isexist.items.map(item=>item.quantity)
   const products = await Product.find({ _id: { $in: item } });
+  const combineddata = products.map((product,index)=>({
+     ...product._doc,
+    quantity:quantity[index]
+  }))
   console.log(`totalPrice:${isexist?.totalPrice||cartSchema.items.totalPrice}`)
- res.render('addtocart',{products:products,quantity,totalPrice:isexist?.totalPrice||cartSchema.items.totalPrice})
+ res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice||cartSchema.items.totalPrice})
  console.log('hi')
 } catch (error) {
   
