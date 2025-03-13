@@ -5,6 +5,7 @@ const addressSchema = require('../models/addressSchema')
 const { render } = require('ejs')
 const { compareSync } = require('bcrypt')
 const cartSchema = require('../models/cartSchema')
+const Cart = require('../models/cartSchema')
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
   const { id } = req.params
@@ -308,8 +309,6 @@ const addtocartpage = async(req,res)=>{
      const isexist = await cartSchema.find({userId:user._id})
      const quantity = req.params.quantity
   try {
-    const item = isexist[0].items.map(item=>item.productId)
-    const products = await Product.find({ _id: { $in: item } });
       if(isexist.length == 0){
         console.log('ready')
          const newcartschema = new cartSchema({
@@ -323,8 +322,17 @@ const addtocartpage = async(req,res)=>{
          })
          newcartschema.calculateTotalPrice();
         const saved = await newcartschema.save()
-       return res.render('addtocart',{products,quantity})
+        if(saved){
+          const item =newcartschema.items.map(item=>item.productId)
+          const products = await Product.find({ _id: { $in: item } });
+          return res.render('addtocart',{products:products,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
+        }
+      
       }else{
+        const isexist = await cartSchema.find({userId:user._id})
+            console.log(isexist,'isexist')
+            const item =isexist[0].items.map(item=>item.productId)
+            const product = await Product.findOne({_id:req.params.id})
         const includes = item.some(id=>id.toString() === product._id.toString())
           if(includes != true){
             isexist[0].items.push({
@@ -335,13 +343,33 @@ const addtocartpage = async(req,res)=>{
             })
             isexist[0].calculateTotalPrice();
           const saved = await isexist[0].save()
-          return res.render('addtocart',{products,quantity})
+          
           if(saved){
-            console.log('added')
+            const isexist = await cartSchema.find({userId:user._id})
+            const item =isexist[0].items.map(item=>item.productId)
+            const product = await Product.findOne({_id:req.params.id})
+            const products = await Product.find({ _id: { $in: item } });
+            return res.render('addtocart',{products:products,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
           }
           }
           else{
-            console.log('item already placed')
+            const user = req.session.User
+              const cart = await cartSchema.findOne({userId:user._id})
+              const product = await Product.findOne({_id:req.params.id})
+              const item = cart.items.find(item => item.productId == req.params.id )
+              const total = item.quantity+ parseInt(req.params.quantity)
+              item.quantity = total
+              const update = item.totalPrice = item.quantity * product.salePrice
+              console.log(item.totalPrice)
+              cart.calculateTotalPrice()
+              await cart.save()
+              if(update){
+                const isexist = await cartSchema.find({userId:user._id})
+                const item =isexist[0].items.map(item=>item.productId)
+                const products = await Product.find({ _id: { $in: item } });
+                return res.render('addtocart',{products:products,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
+                console.log('upadated successfully')
+              }
           }
          
       }
@@ -351,7 +379,8 @@ const addtocartpage = async(req,res)=>{
   }
 }
 const getcart = async(req,res)=>{
-  res.render('addtocart')
+
+  res.render('addtocart',{})
 }
 
 module.exports = {
