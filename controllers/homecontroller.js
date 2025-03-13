@@ -345,11 +345,12 @@ const addtocartpage = async(req,res)=>{
           const saved = await isexist[0].save()
           
           if(saved){
-            const isexist = await cartSchema.find({userId:user._id})
-            const item =isexist[0].items.map(item=>item.productId)
+            const isexist = await cartSchema.findOne({userId:user._id})
+            const item =isexist.items.map(item=>item.productId)
             const product = await Product.findOne({_id:req.params.id})
+            const quantity = isexist.items.map(item=>item.quantity)
             const products = await Product.find({ _id: { $in: item } });
-            return res.render('addtocart',{products:products,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
+            return res.render('addtocart',{products:products,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
           }
           }
           else{
@@ -364,10 +365,12 @@ const addtocartpage = async(req,res)=>{
               cart.calculateTotalPrice()
               await cart.save()
               if(update){
-                const isexist = await cartSchema.find({userId:user._id})
-                const item =isexist[0].items.map(item=>item.productId)
+                const isexist = await cartSchema.findOne({userId:user._id})
+                const item =isexist.items.map(item=>item.productId)
+                const quantity = isexist.items.map(item=>item.quantity)
                 const products = await Product.find({ _id: { $in: item } });
-                return res.render('addtocart',{products:products,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
+                console.log(isexist[0])
+                return res.render('addtocart',{products:products,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
                 console.log('upadated successfully')
               }
           }
@@ -378,9 +381,20 @@ const addtocartpage = async(req,res)=>{
     console.error('error from the homecontroller',error)
   }
 }
-const getcart = async(req,res)=>{
-
-  res.render('addtocart',{})
+const getcart = async (req,res)=>{
+  const user = req.session.User
+try {
+  console.log('hello')
+  const isexist = await cartSchema.findOne({userId:user._id})
+  const item =isexist.items.map(item=>item.productId)
+  const quantity = isexist.items.map(item=>item.quantity)
+  const products = await Product.find({ _id: { $in: item } });
+  console.log(`totalPrice:${isexist?.totalPrice||cartSchema.items.totalPrice}`)
+ res.render('addtocart',{products:products,quantity,totalPrice:isexist?.totalPrice||cartSchema.items.totalPrice})
+ console.log('hi')
+} catch (error) {
+  
+}
 }
 
 module.exports = {

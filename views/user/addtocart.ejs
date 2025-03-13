@@ -27,6 +27,7 @@
                         </thead>
                         <tbody>
                             <% products.forEach(product => { %>
+                                <% quantity.forEach(value=> {%>
                             <!-- Samsung Item -->
                             <tr class="cart-item">
                                 <td>
@@ -48,13 +49,15 @@
                                 <td>
                                     <div class="quantity-control">
                                         <button class="quantity-btn rounded-start">-</button>
-                                        <input id="quantityselect" type="text" value="<%= quantity %>"
+                                        <input id="quantityselect" type="text" value="<%= value %>"
                                             class="quantity-input" readonly>
                                         <button class="quantity-btn rounded-end">+</button>
                                     </div>
                                 </td>
+                               
                                 <td id="Total" class="text-center"> </td>
                             </tr>
+                            <% }); %>
                             <% }); %>
                         </tbody>
                     </table>
