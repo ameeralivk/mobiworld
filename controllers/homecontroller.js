@@ -295,16 +295,110 @@ const deleteaddress = async(req,res)=>{
 }
 
 const addtocart = async(req,res)=>{
+  console.log('hidsafdsafdsaf')
+  const { productId, quantity } = req.body;
+  console.log(productId,quantity)
   const user = req.session.User
   if(user){
-    const { productId, quantity } = req.body;
-    const redirectUrl = `/user/addtocartpage/${productId}/${quantity}`
-    try {
-    return  res.status(200).json({ message: 'Item added to cart successfully!', redirectUrl})
+      const product = await Product.findOne({_id:productId})
+      const user = req.session.User
+      const isexist = await cartSchema.find({userId:user._id})
+      console.log(isexist,'isexitdsafdsafsdklfjdsaf')
+   try {
+       if(isexist.length == 0){
+         console.log('ready')
+          const newcartschema = new cartSchema({
+           userId:user._id,
+           items:[{
+             productId:product._id,
+             quantity:quantity,
+             price:product.salePrice,
+             totalPrice:product.salePrice * quantity,
+           }]
+          })
+          newcartschema.calculateTotalPrice();
+         const saved = await newcartschema.save()
+         if(saved){
+           const item =newcartschema.items.map(item=>item.productId)
+           const products = await Product.find({ _id: { $in: item } });
+           const combineddata = products.map((product,index)=>({
+             ...product._doc,
+            quantity:quantity[index]
+          }))
+              return res.json({message: 'Cart updated successfully'})
+         }
+       
+       }else{
+         const isexist = await cartSchema.find({userId:user._id})
+             console.log(isexist,'isexist 1')
+             const item =isexist[0].items.map(item=>item.productId)
+             const product = await Product.findOne({_id:productId})
+         const includes = item.some(id=>id.toString() === product._id.toString())
+         console.log(includes)
+           if(includes != true){
+            console.log('hi')
+             isexist[0].items.push({
+               productId:product._id,
+               quantity:quantity,
+               price:product.salePrice,
+               totalPrice:product.salePrice * quantity,
+             })
+             isexist[0].calculateTotalPrice();
+           const saved = await isexist[0].save()
+           
+           if(saved){
+             const isexist = await cartSchema.findOne({userId:user._id})
+             const item =isexist.items.map(item=>item.productId)
+             const product = await Product.findOne({_id:req.params.id})
+             const quantity = isexist.items.map(item=>item.quantity)
+             const products = await Product.find({ _id: { $in: item } });
+             const combineddata = products.map((product,index)=>({
+               ...product._doc,
+              quantity:quantity[index]
+            }))
+            return res.json({message: 'Cart updated successfully'})
+           }
+           }
+           else{
+             const user = req.session.User
+               const cart = await cartSchema.findOne({userId:user._id})
+               const product = await Product.findOne({_id:productId})
+               const item = cart.items.find(item => item.productId == productId )
+               const total = item.quantity+ parseInt(quantity)
+               item.quantity = total
+               const update = item.totalPrice = item.quantity * product.salePrice
+               cart.calculateTotalPrice()
+               await cart.save()
+               if(update){
+                 const isexist = await cartSchema.findOne({userId:user._id})
+                 const item =isexist.items.map(item=>item.productId)
+                 const quantity = isexist.items.map(item=>item.quantity)
+                 const products = await Product.find({ _id: { $in: item } });
+                 const combineddata = products.map((product,index)=>({
+                   ...product._doc,
+                  quantity:quantity[index]
+                }))
+                return res.json({message: 'Cart updated successfully'})
+               }
+           }
+          
+       }
+    
+   } catch (error) {
+     console.error('error from the homecontroller',error)
+   }
+
+        
+
+
+
+
+
+
+
+
+    // return  res.status(200).json({ message: 'Item added to cart successfully!', redirectUrl})
       
-    } catch (error) {
-      console.error('error from homecontrller addtocart',error)
-    }
   }
   req.session.message = 'user not found'
   return res.status(200).json({redirectUrl:'/user/login'})
@@ -312,93 +406,9 @@ const addtocart = async(req,res)=>{
 
 
 
-const addtocartpage = async(req,res)=>{
-     const product = await Product.findOne({_id:req.params.id})
-     const user = req.session.User
-     const isexist = await cartSchema.find({userId:user._id})
-     const quantity = req.params.quantity
-  try {
-      if(isexist.length == 0){
-        console.log('ready')
-         const newcartschema = new cartSchema({
-          userId:user._id,
-          items:[{
-            productId:product._id,
-            quantity:quantity,
-            price:product.salePrice,
-            totalPrice:product.salePrice * quantity,
-          }]
-         })
-         newcartschema.calculateTotalPrice();
-        const saved = await newcartschema.save()
-        if(saved){
-          const item =newcartschema.items.map(item=>item.productId)
-          const products = await Product.find({ _id: { $in: item } });
-          const combineddata = products.map((product,index)=>({
-            ...product._doc,
-           quantity:quantity[index]
-         }))
-          return res.render('addtocart',{combineddata,quantity,totalPrice:isexist[0]?.totalPrice||newcartschema.items[0].totalPrice})
-        }
-      
-      }else{
-        const isexist = await cartSchema.find({userId:user._id})
-            console.log(isexist,'isexist')
-            const item =isexist[0].items.map(item=>item.productId)
-            const product = await Product.findOne({_id:req.params.id})
-        const includes = item.some(id=>id.toString() === product._id.toString())
-          if(includes != true){
-            isexist[0].items.push({
-              productId:product._id,
-              quantity:quantity,
-              price:product.salePrice,
-              totalPrice:product.salePrice * quantity,
-            })
-            isexist[0].calculateTotalPrice();
-          const saved = await isexist[0].save()
-          
-          if(saved){
-            const isexist = await cartSchema.findOne({userId:user._id})
-            const item =isexist.items.map(item=>item.productId)
-            const product = await Product.findOne({_id:req.params.id})
-            const quantity = isexist.items.map(item=>item.quantity)
-            const products = await Product.find({ _id: { $in: item } });
-            const combineddata = products.map((product,index)=>({
-              ...product._doc,
-             quantity:quantity[index]
-           }))
-            return res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
-          }
-          }
-          else{
-            const user = req.session.User
-              const cart = await cartSchema.findOne({userId:user._id})
-              const product = await Product.findOne({_id:req.params.id})
-              const item = cart.items.find(item => item.productId == req.params.id )
-              const total = item.quantity+ parseInt(req.params.quantity)
-              item.quantity = total
-              const update = item.totalPrice = item.quantity * product.salePrice
-              cart.calculateTotalPrice()
-              await cart.save()
-              if(update){
-                const isexist = await cartSchema.findOne({userId:user._id})
-                const item =isexist.items.map(item=>item.productId)
-                const quantity = isexist.items.map(item=>item.quantity)
-                const products = await Product.find({ _id: { $in: item } });
-                const combineddata = products.map((product,index)=>({
-                  ...product._doc,
-                 quantity:quantity[index]
-               }))
-                return res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice||newcartschema.items.totalPrice})
-                console.log('upadated successfully')
-              }
-          }
-         
-      }
-   
-  } catch (error) {
-    console.error('error from the homecontroller',error)
-  }
+const addtocartpage = async(product,quantity)=>{
+    //  const product = await Product.findOne({_id:req.params.id})
+    
 }
 const getcart = async (req,res)=>{
   const user = req.session.User
@@ -507,7 +517,6 @@ module.exports = {
   editaddresspost,
   deleteaddress,
   addtocart,
-  addtocartpage,
   getcart,
   updatequantity,
   checkoutpage,

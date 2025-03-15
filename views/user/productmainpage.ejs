@@ -93,7 +93,7 @@
                 </div>
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2 mb-3">
-                    <button id="addtocartbutton" class="btn btn-info text-white">Add to Cart</button>
+                    <button id="addtocartbutton" data-product-id="<% product._id %>" class="btn btn-info text-white">Add to Cart</button>
                     <button id="buynow" class="btn btn-dark">Buy Now</button>
                 </div>
             </div>
@@ -230,7 +230,6 @@
             const quantity = document.getElementById('quantity').value;
             sendtobackend()
              function sendtobackend(){
-            // Send the data to the backend using fetch
             fetch('/add-to-cart', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -239,9 +238,10 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('Server Response:', data);
-                    if (data.redirectUrl) {
-                        window.location.href = data.redirectUrl
-                    }
+                    window.location.href = '/user/getcart'
+                    // if (data.redirectUrl) {
+                    //     window.location.href = data.redirectUrl
+                    // }
                 })
                 .catch(error => {
                     console.error('Error:', error); // Handle errors
@@ -249,7 +249,6 @@
                 });
             }
         });
-      
 
     </script>
 

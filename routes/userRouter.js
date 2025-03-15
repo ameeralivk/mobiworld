@@ -34,7 +34,6 @@ module.exports = router;
 router.get('/productmainpage/:id',homecontroller.getproductmainpage)
 router.get('/getfilterpage',homecontroller.getfilterpage)
 router.post('/add-to-cart',homecontroller.addtocart)
-router.get('/addtocartpage/:id/:quantity',homecontroller.addtocartpage)
 router.get('/getcart',homecontroller.getcart)
 router.post('/updatequantity',homecontroller.updatequantity)
 router.get('/checkoutpage',homecontroller.checkoutpage)
