@@ -183,8 +183,8 @@ function cropImage() {
                                             <option value="<%= product.brand %>"><%= product.brand %></option>
                                         <% } %>
                                         <% fullproduct.forEach(prod => {%>
-                                            <% if (prod.brand != product.brand) { %>
-                                        <option><%= prod.brand %></option>
+                                            <% if (prod.name != product.name) { %>
+                                        <option><%= prod.name %></option>
                                             <% } %>
                                         <% }); %>
                                     </select>
@@ -232,6 +232,9 @@ function cropImage() {
                     currentImageContainer = document.querySelectorAll('.image-container')[containerIndex - 1];
                     document.querySelector('.row').style.display = 'none';
                     cropperContainer.style.display = 'block';
+                    cropperContainer.style.width = '400px'
+                    cropperContainer.style.height = '300px'
+
 
                     cropper = new Cropper(imageToCrop, {
                         aspectRatio: 1, // Adjust the aspect ratio as needed

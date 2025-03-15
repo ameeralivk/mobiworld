@@ -1,0 +1,64 @@
+.header {
+    background-color: #3498db;
+    color: #000;
+    text-align: center;
+    padding: 40px 0;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-family: serif;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.address-option {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.active-address {
+    color: #3498db;
+}
+
+.address-details {
+    font-size: 0.9rem;
+    color: #777;
+    margin-left: 15px;
+}
+
+.estimated-delivery {
+    margin-top: 20px;
+    font-size: 0.9rem;
+}
+
+.confirmation-box {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+.continue-btn {
+    background-color: #4ecdc4;
+    border: none;
+    padding: 10px 0;
+    width: 100%;
+    max-width: 300px;
+    margin: 30px auto;
+    display: block;
+    border-radius: 25px;
+}
+
+.item-image {
+    width: 50px;
+    height: auto;
+}
+
+.cart-total {
+    margin-top: 20px;
+}
+
+.price {
+    text-align: right;
+}

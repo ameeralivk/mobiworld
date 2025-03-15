@@ -1,152 +1,204 @@
-<%- include("../../views/partials/user/shoppage_header") %>
 
-    <body>
-        <link rel="stylesheet" href="\css\addtocart.css">
-        <!-- Cart Header -->
-        <div class="cart-header">
-            <div class="container">
-                <h1>MY CART</h1>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="\css\addtocart.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_header.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="\css\shoppage_footer.css">
+</head>
+<body>
+    <%- include("../../views/partials/user/shoppage_header") %>
+    <% if (typeof message !== 'undefined' && message) { %>
+        <p id="mess" class="error-message" ><%= message %></p>
+    <% } %>
+
+       <!-- Cart Header -->
+       <div class="cart-header">
+        <div class="container">
+            <h1>MY CART</h1>
+        </div>
+    </div>
+
+    <!-- Cart Content -->
+    <div class="container mb-5">
+        <!-- Cart Items Table -->
+        <div class="row">
+            <div class="col-12">
+                <table class="table">
+                    <thead>
+                        <tr class="table-header">
+                            <th style="width: 5%"></th>
+                            <th style="width: 15%">Product</th>
+                            <th style="width: 40%"></th>
+                            <th style="width: 15%" class="text-center">Price</th>
+                            <th style="width: 15%" class="text-center">Quantity</th>
+                            <th style="width: 15%" class="text-center">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% combineddata.forEach(product => { %>
+                        <!-- Samsung Item -->
+                        <tr class="cart-item">
+                            <td>
+                                <button class="remove-btn rounded">✕</button>
+                            </td>
+                            <td>
+                                <img src="<%=product.productImage[0]%>" alt="Samsung Galaxy S23 Ultra"
+                                    class="cart-image rounded">
+                            </td>
+                            <td>
+                                <h5>
+                                    <input type="hidden" value="<%= product._id %>">
+                                    <%= product.productName %>
+                                </h5>
+                                <!-- <p class="text-muted small">Meet the Galaxy S25 Ultra - your AI companion that adapts, anticipates, and connects seamlessly.</p> -->
+                            </td>
+                            <td class="text-center">
+                                <%= product.salePrice.toLocaleString('en-IN') %>
+                            </td>
+                            <td>
+                                <div class="quantity-control">
+                                    <button data-product-id="<%= product._id %>" class="quantity-btn rounded-start">-</button>
+                                    <input id="quantityInput-<%= product._id %>" type="text" value="<%= product.quantity %>"
+                                        class="quantity-input" readonly>
+                                    <button data-product-id="<%= product._id %>" class="quantity-btn rounded-end">+</button>
+                                </div>
+                            </td>
+                           
+                            <td id="Total" class="text-center"> </td>
+                        </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Cart Content -->
-        <div class="container mb-5">
-            <!-- Cart Items Table -->
-            <div class="row">
-                <div class="col-12">
-                    <table class="table">
-                        <thead>
-                            <tr class="table-header">
-                                <th style="width: 5%"></th>
-                                <th style="width: 15%">Product</th>
-                                <th style="width: 40%"></th>
-                                <th style="width: 15%" class="text-center">Price</th>
-                                <th style="width: 15%" class="text-center">Quantity</th>
-                                <th style="width: 15%" class="text-center">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% combineddata.forEach(product => { %>
-                            <!-- Samsung Item -->
-                            <tr class="cart-item">
-                                <td>
-                                    <button class="remove-btn rounded">✕</button>
-                                </td>
-                                <td>
-                                    <img src="<%=product.productImage[0]%>" alt="Samsung Galaxy S23 Ultra"
-                                        class="cart-image rounded">
-                                </td>
-                                <td>
-                                    <h5>
-                                        <%= product.productName %>
-                                    </h5>
-                                    <!-- <p class="text-muted small">Meet the Galaxy S25 Ultra - your AI companion that adapts, anticipates, and connects seamlessly.</p> -->
-                                </td>
-                                <td class="text-center">
-                                    <%= product.salePrice.toLocaleString('en-IN') %>
-                                </td>
-                                <td>
-                                    <div class="quantity-control">
-                                        <button class="quantity-btn rounded-start">-</button>
-                                        <input id="quantityselect" type="text" value="<%= product.quantity %>"
-                                            class="quantity-input" readonly>
-                                        <button class="quantity-btn rounded-end">+</button>
-                                    </div>
-                                </td>
-                               
-                                <td id="Total" class="text-center"> </td>
-                            </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>
+        <!-- Cart Totals and Checkout -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Coupon Code">
+                    <button class="apply-coupon-btn" type="button">Apply Coupon</button>
                 </div>
             </div>
-
-            <!-- Cart Totals and Checkout -->
-            <div class="row mt-4">
-                <div class="col-md-6">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Coupon Code">
-                        <button class="apply-coupon-btn" type="button">Apply Coupon</button>
+            <div class="col-md-6">
+                <div class="cart-totals">
+                    <h4 class="mb-4">CART TOTALS</h4>
+                    <div class="row mb-2">
+                        <div class="col-6">Subtotal</div>
+                        <div class="col-6 text-end">₹20.00</div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="cart-totals">
-                        <h4 class="mb-4">CART TOTALS</h4>
-                        <div class="row mb-2">
-                            <div class="col-6">Subtotal</div>
-                            <div class="col-6 text-end">₹20.00</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-6">Delivery</div>
-                            <div class="col-6 text-end">₹0.00</div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-6">Discount</div>
-                            <div class="col-6 text-end">₹0.00</div>
-                        </div>
-                        <div class="row mb-4 pt-2 border-top mt-2">
-                            <div class="col-6 fw-bold">TOTAL</div>
-                            <div class="col-6 text-end fw-bold">₹<%= totalPrice.toLocaleString('en-IN') %></div>
-                        </div>
-                        <button class="checkout-btn rounded">Proceed to Checkout</button>
+                    <div class="row mb-2">
+                        <div class="col-6">Delivery</div>
+                        <div class="col-6 text-end">₹0.00</div>
                     </div>
+                    <div class="row mb-2">
+                        <div class="col-6">Discount</div>
+                        <div class="col-6 text-end">₹0.00</div>
+                    </div>
+                    <div class="row mb-4 pt-2 border-top mt-2">
+                        <div class="col-6 fw-bold">TOTAL</div>
+                        <div class="col-6 text-end fw-bold">₹<%= totalPrice.toLocaleString('en-IN') %></div>
+                    </div>
+                    
+                    <button class="checkout-btn rounded">
+                        <a class="text-decoration-none text-white" href="/user/checkoutpage/">Proceed to Checkout</a>
+                    </button>
                 </div>
             </div>
         </div>
-        <input id="quantity" type="hidden" value="<%= product.quantity %>">
-        <input id="rate" type="hidden" value="<%= product.salePrice %>">
-        <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-    // Select all rows with the class "cart-item"
-    const cartRows = document.querySelectorAll('.cart-item');
+    </div>
+    <input id="quantity" type="hidden" value="<%= product.quantity %>">
+    <input id="rate" type="hidden" value="<%= product.salePrice %>">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+// Select all rows with the class "cart-item"
+const cartRows = document.querySelectorAll('.cart-item');
 
-    cartRows.forEach(row => {
-        const minusBtn = row.querySelector('.quantity-btn.rounded-start'); // Minus button
-        const plusBtn = row.querySelector('.quantity-btn.rounded-end');   // Plus button
-        const quantityInput = row.querySelector('.quantity-input');      // Quantity input
-        const totalElement = row.querySelector('.text-center#Total');    // Total cell
-        const rate = parseFloat(row.querySelector('.text-center').innerText.replace(/[^0-9.]/g, '')); // Price
+cartRows.forEach(row => {
+    const minusBtn = row.querySelectorAll('.quantity-btn.rounded-start'); // Minus button
+    const plusBtn = row.querySelectorAll('.quantity-btn.rounded-end');   // Plus button
+    const quantityInput = row.querySelector('.quantity-input');      // Quantity input
+    const totalElement = row.querySelector('.text-center#Total');    // Total cell
+    const rate = parseFloat(row.querySelector('.text-center').innerText.replace(/[^0-9.]/g, '')); // Price
 
-        // Function to update the total for this row
-        function updateTotal() {
-            const quantity = parseInt(quantityInput.value);
-            const total = rate * quantity;
-            totalElement.innerText = `₹${total.toLocaleString('en-IN')}`;
-        }
+    // Function to update the total for this row
+    function updateTotal() {
+        const quantity = parseInt(quantityInput.value);
+        const total = rate * quantity;
+        totalElement.innerText = `₹${total.toLocaleString('en-IN')}`;
+    }
 
-        // Minus button event
-        minusBtn.addEventListener('click', function () {
-            let quantity = parseInt(quantityInput.value);
-            if (quantity > 1) {
-                quantity -= 1;
-                quantityInput.value = quantity;
-                updateTotal();
-            }
-        });
+    function updatequantity(productId,quantity){
+        fetch('/updatequantity', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId, quantity }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Server Response:', data);
+                if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error); // Handle errors
+                alert('Failed to add item to cart.');
+            });
+        } 
 
-        // Plus button event
-        plusBtn.addEventListener('click', function () {
-            let quantity = parseInt(quantityInput.value);
-            quantity += 1;
-            quantityInput.value = quantity;
-            updateTotal();
-        });
-
-        // Initialize the total on page load
+    // Minusbutton event
+    minusBtn.forEach(button=>{
+        button.addEventListener('click', function () {
+        let productId = this.dataset.productId
+        const quantityInputField = document.getElementById(`quantityInput-${productId}`)
+        let currentQuantity = parseInt(quantityInputField.value);
+        newQuantity = currentQuantity -1
+        quantityInputField.value = newQuantity;
         updateTotal();
-    });
+        updatequantity(productId,newQuantity)
+
+    })
+})
+
+    // Plus button event
+    plusBtn.forEach(button => {
+        button.addEventListener('click', function () {
+            const productId = this.dataset.productId
+            const quantityInputField = document.getElementById(`quantityInput-${productId}`)
+            let currentQuantity = parseInt(quantityInputField.value);
+            newQuantity = currentQuantity + 1
+            quantityInputField.value = newQuantity;
+            updateTotal();
+            updatequantity(productId,newQuantity)
+        });
+    })
+    
+
+    // Initialize the total on page load
+    updateTotal();
 });
+});
+    </script>
+
+
+</body>
+</html>
 
 
 
 
 
 
-
-        </script>
-    </body>
-
-    </html>

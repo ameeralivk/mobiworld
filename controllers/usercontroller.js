@@ -455,7 +455,7 @@ const logout = async (req,res)=>{
     }
 }
 const shoppage = async(req,res)=>{
-    const product = await productSchema.find({})
+    const product = await productSchema.find({isDeleted:false,isBlocked:false})
     try {
         res.render('shoppage',{product,count:product.length})
     } catch (error) {

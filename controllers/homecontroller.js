@@ -6,6 +6,10 @@ const { render } = require('ejs')
 const { compareSync } = require('bcrypt')
 const cartSchema = require('../models/cartSchema')
 const Cart = require('../models/cartSchema')
+
+
+
+
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
   const { id } = req.params
@@ -291,14 +295,19 @@ const deleteaddress = async(req,res)=>{
 }
 
 const addtocart = async(req,res)=>{
-  const { productId, quantity } = req.body;
-  const redirectUrl = `/user/addtocartpage/${productId}/${quantity}`
-  try {
-    res.status(200).json({ message: 'Item added to cart successfully!', redirectUrl})
-    
-  } catch (error) {
-    console.error('error from homecontrller addtocart',error)
+  const user = req.session.User
+  if(user){
+    const { productId, quantity } = req.body;
+    const redirectUrl = `/user/addtocartpage/${productId}/${quantity}`
+    try {
+    return  res.status(200).json({ message: 'Item added to cart successfully!', redirectUrl})
+      
+    } catch (error) {
+      console.error('error from homecontrller addtocart',error)
+    }
   }
+  req.session.message = 'user not found'
+  return res.status(200).json({redirectUrl:'/user/login'})
 }
 
 
@@ -369,7 +378,6 @@ const addtocartpage = async(req,res)=>{
               const total = item.quantity+ parseInt(req.params.quantity)
               item.quantity = total
               const update = item.totalPrice = item.quantity * product.salePrice
-              console.log(item.totalPrice)
               cart.calculateTotalPrice()
               await cart.save()
               if(update){
@@ -397,20 +405,93 @@ const getcart = async (req,res)=>{
 try {
   console.log('hello')
   const isexist = await cartSchema.findOne({userId:user._id})
-  const item =isexist.items.map(item=>item.productId)
-  const quantity = isexist.items.map(item=>item.quantity)
-  const products = await Product.find({ _id: { $in: item } });
-  const combineddata = products.map((product,index)=>({
-     ...product._doc,
-    quantity:quantity[index]
-  }))
-  console.log(`totalPrice:${isexist?.totalPrice||cartSchema.items.totalPrice}`)
- res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice||cartSchema.items.totalPrice})
- console.log('hi')
+  console.log(isexist)
+  if(isexist == null){
+    res.render('addtocart',{combineddata:[],quantity:'',totalPrice:0})
+  }
+  else{
+    const item =isexist.items.map(item=>item.productId)
+    console.log(isexist.items,'exitst item')
+    const quantity = isexist.items.map(item=>item.quantity)
+    const products = await Product.find({ _id: { $in: item } });
+    const combineddata = products.map((product,index)=>({
+       ...product._doc,
+      quantity:quantity[index]
+    }))
+    console.log(quantity,'quantity')
+   res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice})
+   console.log('hi')
+  }
+ 
 } catch (error) {
   
 }
 }
+
+
+const updatequantity = async(req,res)=>{
+
+  const quantity =parseInt(req.body.quantity) 
+  const id = req.body.productId
+  const user = req.session.User
+  console.log(user)
+  try {
+        const cart = await cartSchema.findOne({userId:user._id})
+        const item = cart.items.filter(item => item.productId == id)
+        if (item.length > 0 ) {
+         item[0].quantity = quantity; 
+         item[0].totalPrice = item[0].quantity * item[0].price; 
+          cart.calculateTotalPrice();
+         const saved = await cart.save()
+         if(saved){
+          res.status(200).json({redirectUrl:'/user/getcart'})
+         }
+   
+       
+
+
+
+      }
+    
+  
+  } catch (error) {
+    console.error('error from updatequantity',error)
+    
+  }
+} 
+
+
+const checkoutpage = async(req,res)=>{
+  const userid = req.session.User
+  const user = await userschema.find({_id:userid._id,isBlocked:false})
+  try {
+    console.log(user.length)
+    if(user.length > 0){
+      const cart = await cartSchema.find({userId:userid})
+      const item = cart[0].items.map(item => item.productId)
+      const productfind = await Product.find({_id:{$in:item},isBlocked:false,isDeleted:false})
+      console.log(productfind.length)
+      if(productfind.length == 0){
+        console.log('hello amere')
+        const message = 'Product is blocked'
+        res.render('addtocart',{message,combineddata:[],quantity:0,totalPrice:0})
+      }
+      else{
+        res.render('checkoutpage')
+      }
+      
+    }
+    else{
+      const message = 'user is blocked'
+      res.render('login',{message})
+    }
+   
+  } catch (error) {
+    
+  }
+}
+
+
 
 module.exports = {
   getproductmainpage,
@@ -428,4 +509,6 @@ module.exports = {
   addtocart,
   addtocartpage,
   getcart,
+  updatequantity,
+  checkoutpage,
 }

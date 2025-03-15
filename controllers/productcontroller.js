@@ -2,15 +2,17 @@ const product = require('../models/productSchema')
 const multer = require('multer')
 const mongoose = require('mongoose')
 const path = require('path')
+const category = require('../models/categorySchema')
 const Product = require('../models/productSchema')
 const { triggerAsyncId } = require('async_hooks')
 const { findByIdAndUpdate } = require('../models/user')
 
 
 const addproductpage = async(req,res)=>{
+       const Category = await category.find({})
   try {
      
-     res.render('addproduct',{msg:''})
+     res.render('addproduct',{msg:'',Category})
   } catch (error) {
     
   }
@@ -46,7 +48,7 @@ const productpage = async(req,res)=>{
 const addproduct = async (req,res)=>{
    const prod = await Product.find({})
    try {
-      firstupload(req, res, (err) => {
+      firstupload(req, res, async (err) => {
          console.log(req.files)
          
          if (err) {
@@ -233,7 +235,8 @@ const productclear =async(req,res)=>{
  const editproductpage = async(req,res)=>{
    const id =  req.params.id
    const product = await Product.findById(id)
-   const fullproduct = await Product.find({})
+   const fullproduct = await category.find({})
+   console.log(fullproduct)
    try { 
       console.log(product)   
       res.render('editproduct',{msg:'',product,fullproduct})

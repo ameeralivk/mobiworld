@@ -1,5 +1,23 @@
-<%- include("../../views/partials/user/shoppage_header") %>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
     <link rel="stylesheet" href="\css\productmainpage.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_header.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="\css\shoppage_footer.css">
+</head>
+<body>
+    
+    <%- include("../../views/partials/user/shoppage_header") %>
+
     <!-- Add necessary styles for zoom functionality -->
 
 
@@ -75,7 +93,7 @@
                 </div>
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2 mb-3">
-                    <button id="addtocartbutton"  class="btn btn-info text-white">Add to Cart</button>
+                    <button id="addtocartbutton" class="btn btn-info text-white">Add to Cart</button>
                     <button id="buynow" class="btn btn-dark">Buy Now</button>
                 </div>
             </div>
@@ -119,6 +137,7 @@
         <span class="zoom-modal-close">&times;</span>
         <img class="zoom-modal-content" id="zoomedImage">
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -166,7 +185,7 @@
             plusButton.addEventListener('click', function () {
                 const currentValue = parseInt(quantityInput.value);
                 // Make sure we don't exceed available stock or max of 3
-                const maxAllowed = Math.min(maxStock, );
+                const maxAllowed = Math.min(maxStock,);
                 if (currentValue < maxAllowed) {
                     quantityInput.value = currentValue + 1;
                 }
@@ -204,35 +223,46 @@
             // Initialize the button state when the page loads
             updateStockButton();
         });
-          
+
         document.getElementById('addtocartbutton').addEventListener('click', function () {
-    // Get product ID and quantity from the form
-    const productId = document.getElementById('product-id').value;
-    const quantity = document.getElementById('quantity').value;
-
-    // Send the data to the backend using fetch
-    fetch('/add-to-cart', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, quantity }),
-    })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Server Response:', data); 
-            if(data.redirectUrl){
-                window.location.href = data.redirectUrl
+            // Get product ID and quantity from the form
+            const productId = document.getElementById('product-id').value;
+            const quantity = document.getElementById('quantity').value;
+            sendtobackend()
+             function sendtobackend(){
+            // Send the data to the backend using fetch
+            fetch('/add-to-cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId, quantity }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Server Response:', data);
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error); // Handle errors
+                    alert('Failed to add item to cart.');
+                });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error); // Handle errors
-            alert('Failed to add item to cart.');
         });
-});
+      
 
-         
     </script>
 
     <%- include("../../views/partials/user/shoppage_footer") %>
-        </body>
 
-        </html>
+
+
+
+</body>
+</html>
+
+
+
+        <!-- </body>
+
+        </html> -->

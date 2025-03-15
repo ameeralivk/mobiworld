@@ -20,7 +20,7 @@ router.get('/forgetOtp',usercontroller.forgetOtp)
 router.post('/resetpassOtp',usercontroller.resetpassOtp)
 router.get('/passresetpage',usercontroller.passresetpage)
 router.post('/passreset',usercontroller.passreset)
-router.get('/shoppage',userAuth,usercontroller.shoppage)
+router.get('/shoppage',usercontroller.shoppage)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 router.get('/auth/google/callback',passport.authenticate('google',{failureRedirect:'/login'}),(req,res)=>{
       req.session.User = req.user
@@ -36,6 +36,8 @@ router.get('/getfilterpage',homecontroller.getfilterpage)
 router.post('/add-to-cart',homecontroller.addtocart)
 router.get('/addtocartpage/:id/:quantity',homecontroller.addtocartpage)
 router.get('/getcart',homecontroller.getcart)
+router.post('/updatequantity',homecontroller.updatequantity)
+router.get('/checkoutpage',homecontroller.checkoutpage)
 
 //profile routes
 router.get('/profile',userAuth,homecontroller.getprofilepage)

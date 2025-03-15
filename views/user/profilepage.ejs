@@ -1,6 +1,25 @@
-<%- include("../../views/partials/user/shoppage_header") %>
-<body>
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
     <link rel="stylesheet" href="\css\profilepage.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_header.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="\css\shoppage_footer.css">
+</head>
+<body>
+    <%- include("../../views/partials/user/shoppage_header") %>
+    
+
     <% if (typeof message !== 'undefined' && message) { %>
         <p id="mess" class="error-message" ><%= message %></p>
     <% } %>
@@ -92,8 +111,9 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
+    <script>
 const mess = document.getElementById('mess')
     setTimeout(() => {
         if(mess){
@@ -141,5 +161,20 @@ const mess = document.getElementById('mess')
             }, 500);
         };
     </script>
+
+
 </body>
 </html>
+
+
+
+
+
+
+
+<!-- 
+<body>
+
+  
+</body>
+</html> -->

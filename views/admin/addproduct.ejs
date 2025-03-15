@@ -41,7 +41,7 @@
                             </div>
                         </div>
                         
-                        <div class="row">
+                        <!-- <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="brand" class="form-label">Brand:</label>
@@ -49,7 +49,25 @@
                                     <p id="branderror" class="error-message" style="display: none" ></p>
                                 </div>
                             </div>
+                        </div> -->
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Brand:</label>
+                                    <select name="brand" class="form-control" id="brand">
+                                        <% Category.forEach(category => { %>
+                                        <option value="<%=category.name%>"><%=category.name%></option>
+                                        <% }); %>
+                                    </select>
+                                    <p id="branderror" class="error-message" style="display: none"></p>
+                                </div>
+                            </div>
                         </div>
+                        
+                        
+
+
                         
                         <div class="row">
                             <div class="col-md-6">
