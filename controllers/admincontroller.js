@@ -41,7 +41,7 @@ const loadusers = async(req,res)=>{
     const users = await user.find({})
     
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 2;
+    const limit = parseInt(req.query.limit) || 5;
 
     const paginatedData = await getPaginatedData(page, limit);
    
@@ -104,7 +104,7 @@ const blockUnblock = async(req,res)=>{
 }
 const  searchuser = async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5;
 
     const paginatedData = await getPaginatedData(page, limit);
     const searchquary = req.query.Search
@@ -123,7 +123,7 @@ try {
 const clear = async(req,res)=>{
     const users = await user.find({}).sort({createdOn:-1})
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 2;
+    const limit = parseInt(req.query.limit) || 5;
 
     const paginatedData = await getPaginatedData(page, limit);
     try { 

@@ -6,7 +6,7 @@ const { render } = require('ejs')
 const { compareSync } = require('bcrypt')
 const cartSchema = require('../models/cartSchema')
 const Cart = require('../models/cartSchema')
-
+const categories = require('../models/categorySchema')
 
 
 
@@ -14,19 +14,28 @@ const getproductmainpage = async (req, res) => {
   console.log(req.params)
   const { id } = req.params
   req.session.code = id
-  const product = await Product.findById(id)
-  const priceless = product.salePrice - 15000
-  const pricemore = product.salePrice + 15000
-  const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
+  // const product = await Product.findById(id,{isDeleted:false})
+  const product = await Product.findOne({ _id: id, isDeleted: false });
   try {
-    res.render('productmainpage', { product: product, recomended: recomended })
+    if(product){
+      const priceless = product.salePrice - 15000
+      const pricemore = product.salePrice + 15000
+      const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
+      res.render('productmainpage', { product: product, recomended: recomended })
+    }
+    else{
+      console.log('pos')
+      return res.redirect('/user/shoppage')
+    }
   } catch (error) {
-
+      console.error('errror from homecontroller',error)
   }
 }
 const getfilterpage = async (req, res) => {
+  const cat = await categories.find({})
   try {
     const { category, priceFrom, priceTo } = req.query;
+    console.log(category)
     let filter = {}
     if (category) {
       filter.brand = category;
@@ -36,8 +45,10 @@ const getfilterpage = async (req, res) => {
       if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
     }
+    console.log(filter,'filter')
     const products = await Product.find(filter);
-    res.render('shoppage', { product: products });
+    console.log(products)
+    res.render('shoppage', { product: products,category:cat});
   } catch (error) {
 
   }

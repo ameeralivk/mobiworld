@@ -7,6 +7,7 @@ const { ConnectionStates } = require('mongoose')
 const { render } = require('ejs')
 const env = require('dotenv').config()
 const productSchema = require('../models/productSchema')
+const categories = require('../models/categorySchema')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
@@ -456,8 +457,9 @@ const logout = async (req,res)=>{
 }
 const shoppage = async(req,res)=>{
     const product = await productSchema.find({isDeleted:false,isBlocked:false})
+    const category = await categories.find({})
     try {
-        res.render('shoppage',{product,count:product.length})
+        res.render('shoppage',{product,category:category,count:product.length})
     } catch (error) {
         console.error('error from usercontroller',error)
     }

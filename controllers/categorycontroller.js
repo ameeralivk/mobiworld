@@ -4,7 +4,7 @@ const { deserializeUser } = require("passport");
 
 const categoryInfo = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 2;
+        const limit = parseInt(req.query.limit) || 5;
         const paginatedData = await getPaginatedData(page, limit);
     try {
 
@@ -77,7 +77,7 @@ async function getPaginatedData(page, limit) {
 
 const categorySearch =async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5;
     const Searchval = req.query.Searchval||''
     const searchfilter = {name:{$regex:Searchval,$options:'i'},isDeleted:false}
    const categories = await Category.find(searchfilter).skip((page - 1)*limit).limit(limit).sort({createdAt:-1});
@@ -100,7 +100,7 @@ const categorySearch =async(req,res)=>{
 
 const categoryclear = async(req,res)=>{
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 2;
+    const limit = parseInt(req.query.limit) || 5;
 
     const paginatedData = await getPaginatedData(page, limit);
     const category = await Category.find({isDeleted:false}).sort({createdAt:-1})

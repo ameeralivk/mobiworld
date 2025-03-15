@@ -9,7 +9,7 @@ const { findByIdAndUpdate } = require('../models/user')
 
 
 const addproductpage = async(req,res)=>{
-       const Category = await category.find({})
+       const Category = await category.find({isDeleted:false})
   try {
      
      res.render('addproduct',{msg:'',Category})
@@ -20,7 +20,7 @@ const addproductpage = async(req,res)=>{
 
 const productpage = async(req,res)=>{
    const page = parseInt(req.query.page) || 1;
-   const limit = parseInt(req.query.limit) || 2;
+   const limit = parseInt(req.query.limit) || 5;
    const paginatedData = await getPaginatedData(page, limit);
    if(req.session.msg){
       const msg = req.session.msg
@@ -187,7 +187,7 @@ try {
 
 const searchproduct = async(req,res)=>{
    const page = parseInt(req.query.page) || 1;
-   const limit = parseInt(req.query.limit) || 10;
+   const limit = parseInt(req.query.limit) || 5;
 
    // const paginatedData = await getPaginatedData(page, limit);
    const Searchval = req.query.Searchval||''
@@ -212,7 +212,7 @@ const searchproduct = async(req,res)=>{
 
 const productclear =async(req,res)=>{
          const page = parseInt(req.query.page) || 1;
-           const limit = parseInt(req.query.limit) || 2;
+           const limit = parseInt(req.query.limit) || 5;
        
            const paginatedData = await getPaginatedData(page, limit);
            const product = await Product.find({isDeleted:false}).sort({createdAt:-1})

@@ -43,11 +43,9 @@
             <form id="filterForm" action="/user/getfilterpage" >
               <select name="category" class="form-select">
                 <option value="">All</option>
-                <option value="apple">Apple</option>
-                <option value="samsung">Samsung</option>
-                <option value="oppo">OPPO</option>
-                <option value="vivo">Vivo</option>
-                <option value="redmi">Redmi</option>
+                <% category.forEach(function(category) { %>
+                <option><%= category.name %></option>
+                <% }); %>
               </select>
               <div class="price-range">
                 <h5 class="section-title">PRICE RANGE</h5>
