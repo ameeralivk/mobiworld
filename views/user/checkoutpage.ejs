@@ -1,23 +1,21 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Checkout Page</title>
     <link rel="stylesheet" href="\css\shoppage_header.css">
     <link rel="stylesheet" href="\css\checkoutpage.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
     
     <%- include("../../views/partials/user/shoppage_header") %>
 
-<body>
     <div class="header">
         <h1>Checkout</h1>
     </div>
@@ -40,6 +38,47 @@
                 <div class="address-option">
                     <div>• Shafeeh Kp</div>
                     <div class="address-details">Payipil Kothaode Kerala</div>
+                </div>
+                
+                <!-- Add New Address Section -->
+                <div class="mt-4">
+                    <button class="btn btn-outline-secondary btn-sm" id="addNewAddressBtn">
+                        <i class="bi bi-plus-circle"></i> Add New Address
+                    </button>
+                </div>
+                
+                <!-- New Address Form (Hidden by default) -->
+                <div id="newAddressForm" class="mt-3" style="display: none;">
+                    <form id="addressForm">
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="street" class="form-label">Street Address</label>
+                            <input type="text" class="form-control" id="street" name="street" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" name="city" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="state" class="form-label">State</label>
+                                <input type="text" class="form-control" id="state" name="state" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="pincode" class="form-label">Pincode</label>
+                            <input type="text" class="form-control" id="pincode" name="pincode" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Address</button>
+                        <button type="button" class="btn btn-secondary" id="cancelAddressBtn">Cancel</button>
+                    </form>
                 </div>
                 
                 <div class="estimated-delivery">
@@ -90,7 +129,7 @@
             </div>
         </div>
         
-        <div class="row">
+        <div class="row mt-4">
             <div class="col-12">
                 <button class="btn btn-primary continue-btn">Continue</button>
             </div>
@@ -104,5 +143,67 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Handle address selection
+            $('.address-option').click(function() {
+                $('.address-option div:first-child').removeClass('active-address');
+                $(this).find('div:first-child').addClass('active-address');
+            });
+            
+            // Toggle new address form
+            $('#addNewAddressBtn').click(function() {
+                $('#newAddressForm').slideToggle();
+            });
+            
+            // Hide new address form
+            $('#cancelAddressBtn').click(function() {
+                $('#newAddressForm').slideUp();
+                $('#addressForm')[0].reset();
+            });
+            
+            // Handle address form submission
+            $('#addressForm').submit(function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = {
+                    name: $('#fullName').val(),
+                    phoneNumber: $('#phoneNumber').val(),
+                    street: $('#street').val(),
+                    city: $('#city').val(),
+                    state: $('#state').val(),
+                    pincode: $('#pincode').val()
+                };
+                
+                // Submit form data to server using AJAX
+                $.ajax({
+                    url: '/user/add-address',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if(response.success) {
+                            // Reload page to show new address
+                            location.reload();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Failed to add address'
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Something went wrong, please try again'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

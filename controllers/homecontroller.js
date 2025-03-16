@@ -7,6 +7,7 @@ const { compareSync } = require('bcrypt')
 const cartSchema = require('../models/cartSchema')
 const Cart = require('../models/cartSchema')
 const categories = require('../models/categorySchema')
+const { connect } = require('mongoose')
 
 
 
@@ -17,18 +18,18 @@ const getproductmainpage = async (req, res) => {
   // const product = await Product.findById(id,{isDeleted:false})
   const product = await Product.findOne({ _id: id, isDeleted: false });
   try {
-    if(product){
+    if (product) {
       const priceless = product.salePrice - 15000
       const pricemore = product.salePrice + 15000
       const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
       res.render('productmainpage', { product: product, recomended: recomended })
     }
-    else{
+    else {
       console.log('pos')
       return res.redirect('/user/shoppage')
     }
   } catch (error) {
-      console.error('errror from homecontroller',error)
+    console.error('errror from homecontroller', error)
   }
 }
 const getfilterpage = async (req, res) => {
@@ -36,39 +37,39 @@ const getfilterpage = async (req, res) => {
   try {
     const { sort, category, priceFrom, priceTo } = req.query;
     console.log(sort)
-      let filter = {}
-      if (category) {
-        filter.brand = category;
-      }
-      if (priceFrom || priceTo) {
-        filter.salePrice = {};
-        if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
-        if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
-      }
-      if(sort === 'A to Z'){
-        const products = await Product.find(filter).sort({productName:1});
-       return res.render('shoppage', { product: products,category:cat});
-      }
-      if(sort === 'Z to A'){
-        const products = await Product.find(filter).sort({productName:-1});
-       return res.render('shoppage', { product: products,category:cat});
-      }
-      if(sort === 'Low To High'){
-        const products = await Product.find(filter).sort({salePrice:1});
-        return res.render('shoppage', { product: products,category:cat});
-      }
-      if(sort === 'High To Low'){
-        const products = await Product.find(filter).sort({salePrice:-1});
-        return res.render('shoppage', { product: products,category:cat});
-      }
-      console.log(filter,'filter')
-      const products = await Product.find(filter);
-      console.log(products)
-    return  res.render('shoppage', { product: products,category:cat});
-   
-  } 
+    let filter = {}
+    if (category) {
+      filter.brand = category;
+    }
+    if (priceFrom || priceTo) {
+      filter.salePrice = {};
+      if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
+      if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
+    }
+    if (sort === 'A to Z') {
+      const products = await Product.find(filter).sort({ productName: 1 });
+      return res.render('shoppage', { product: products, category: cat });
+    }
+    if (sort === 'Z to A') {
+      const products = await Product.find(filter).sort({ productName: -1 });
+      return res.render('shoppage', { product: products, category: cat });
+    }
+    if (sort === 'Low To High') {
+      const products = await Product.find(filter).sort({ salePrice: 1 });
+      return res.render('shoppage', { product: products, category: cat });
+    }
+    if (sort === 'High To Low') {
+      const products = await Product.find(filter).sort({ salePrice: -1 });
+      return res.render('shoppage', { product: products, category: cat });
+    }
+    console.log(filter, 'filter')
+    const products = await Product.find(filter);
+    console.log(products)
+    return res.render('shoppage', { product: products, category: cat });
+
+  }
   catch (error) {
-        console.log('error from homecontroller',error)
+    console.log('error from homecontroller', error)
   }
 }
 const getprofilepage = async (req, res) => {
@@ -180,7 +181,7 @@ const checkotp = async (req, res) => {
   try {
 
     if (req.session.userOtp == otp) {
-      const newuser = await userschema.findByIdAndUpdate(user._id, {email:newusername})
+      const newuser = await userschema.findByIdAndUpdate(user._id, { email: newusername })
       await newuser.save()
       req.session.userOtp = null
       req.session.message = 'username edited successfully'
@@ -201,83 +202,83 @@ const checkotp = async (req, res) => {
 }
 
 
-const addresspage = async(req,res)=>{
-     const user = req.session.User
-     const addresses = await addressSchema.Address.find({userId:user._id})
-     console.log(addresses)
+const addresspage = async (req, res) => {
+  const user = req.session.User
+  const addresses = await addressSchema.Address.find({ userId: user._id })
+  console.log(addresses)
   try {
-    if(req.session.message){
+    if (req.session.message) {
       const message = req.session.message
-      req.session.message = null 
-     return res.render('addresspage',{message,addresses})
+      req.session.message = null
+      return res.render('addresspage', { message, addresses })
     }
-    return res.render('addresspage',{message:'',addresses})
+    return res.render('addresspage', { message: '', addresses })
   } catch (error) {
-    console.error('error from usernameedit',error)
+    console.error('error from usernameedit', error)
   }
 }
 
-const addaddress = async(req,res)=>{
+const addaddress = async (req, res) => {
   try {
     res.render('addaddress')
   } catch (error) {
-    
+
   }
 }
 
-const registeraddress = async(req,res)=>{
+const registeraddress = async (req, res) => {
   const user = req.session.User
   const data = req.body
   console.log(user)
   try {
-      if(user){
-        const adduser = new addressSchema.Address({
-          userId:user._id,
-          address:[{
-            addressType:data.address,
-            name:data.name,
-            city:data.City,
-            pincode:data.pincode,
-            phone:data.phone, 
-            altPhone:data.altphone,
-            state:data.state,
-          }] 
-        })
-       const save = await adduser.save()
-       if(save){
+    if (user) {
+      const adduser = new addressSchema.Address({
+        userId: user._id,
+        address: [{
+          addressType: data.address,
+          name: data.name,
+          city: data.City,
+          pincode: data.pincode,
+          phone: data.phone,
+          altPhone: data.altphone,
+          state: data.state,
+        }]
+      })
+      const save = await adduser.save()
+      if (save) {
         req.session.message = 'address created succesfully'
-          res.redirect('/user/addresspage')
-       }
-       else{
+        res.redirect('/user/addresspage')
+      }
+      else {
         req.session.message = 'addresss created failed'
         res.redirect('/user/addresspage')
-       }
       }
-      else{
-        req.session.message = 'user not found'
-        res.redirect('/user/addresspage')
-      }
-     
-  } catch (error) { 
-    console.error('error from homecontroller regesteraddress',error)
+    }
+    else {
+      req.session.message = 'user not found'
+      res.redirect('/user/addresspage')
+    }
+
+  } catch (error) {
+    console.error('error from homecontroller regesteraddress', error)
   }
 }
 
-const editaddress = async(req,res)=>{
-  const {id} = req.params
+const editaddress = async (req, res) => {
+  const { id } = req.params
   console.log(id)
- const address = await addressSchema.Address.findOne({_id:id})
- console.log(address)
+  const address = await addressSchema.Address.findOne({ _id: id })
+  console.log(address)
   try {
-    res.render('editaddress',{address:address.address[0]})
+    res.render('editaddress', { address: address.address[0] })
   } catch (error) {
-    console.log('error from homecontroller',error)
+    console.log('error from homecontroller', error)
   }
 }
-const editaddresspost = async(req,res)=>{
-  const {id} = req.params
+const editaddresspost = async (req, res) => {
+  const { id } = req.params
   console.log(id)
-  const {name,state,address,City,pincode,phone,altphone} = req.body
+  const { name, state, address, City, pincode, phone, altphone } = req.body
   try {
     const result = await addressSchema.Address.updateOne(
       { "address._id": id }, // Match the document with the specific address ID
@@ -293,33 +294,33 @@ const editaddresspost = async(req,res)=>{
         }
       }
     );
-    if(result){
+    if (result) {
       req.session.message = 'address edited successfully'
       res.redirect('/user/addresspage')
     }
-    else{
+    else {
       req.session.message = 'address edited failed'
       res.redirect('/user/addresspage')
     }
   } catch (error) {
-    console.log('error from homecontroller editaddresspost',error)
+    console.log('error from homecontroller editaddresspost', error)
   }
 }
 
-const deleteaddress = async(req,res)=>{
-  const {id} = req.params
+const deleteaddress = async (req, res) => {
+  const { id } = req.params
   try {
     const isdeleted = await addressSchema.Address.findByIdAndDelete(id)
-    if(isdeleted){
+    if (isdeleted) {
       req.session.message = 'Address deleted successfully'
       res.redirect('/user/addresspage')
     }
-    else{
+    else {
       req.session.message = 'Address deletion failed'
       res.redirect('/user/addresspage')
     }
   } catch (error) {
-    console.error('error from home controller',error)
+    console.error('error from home controller', error)
   }
 }
 
@@ -355,7 +356,7 @@ const deleteaddress = async(req,res)=>{
 //           }))
 //               return res.json({message: 'Cart updated successfully'})
 //          }
-       
+
 //        }else{
 //          const isexist = await cartSchema.find({userId:user._id})
 //              console.log(isexist,'isexist 1')
@@ -373,7 +374,7 @@ const deleteaddress = async(req,res)=>{
 //              })
 //              isexist[0].calculateTotalPrice();
 //            const saved = await isexist[0].save()
-           
+
 //            if(saved){
 //              const isexist = await cartSchema.findOne({userId:user._id})
 //              const item =isexist.items.map(item=>item.productId)
@@ -409,13 +410,13 @@ const deleteaddress = async(req,res)=>{
 //                 return res.json({message: 'Cart updated successfully'})
 //                }
 //            }
-          
+
 //        }
-    
+
 //    } catch (error) {
 //      console.error('error from the homecontroller',error)
 //    }
-      
+
 //   }
 //   req.session.message = 'user not found'
 //   return res.status(200).json({redirectUrl:'/user/login'})
@@ -484,109 +485,136 @@ const addtocart = async (req, res) => {
 
 
 
-const addtocartpage = async(product,quantity)=>{
-    //  const product = await Product.findOne({_id:req.params.id})
-    
+const addtocartpage = async (product, quantity) => {
+  //  const product = await Product.findOne({_id:req.params.id})
+
 }
-const getcart = async (req,res)=>{
+const getcart = async (req, res) => {
   const user = req.session.User
-try {
-  console.log('hello')
-  const isexist = await cartSchema.findOne({userId:user._id})
-  console.log(isexist)
-  if(isexist == null){
-   return res.render('addtocart',{combineddata:[],quantity:'',totalPrice:0})
+  try {
+    if (req.session.message) {
+      const isexist = await cartSchema.findOne({ userId: user._id })
+      if (isexist == null) {
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0 })
+      }
+      const message = req.session.message;
+      req.session.message = null
+      const item = isexist.items.map(item => item.productId)
+      const quantity = isexist.items.map(item => item.quantity)
+      const products = await Product.find({ _id: { $in: item } });
+      const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
+      const combineddata = products.map((product, index) => ({
+        ...product._doc,
+        quantity: quantity[index]
+      }))
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice, message: message })
+    }
+
+    else {
+      const isexist = await cartSchema.findOne({ userId: user._id })
+      if (isexist == null) {
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0 })
+      }
+      const item = isexist.items.map(item => item.productId)
+      const quantity = isexist.items.map(item => item.quantity)
+      console.log(quantity, 'quantity')
+      const products = await Product.find({ _id: { $in: item } });
+      console.log(products, 'products')
+      const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
+      const combineddata = products.map((product, index) => ({
+        ...product._doc,
+        quantity: quantity[index]
+      }))
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice, message: '' })
+    }
+
+
+
+  } catch (error) {
+
   }
-  else{
-    const item =isexist.items.map(item=>item.productId)
-    const quantity = isexist.items.map(item=>item.quantity) 
-    console.log(quantity,'quantity')
-    const products = await Product.find({ _id: { $in: item } });
-    console.log(products,'products')
-    const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
-    console.log(populatedCart.items,'populate')
-    const combineddata = products.map((product,index)=>({
-       ...product._doc,
-      quantity:quantity[index]
-    }))
-    console.log(combineddata,'combinated data') 
-    console.log(quantity,'quantity')
-  return res.render('addtocart',{combineddata:populatedCart.items,quantity,totalPrice:isexist?.totalPrice})
-   console.log('hi')
-  }
- 
-} catch (error) {
-  
-}
 }
 
 
-const updatequantity = async(req,res)=>{
-  const quantity =parseInt(req.body.quantity) 
+const updatequantity = async (req, res) => {
+  const quantity = parseInt(req.body.quantity)
   const id = req.body.productId
-  console.log(id,'id')  
   const user = req.session.User
-  console.log(user)
   try {
-        const cart = await cartSchema.findOne({userId:user._id})
-        console.log(cart)
-        const item = cart.items.find(item=>item._id == id) 
-        console.log(item)
-        if (item) {
-          console.log('hi') 
-         item.quantity = quantity; 
-         item.totalPrice = item.quantity * item.price; 
-          cart.calculateTotalPrice();
-         const saved = await cart.save() 
-         if(saved){
-          const total = saved.calculateTotalPrice()
-          console.log(total,'total')
-          res.status(200).json({success:true,total}) 
-         }
-
+    const cart = await cartSchema.findOne({ userId: user._id })
+    const item = cart.items.find(item => item._id == id)
+    if (item) {
+      item.quantity = quantity;
+      item.totalPrice = item.quantity * item.price;
+      cart.calculateTotalPrice();
+      const saved = await cart.save()
+      if (saved) {
+        const total = saved.calculateTotalPrice()
+        res.status(200).json({ success: true, total })
       }
-    
-  
-  } catch (error) {
-    console.error('error from updatequantity',error)
-    
-  }
-} 
 
-
-
-
-
-
-const checkoutpage = async(req,res)=>{
-  const userid = req.session.User
-  const user = await userschema.find({_id:userid._id,isBlocked:false})
-  try {
-    console.log(user.length)
-    if(user.length > 0){
-      const cart = await cartSchema.find({userId:userid})
-      const item = cart[0].items.map(item => item.productId)
-      const productfind = await Product.find({_id:{$in:item},isBlocked:false,isDeleted:false})
-      console.log(productfind.length)
-      if(productfind.length == 0){
-        console.log('hello amere')
-        const message = 'Product is blocked'
-        res.render('addtocart',{message,combineddata:[],quantity:0,totalPrice:0})
-      }
-      else{
-        res.render('checkoutpage')
-      }
-      
     }
-    else{
-      const message = 'user is blocked'
-      res.render('login',{message})
-    }
-   
+
+
   } catch (error) {
-    
+    console.error('error from updatequantity', error)
+
   }
 }
+
+
+const checkoutpage = async (req, res) => {
+  const userid = req.session.User;
+
+  try {
+    // Check if user is blocked
+    const user = await userschema.find({ _id: userid._id, isBlocked: false });
+    if (user.length === 0) {
+      req.session.message = 'User is blocked';
+      return res.redirect('/user/login');
+    }
+
+    // Fetch the user's populated cart
+    const populatedCart = await cartSchema
+      .findOne({ userId: userid._id })
+      .populate('items.productId');
+    if (!populatedCart) {
+      req.session.message = 'Cart is empty';
+      return res.redirect('/user/getcart');
+    }
+
+    // Check each product in the cart
+    for (const item of populatedCart.items) {
+      const product = item.productId;
+      if (product.isBlocked) {
+        console.log('isbloked')
+        req.session.message = `${item.productId.productName} is blocked by admin`;
+        return res.redirect('/user/getcart');
+      }
+
+      if (product.quantity === 0) {
+        req.session.message = `${item.productId.productName} is outofstock`;
+        return res.redirect('/user/getcart');
+      }
+      if(item.quantity>product.quantity){
+        req.session.message = `please decrease the quantity of the ${product.productName}`
+       return res.redirect('/user/getcart')
+
+       }
+      if (product.isDeleted) {
+        console.log(item.productId, 'this product')
+        req.session.message = `${item.productId.productName} is deleted by admin`;
+        return res.redirect('/user/getcart');
+      }
+    }
+
+    // If no issues, render the checkout page
+    return res.render('checkoutpage');
+  } catch (error) {
+    console.error('Error in checkout page:', error);
+    return res.status(500).send('An error occurred.');
+  }
+};
 
 
 

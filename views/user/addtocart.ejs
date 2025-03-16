@@ -124,6 +124,16 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 // Select all rows with the class "cart-item"
+
+const message = document.getElementById('mess')
+setTimeout(() => {
+    if(message){
+        message.style.display = 'none'
+    }
+    else{
+        message.style.display = 'block'
+    }
+},3000);
 const cartRows = document.querySelectorAll('.cart-item');
 
 cartRows.forEach(row => {
