@@ -34,23 +34,41 @@ const getproductmainpage = async (req, res) => {
 const getfilterpage = async (req, res) => {
   const cat = await categories.find({})
   try {
-    const { category, priceFrom, priceTo } = req.query;
-    console.log(category)
-    let filter = {}
-    if (category) {
-      filter.brand = category;
-    }
-    if (priceFrom || priceTo) {
-      filter.salePrice = {};
-      if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
-      if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
-    }
-    console.log(filter,'filter')
-    const products = await Product.find(filter);
-    console.log(products)
-    res.render('shoppage', { product: products,category:cat});
-  } catch (error) {
-
+    const { sort, category, priceFrom, priceTo } = req.query;
+    console.log(sort)
+      let filter = {}
+      if (category) {
+        filter.brand = category;
+      }
+      if (priceFrom || priceTo) {
+        filter.salePrice = {};
+        if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
+        if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
+      }
+      if(sort === 'A to Z'){
+        const products = await Product.find(filter).sort({productName:1});
+       return res.render('shoppage', { product: products,category:cat});
+      }
+      if(sort === 'Z to A'){
+        const products = await Product.find(filter).sort({productName:-1});
+       return res.render('shoppage', { product: products,category:cat});
+      }
+      if(sort === 'Low To High'){
+        const products = await Product.find(filter).sort({salePrice:1});
+        return res.render('shoppage', { product: products,category:cat});
+      }
+      if(sort === 'High To Low'){
+        const products = await Product.find(filter).sort({salePrice:-1});
+        return res.render('shoppage', { product: products,category:cat});
+      }
+      console.log(filter,'filter')
+      const products = await Product.find(filter);
+      console.log(products)
+    return  res.render('shoppage', { product: products,category:cat});
+   
+  } 
+  catch (error) {
+        console.log('error from homecontroller',error)
   }
 }
 const getprofilepage = async (req, res) => {
@@ -305,115 +323,164 @@ const deleteaddress = async(req,res)=>{
   }
 }
 
-const addtocart = async(req,res)=>{
-  console.log('hidsafdsafdsaf')
-  const { productId, quantity } = req.body;
-  console.log(productId,quantity)
-  const user = req.session.User
-  if(user){
-      const product = await Product.findOne({_id:productId})
-      const user = req.session.User
-      const isexist = await cartSchema.find({userId:user._id})
-      console.log(isexist,'isexitdsafdsafsdklfjdsaf')
-   try {
-       if(isexist.length == 0){
-         console.log('ready')
-          const newcartschema = new cartSchema({
-           userId:user._id,
-           items:[{
-             productId:product._id,
-             quantity:quantity,
-             price:product.salePrice,
-             totalPrice:product.salePrice * quantity,
-           }]
-          })
-          newcartschema.calculateTotalPrice();
-         const saved = await newcartschema.save()
-         if(saved){
-           const item =newcartschema.items.map(item=>item.productId)
-           const products = await Product.find({ _id: { $in: item } });
-           const combineddata = products.map((product,index)=>({
-             ...product._doc,
-            quantity:quantity[index]
-          }))
-              return res.json({message: 'Cart updated successfully'})
-         }
+// const addtocart = async(req,res)=>{
+//   const { productId, quantity } = req.body;
+//   console.log(productId,quantity)
+//   const user = req.session.User
+//   if(user){
+//       const product = await Product.findOne({_id:productId})
+//       const user = req.session.User
+//       const isexist = await cartSchema.find({userId:user._id})
+//       console.log(isexist,'isexitdsafdsafsdklfjdsaf')
+//    try {
+//        if(isexist.length == 0){
+//          console.log('ready')
+//           const newcartschema = new cartSchema({
+//            userId:user._id,
+//            items:[{
+//              productId:product._id,
+//              quantity:quantity,
+//              price:product.salePrice,
+//              totalPrice:product.salePrice * quantity,
+//            }]
+//           })
+//           newcartschema.calculateTotalPrice();
+//          const saved = await newcartschema.save()
+//          if(saved){
+//            const item =newcartschema.items.map(item=>item.productId)
+//            const products = await Product.find({ _id: { $in: item } });
+//            const combineddata = products.map((product,index)=>({
+//              ...product._doc,
+//             quantity:quantity[index]
+//           }))
+//               return res.json({message: 'Cart updated successfully'})
+//          }
        
-       }else{
-         const isexist = await cartSchema.find({userId:user._id})
-             console.log(isexist,'isexist 1')
-             const item =isexist[0].items.map(item=>item.productId)
-             const product = await Product.findOne({_id:productId})
-         const includes = item.some(id=>id.toString() === product._id.toString())
-         console.log(includes)
-           if(includes != true){
-            console.log('hi')
-             isexist[0].items.push({
-               productId:product._id,
-               quantity:quantity,
-               price:product.salePrice,
-               totalPrice:product.salePrice * quantity,
-             })
-             isexist[0].calculateTotalPrice();
-           const saved = await isexist[0].save()
+//        }else{
+//          const isexist = await cartSchema.find({userId:user._id})
+//              console.log(isexist,'isexist 1')
+//              const item =isexist[0].items.map(item=>item.productId)
+//              const product = await Product.findOne({_id:productId})
+//          const includes = item.some(id=>id.toString() === product._id.toString())
+//          console.log(includes)
+//            if(includes != true){
+//             console.log('hi')
+//              isexist[0].items.push({
+//                productId:product._id,
+//                quantity:quantity,
+//                price:product.salePrice,
+//                totalPrice:product.salePrice * quantity,
+//              })
+//              isexist[0].calculateTotalPrice();
+//            const saved = await isexist[0].save()
            
-           if(saved){
-             const isexist = await cartSchema.findOne({userId:user._id})
-             const item =isexist.items.map(item=>item.productId)
-             const product = await Product.findOne({_id:req.params.id})
-             const quantity = isexist.items.map(item=>item.quantity)
-             const products = await Product.find({ _id: { $in: item } });
-             const combineddata = products.map((product,index)=>({
-               ...product._doc,
-              quantity:quantity[index]
-            }))
-            return res.json({message: 'Cart updated successfully'})
-           }
-           }
-           else{
-             const user = req.session.User
-               const cart = await cartSchema.findOne({userId:user._id})
-               const product = await Product.findOne({_id:productId})
-               const item = cart.items.find(item => item.productId == productId )
-               const total = item.quantity+ parseInt(quantity)
-               item.quantity = total
-               const update = item.totalPrice = item.quantity * product.salePrice
-               cart.calculateTotalPrice()
-               await cart.save()
-               if(update){
-                 const isexist = await cartSchema.findOne({userId:user._id})
-                 const item =isexist.items.map(item=>item.productId)
-                 const quantity = isexist.items.map(item=>item.quantity)
-                 const products = await Product.find({ _id: { $in: item } });
-                 const combineddata = products.map((product,index)=>({
-                   ...product._doc,
-                  quantity:quantity[index]
-                }))
-                return res.json({message: 'Cart updated successfully'})
-               }
-           }
+//            if(saved){
+//              const isexist = await cartSchema.findOne({userId:user._id})
+//              const item =isexist.items.map(item=>item.productId)
+//              const product = await Product.findOne({_id:req.params.id})
+//              const quantity = isexist.items.map(item=>item.quantity)
+//              const products = await Product.find({ _id: { $in: item } });
+//              const combineddata = products.map((product,index)=>({
+//                ...product._doc,
+//               quantity:quantity[index]
+//             }))
+//             return res.json({message: 'Cart updated successfully'})
+//            }
+//            }
+//            else{
+//              const user = req.session.User
+//                const cart = await cartSchema.findOne({userId:user._id})
+//                const product = await Product.findOne({_id:productId})
+//                const item = cart.items.find(item => item.productId == productId )
+//                const total = item.quantity+ parseInt(quantity)
+//                item.quantity = total
+//                const update = item.totalPrice = item.quantity * product.salePrice
+//                cart.calculateTotalPrice()
+//                await cart.save()
+//                if(update){
+//                  const isexist = await cartSchema.findOne({userId:user._id})
+//                  const item =isexist.items.map(item=>item.productId)
+//                  const quantity = isexist.items.map(item=>item.quantity)
+//                  const products = await Product.find({ _id: { $in: item } });
+//                  const combineddata = products.map((product,index)=>({
+//                    ...product._doc,
+//                   quantity:quantity[index]
+//                 }))
+//                 return res.json({message: 'Cart updated successfully'})
+//                }
+//            }
           
-       }
+//        }
     
-   } catch (error) {
-     console.error('error from the homecontroller',error)
-   }
-
-        
-
-
-
-
-
-
-
-
-    // return  res.status(200).json({ message: 'Item added to cart successfully!', redirectUrl})
+//    } catch (error) {
+//      console.error('error from the homecontroller',error)
+//    }
       
+//   }
+//   req.session.message = 'user not found'
+//   return res.status(200).json({redirectUrl:'/user/login'})
+// }
+
+
+
+const addtocart = async (req, res) => {
+  const { productId, quantity } = req.body;
+  console.log(productId, quantity);
+
+  const user = req.session.User;
+  if (!user) {
+    req.session.message = 'User not found';
+    return res.status(200).json({ redirectUrl: '/user/login' });
   }
-  req.session.message = 'user not found'
-  return res.status(200).json({redirectUrl:'/user/login'})
-}
+
+  try {
+    const product = await Product.findOne({ _id: productId });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    let cart = await cartSchema.findOne({ userId: user._id });
+
+    if (!cart) {
+      // Create new cart if it doesn't exist
+      cart = new cartSchema({
+        userId: user._id,
+        items: [{
+          productId: product._id,
+          quantity,
+          price: product.salePrice,
+          totalPrice: product.salePrice * quantity,
+        }]
+      });
+      cart.calculateTotalPrice();
+      await cart.save();
+    } else {
+      // Update existing cart
+      const existingItem = cart.items.find(item => item.productId.toString() === productId.toString());
+      if (existingItem) {
+        // Update quantity and totalPrice if product already exists in cart
+        existingItem.quantity += parseInt(quantity);
+        existingItem.totalPrice = existingItem.quantity * product.salePrice;
+      } else {
+        // Add new product to cart
+        cart.items.push({
+          productId: product._id,
+          quantity,
+          price: product.salePrice,
+          totalPrice: product.salePrice * quantity,
+        });
+      }
+      cart.calculateTotalPrice();
+      await cart.save();
+    }
+
+    return res.json({ message: 'Cart updated successfully' });
+  } catch (error) {
+    console.error('Error in addtocart:', error);
+    return res.status(500).json({ message: 'An error occurred' });
+  }
+};
+
 
 
 
@@ -428,19 +495,23 @@ try {
   const isexist = await cartSchema.findOne({userId:user._id})
   console.log(isexist)
   if(isexist == null){
-    res.render('addtocart',{combineddata:[],quantity:'',totalPrice:0})
+   return res.render('addtocart',{combineddata:[],quantity:'',totalPrice:0})
   }
   else{
     const item =isexist.items.map(item=>item.productId)
-    console.log(isexist.items,'exitst item')
-    const quantity = isexist.items.map(item=>item.quantity)
+    const quantity = isexist.items.map(item=>item.quantity) 
+    console.log(quantity,'quantity')
     const products = await Product.find({ _id: { $in: item } });
+    console.log(products,'products')
+    const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
+    console.log(populatedCart.items,'populate')
     const combineddata = products.map((product,index)=>({
        ...product._doc,
       quantity:quantity[index]
     }))
+    console.log(combineddata,'combinated data') 
     console.log(quantity,'quantity')
-   res.render('addtocart',{combineddata,quantity,totalPrice:isexist?.totalPrice})
+  return res.render('addtocart',{combineddata:populatedCart.items,quantity,totalPrice:isexist?.totalPrice})
    console.log('hi')
   }
  
@@ -451,26 +522,27 @@ try {
 
 
 const updatequantity = async(req,res)=>{
-
   const quantity =parseInt(req.body.quantity) 
   const id = req.body.productId
+  console.log(id,'id')  
   const user = req.session.User
   console.log(user)
   try {
         const cart = await cartSchema.findOne({userId:user._id})
-        const item = cart.items.filter(item => item.productId == id)
-        if (item.length > 0 ) {
-         item[0].quantity = quantity; 
-         item[0].totalPrice = item[0].quantity * item[0].price; 
+        console.log(cart)
+        const item = cart.items.find(item=>item._id == id) 
+        console.log(item)
+        if (item) {
+          console.log('hi') 
+         item.quantity = quantity; 
+         item.totalPrice = item.quantity * item.price; 
           cart.calculateTotalPrice();
-         const saved = await cart.save()
+         const saved = await cart.save() 
          if(saved){
-          res.status(200).json({redirectUrl:'/user/getcart'})
+          const total = saved.calculateTotalPrice()
+          console.log(total,'total')
+          res.status(200).json({success:true,total}) 
          }
-   
-       
-
-
 
       }
     
@@ -480,6 +552,10 @@ const updatequantity = async(req,res)=>{
     
   }
 } 
+
+
+
+
 
 
 const checkoutpage = async(req,res)=>{

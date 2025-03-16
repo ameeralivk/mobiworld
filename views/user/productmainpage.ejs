@@ -177,7 +177,8 @@
             minusButton.addEventListener('click', function () {
                 const currentValue = parseInt(quantityInput.value);
                 if (currentValue > 1) {
-                    quantityInput.value = currentValue - 1;
+                        quantityInput.value = currentValue - 1;
+                   
                 }
             });
 
@@ -220,7 +221,6 @@
             // Event listener to detect changes in the text box
             quantityInput.addEventListener('input', updateStockButton); // Update stock button when input value changes
 
-            // Initialize the button state when the page loads
             updateStockButton();
         });
 
