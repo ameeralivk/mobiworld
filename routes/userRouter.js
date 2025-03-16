@@ -37,6 +37,8 @@ router.post('/add-to-cart',homecontroller.addtocart)
 router.get('/getcart',homecontroller.getcart)
 router.post('/updatequantity',homecontroller.updatequantity)
 router.get('/checkoutpage',homecontroller.checkoutpage)
+router.delete('/cartdelete/:id',homecontroller.deletecartbutton)
+router.get('/searchmain/search',homecontroller.searchmain)
 
 //profile routes
 router.get('/profile',userAuth,homecontroller.getprofilepage)

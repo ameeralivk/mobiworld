@@ -616,6 +616,51 @@ const checkoutpage = async (req, res) => {
   }
 };
 
+const deletecartbutton = async(req,res)=>{
+  const productId = req.params.id
+  const user = req.session.User
+  try {
+    console.log(productId)
+     const cart = await cartSchema.findOne({userId:user._id})
+     const product = cart.items.filter(item=>item.productId.toString() !== productId)
+     cart.items = product
+     cart.calculateTotalPrice()
+     console.log(cart.totalPrice,'carttotal')
+     const cartTotal = cart.totalPrice
+    const saved = await cart.save()
+    if(saved){
+      res.json({
+        success: true,
+        cartTotal: cartTotal,
+      });
+    }
+     console.log(product,'product')
+     console.log(cart)
+    console.log('hello')
+  } catch (error) {
+    
+  }
+}
+
+const searchmain = async(req,res)=>{
+  try {
+    const searchval = req.query.query
+    console.log(searchval)
+    const results = await Product.find({ 
+      productName: { $regex: searchval, $options: 'i' } 
+  });
+   if(results){
+    res.json({ success: true, products: results });
+   }
+   else{
+    res.json({ success: true, products:[] });
+   }
+  
+    
+  } catch (error) {
+    
+  }
+}
 
 
 module.exports = {
@@ -635,4 +680,6 @@ module.exports = {
   getcart,
   updatequantity,
   checkoutpage,
+  deletecartbutton,
+  searchmain,
 }
