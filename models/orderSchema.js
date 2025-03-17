@@ -5,6 +5,12 @@ const {v4:uuidv4} = require('uuid');
 const { render } = require("../app");
 
 const orderSchema = new Schema({
+    userId : {
+        type:Schema.Types.ObjectId,
+        ref : "User",
+        required: true,
+
+    },
     orderId : {
         type:String,
         default:()=>uuidv4(),
@@ -39,7 +45,7 @@ const orderSchema = new Schema({
         required:true
     },
     address:{
-        type:Schema.Types.orderId,
+        type:Schema.Types.ObjectId,
         ref:'User',
         required:true
     },

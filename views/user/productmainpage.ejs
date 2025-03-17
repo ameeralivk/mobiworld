@@ -17,7 +17,11 @@
 <body>
     
     <%- include("../../views/partials/user/shoppage_header") %>
-
+    <% if (typeof message !=='undefined' && message) { %>
+        <p id="mess" class="error-message">
+            <%= message %>
+        </p>
+        <% } %>
     <!-- Add necessary styles for zoom functionality -->
 
 

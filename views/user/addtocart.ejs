@@ -51,7 +51,7 @@
                                         <tr class="cart-item">
                                             <td>
                                                 <button data-id="<%= product.productId._id %>"
-                                                    class="remove-btn rounded">✕</button>
+                                                    class="remove-btn rounded mt-3">✕</button>
                                             </td>
                                             <td>
                                                 <img src="<%=product.productId.productImage[0]%>"
@@ -77,7 +77,7 @@
                                                         class="quantity-btn rounded-end">+</button>
                                                 </div>
                                             </td>
-
+                                            <input type="hidden" id="currentstock" value="<%= product.productId.quantity %>">
                                             <td id="Total" class="text-center"> </td>
                                         </tr>
                                         <% }); %>
@@ -99,7 +99,7 @@
                                 <h4 class="mb-4">CART TOTALS</h4>
                                 <div class="row mb-2">
                                     <div class="col-6">Subtotal</div>
-                                    <div class="col-6 text-end">₹20.00</div>
+                                    <div class="col-6 text-end">₹<%=totalPrice.toLocaleString('en-IN') %></div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="col-6">Delivery</div>
@@ -111,8 +111,7 @@
                                 </div>
                                 <div class="row mb-4 pt-2 border-top mt-2">
                                     <div class="col-6 fw-bold">TOTAL</div>
-                                    <div id="totalamound" class="col-6 text-end fw-bold">₹<%=
-                                            totalPrice.toLocaleString('en-IN') %>
+                                    <div id="totalamound" class="col-6 text-end fw-bold">₹<%=totalPrice.toLocaleString('en-IN') %>
                                     </div>
                                 </div>
 
@@ -196,12 +195,15 @@
                             // Plus button event
                             plusBtn.forEach(button => {
                                 button.addEventListener('click', function () {
+                                    const stock = document.getElementById('currentstock').value
                                     const productId = this.dataset.productId
                                     const quantityInputField = document.getElementById(`quantityInput-${productId}`)
                                     let currentQuantity = parseInt(quantityInputField.value);
                                     console.log(currentQuantity)
                                     let newQuantity = currentQuantity + 1
-                                    quantityInputField.value = newQuantity;
+                                    if(newQuantity<= stock){
+                                        quantityInputField.value = newQuantity;  
+                                    }
                                     updateTotal();
                                     updatequantity(productId, newQuantity)
                                 });

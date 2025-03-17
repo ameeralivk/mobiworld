@@ -8,8 +8,7 @@ const cartSchema = require('../models/cartSchema')
 const Cart = require('../models/cartSchema')
 const categories = require('../models/categorySchema')
 const { connect } = require('mongoose')
-
-
+const orderSchema = require('../models/orderSchema')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -18,11 +17,17 @@ const getproductmainpage = async (req, res) => {
   // const product = await Product.findById(id,{isDeleted:false})
   const product = await Product.findOne({ _id: id, isDeleted: false });
   try {
+    if(req.session.message){
+      const message = req.session.message
+      req.session.message = null
+      const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
+      return res.render('productmainpage', { product: product, recomended: recomended,message:message})
+    }
     if (product) {
       const priceless = product.salePrice - 15000
       const pricemore = product.salePrice + 15000
       const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
-      res.render('productmainpage', { product: product, recomended: recomended })
+     return res.render('productmainpage', { product: product, recomended: recomended })
     }
     else {
       console.log('pos')
@@ -220,7 +225,12 @@ const addresspage = async (req, res) => {
 
 const addaddress = async (req, res) => {
   try {
-    res.render('addaddress')
+    if(req.session.message){
+      const message = req.session.message
+      req.session.message = null
+      return  res.render('addaddress',{message})
+    }
+   return  res.render('addaddress')
   } catch (error) {
 
   }
@@ -231,6 +241,21 @@ const registeraddress = async (req, res) => {
   const data = req.body
   console.log(user)
   try {
+    const exitsaddress = await addressSchema.Address.findOne({
+      userId: user._id,
+      'address.addressType': data.address,
+      'address.pincode': data.pincode,
+      'address.city': data.city,
+      'address.phone': data.phone,
+      'address.altPhone': data.altphone,
+      'address.state': data.state,
+    })
+    console.log(exitsaddress,'exitst ad')
+    if(exitsaddress){
+      console.log('already exite')
+      req.session.message = 'address already exist'
+      return res.redirect('/user/addaddress')
+    }
     if (user) {
       const adduser = new addressSchema.Address({
         userId: user._id,
@@ -439,6 +464,10 @@ const addtocart = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: 'Product not found' });
     }
+    if(product.quantity<quantity){
+      req.session.message = 'Out of Stock'
+      return res.redirect('/user/productmainpage/:id')
+    }
 
     let cart = await cartSchema.findOne({ userId: user._id });
 
@@ -492,6 +521,10 @@ const addtocartpage = async (product, quantity) => {
 const getcart = async (req, res) => {
   const user = req.session.User
   try {
+    if(!user){
+      req.session.message = 'Please login'
+      res.redirect('/user/login')
+    }
     if (req.session.message) {
       const isexist = await cartSchema.findOne({ userId: user._id })
       if (isexist == null) {
@@ -531,7 +564,7 @@ const getcart = async (req, res) => {
 
 
   } catch (error) {
-
+     console.error('error from homecontroller',error)
   }
 }
 
@@ -565,8 +598,12 @@ const updatequantity = async (req, res) => {
 
 const checkoutpage = async (req, res) => {
   const userid = req.session.User;
-
+   if(!userid){
+    req.session.message = 'Please login';
+    return res.redirect('/user/login');
+   }
   try {
+ 
     // Check if user is blocked
     const user = await userschema.find({ _id: userid._id, isBlocked: false });
     if (user.length === 0) {
@@ -578,7 +615,7 @@ const checkoutpage = async (req, res) => {
     const populatedCart = await cartSchema
       .findOne({ userId: userid._id })
       .populate('items.productId');
-    if (!populatedCart) {
+    if (populatedCart.items.length == 0) {
       req.session.message = 'Cart is empty';
       return res.redirect('/user/getcart');
     }
@@ -587,7 +624,6 @@ const checkoutpage = async (req, res) => {
     for (const item of populatedCart.items) {
       const product = item.productId;
       if (product.isBlocked) {
-        console.log('isbloked')
         req.session.message = `${item.productId.productName} is blocked by admin`;
         return res.redirect('/user/getcart');
       }
@@ -607,9 +643,22 @@ const checkoutpage = async (req, res) => {
         return res.redirect('/user/getcart');
       }
     }
-
-    // If no issues, render the checkout page
-    return res.render('checkoutpage');
+    if(req.session.message){
+      const message = req.session.message
+      req.session.message = null
+      const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
+    const product = cart.items.map(item=>item.productId)
+    const total = cart.totalPrice
+    const address = await addressSchema.Address.find({userId:userid._id})
+    const addresses = address.map(address=>address.address)
+    return res.render('checkoutpage',{product,total,address:addresses,message});
+    }
+    const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
+    const product = cart.items.map(item=>item.productId)
+    const total = cart.totalPrice
+    const address = await addressSchema.Address.find({userId:userid._id})
+    const addresses = address.map(address=>address.address)
+    return res.render('checkoutpage',{product,total,address:addresses});
   } catch (error) {
     console.error('Error in checkout page:', error);
     return res.status(500).send('An error occurred.');
@@ -625,7 +674,6 @@ const deletecartbutton = async(req,res)=>{
      const product = cart.items.filter(item=>item.productId.toString() !== productId)
      cart.items = product
      cart.calculateTotalPrice()
-     console.log(cart.totalPrice,'carttotal')
      const cartTotal = cart.totalPrice
     const saved = await cart.save()
     if(saved){
@@ -661,7 +709,79 @@ const searchmain = async(req,res)=>{
     
   }
 }
+const paymentpage = async(req,res)=>{
+  const user = req.session.User
+  console.log(user,'user')
+  const data = req.body
+  console.log(data)
+  try {
+    if (user && req.body. useNewAddress === 'true') {
+      const exitsaddress = await addressSchema.Address.findOne({
+        userId: user._id,
+        'address.addressType': data.address,
+        'address.pincode': data.pincode,
+        'address.city': data.city,
+        'address.phone': data.phone,
+        'address.altPhone': data.altphone,
+        'address.state': data.state,
+      })
+      console.log(exitsaddress,'exitst ad')
+      if(exitsaddress){
+        console.log('already exite')
+        req.session.message = 'address already exist'
+        return res.redirect('/user/checkoutpage')
+      }
+      else{
+        const adduser = new addressSchema.Address({
+          userId: user._id,
+          address: [{
+            addressType: data.address,
+            name: data.name,
+            city: data.city,
+            pincode: data.pincode,
+            phone: data.phone,
+            altPhone: data.altphone,
+            state: data.state,
+          }]
+        })
+        console.log(adduser,'useradd')
+        // const save = await adduser.save()
+        console.log(save,'save')
+        if (save) {
+        
+          res.redirect('/user/getpaymentpage')
+        }
+        else {
+          req.session.message = 'addresss created failed'
+          res.redirect('/user/addresspage')
+        }
+      }
+     
+    }
+     if(user){
+      res.redirect('/user/getpaymentpage')
+     }
+    else {
+      req.session.message = 'user not found'
+      res.redirect('/user/addresspage')
+    }
+  } catch (error) {
+    console.log(error)
+  }
+}
 
+const getpaymentpage = async(req,res)=>{
+  try {
+    if(req.session.message){
+      const message = req.session.message
+      req.session.message = null
+      return res.render('paymentpage',{message})
+    }
+   return res.render('paymentpage')
+  } catch (error) {
+    
+  }
+}
 
 module.exports = {
   getproductmainpage,
@@ -682,4 +802,6 @@ module.exports = {
   checkoutpage,
   deletecartbutton,
   searchmain,
+  paymentpage,
+  getpaymentpage,
 }

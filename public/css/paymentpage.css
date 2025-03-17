@@ -1,0 +1,110 @@
+.payment-header {
+    background-color: #3498db;
+    padding: 50px 0;
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.payment-header h1 {
+    font-family: serif;
+    font-weight: lighter;
+    letter-spacing: 1px;
+    font-size: 2.5rem;
+}
+
+.payment-container {
+    max-width: 650px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.payment-method-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.card-icons {
+    display: flex;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+.card-icon {
+    width: 30px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    color: white;
+    font-weight: bold;
+}
+
+.visa {
+    background-color: #0157A2;
+}
+
+.mastercard {
+    background-color: #EB001B;
+}
+
+.maestro {
+    background-color: #009DDD;
+}
+
+.payment-option {
+    margin-bottom: 15px;
+}
+
+.card-form {
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.complete-btn {
+    background-color: #3498db;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 0;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.complete-btn:hover {
+    background-color: #2980b9;
+}
+
+.form-control {
+    border-radius: 0;
+    padding: 10px 15px;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+}
+
+.wallet-icon {
+    background-color: #333;
+    color: white;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    border-radius: 3px;
+    margin-left: 10px;
+}
+.error-message {
+    color:rgb(227, 2, 2);
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}

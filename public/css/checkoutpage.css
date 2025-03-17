@@ -62,3 +62,10 @@
 .price {
     text-align: right;
 }
+.error-message {
+    color:rgb(227, 2, 2);
+    font-weight: bold;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
