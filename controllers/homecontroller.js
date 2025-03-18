@@ -245,7 +245,7 @@ const registeraddress = async (req, res) => {
       userId: user._id,
       'address.addressType': data.address,
       'address.pincode': data.pincode,
-      'address.city': data.city,
+      'address.City': data.city,
       'address.phone': data.phone,
       'address.altPhone': data.altphone,
       'address.state': data.state,
@@ -711,10 +711,14 @@ const searchmain = async(req,res)=>{
 }
 const paymentpage = async(req,res)=>{
   const user = req.session.User
-  console.log(user,'user')
   const data = req.body
-  console.log(data)
+  const User = await userschema.findOne({_id:user._id,isBlocked:false})
+  console.log(User,'User')
   try {
+    if(!User){
+      req.session.message = 'Please Login'
+      return res.redirect('/user/login')
+    }
     if (user && req.body. useNewAddress === 'true') {
       const exitsaddress = await addressSchema.Address.findOne({
         userId: user._id,
@@ -745,10 +749,10 @@ const paymentpage = async(req,res)=>{
           }]
         })
         console.log(adduser,'useradd')
-        // const save = await adduser.save()
+        const save = await adduser.save()
+        req.session.newaddress = save.address[0]._id
         console.log(save,'save')
         if (save) {
-        
           res.redirect('/user/getpaymentpage')
         }
         else {
@@ -759,6 +763,7 @@ const paymentpage = async(req,res)=>{
      
     }
      if(user){
+      req.session.address = data.selectedAddress
       res.redirect('/user/getpaymentpage')
      }
     else {
@@ -782,6 +787,109 @@ const getpaymentpage = async(req,res)=>{
     
   }
 }
+const orderplacedpage = async(req,res)=>{
+  const user = req.session.User
+  const payment = req.body.paymentMethod
+  const isexit = await userschema.find({_id:user._id,isBlocked:false})
+  const items = await cartSchema.findOne({userId:user._id}).populate('items.productId')
+  try {
+    if(payment === 'cash'){
+      if(isexit.length>0){
+        if(req.session.address){
+          const orderededuser = await cartSchema.findOne({userId:user._id})
+          console.log(orderededuser,'ordereduser')
+          const totalPrice = orderededuser.totalPrice
+          const address = req.session.address
+          req.session.address = null
+          const orderedItems = orderededuser.items.map(item=>({
+            product : item.productId,
+            quantity : item.quantity,
+            price : item.price,
+          }))
+              const newOrder = new orderSchema({
+                userId: user._id,
+                orderedItems:orderedItems,
+                totalPrice: totalPrice,
+                finalAmount:totalPrice,
+                address:address,
+                status:"Pending", // Default status is 'Pending' if not provided
+                invoiceDate: new Date(),
+                couponApplied:false,
+              });
+            const saved =  await newOrder.save();
+            if(saved){
+              const orderededuser = await cartSchema.findOne({userId:user._id}).populate('items.productId')
+              updateQuantities(orderededuser.items)
+              const remove = await cartSchema.deleteOne({userId:user._id})
+              if(remove){
+                console.log('removed')
+                
+              }
+            }
+              
+        }
+        else{
+          const orderededuser = await cartSchema.findOne({userId:user._id})
+          console.log(orderededuser,'ordereduser')
+          const totalPrice = orderededuser.totalPrice
+          const address = req.session.newaddress
+          req.session.newaddress = null
+          const orderedItems = orderededuser.items.map(item=>({
+            product : item.productId,
+            quantity : item.quantity,
+            price : item.price,
+          }))
+              const newOrder = new orderSchema({
+                userId: user._id,
+                orderedItems:orderedItems,
+                totalPrice: totalPrice,
+                finalAmount:totalPrice,
+                address:address,
+                status:"Pending", 
+                invoiceDate: new Date(),
+                couponApplied:false,
+              });
+              await newOrder.save();
+              console.log("New Order Created:", newOrder);
+              console.log(newOrder,'neworeder')
+            console.log(data,'data')
+          console.log(req.body)
+        }
+      }
+      else{
+        req.session.message = 'user Not found'
+        return res.redirect('/user/login')
+      }
+
+    }
+    else{
+      console.log('hakeem brototype')
+    }
+   
+    
+  } catch (error) {
+    console.error('error from homecontroller',error)
+  }
+}
+
+async function updateQuantities(items) {
+  for (const item of items) {
+      const productId = item.productId;
+      const decrementQuantity = item.quantity;
+
+      try {
+          await Product.findByIdAndUpdate(
+              productId,
+              { $inc: { quantity: -decrementQuantity } }, 
+              { new: true } 
+          );
+          console.log(`Updated product ${productId}: reduced quantity by ${decrementQuantity}`);
+      } catch (err) {
+          console.error(`Failed to update product ${productId}:`, err);
+      }
+  }
+}
+
 
 module.exports = {
   getproductmainpage,
@@ -804,4 +912,5 @@ module.exports = {
   searchmain,
   paymentpage,
   getpaymentpage,
+  orderplacedpage,
 }

@@ -41,6 +41,7 @@ router.delete('/cartdelete/:id',homecontroller.deletecartbutton)
 router.get('/searchmain/search',homecontroller.searchmain)
 router.post('/paymentpage',homecontroller.paymentpage)
 router.get('/getpaymentpage',homecontroller.getpaymentpage)
+router.post('/orderplacedpage',homecontroller.orderplacedpage)
 
 //profile routes
 router.get('/profile',userAuth,homecontroller.getprofilepage)

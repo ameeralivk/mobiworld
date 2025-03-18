@@ -224,7 +224,7 @@ const loadregisterpage = async(req,res)=>{
 }
 const Loadlogin= async(req,res)=>{
     try {
-        if(req.session.User){
+        if(req.session.User && req.session.message == null){
           return res.redirect('/')
         }
         else{
