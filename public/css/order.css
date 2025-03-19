@@ -1,0 +1,51 @@
+
+.order-header {
+    background-color: #a2a77f;
+    color: white;
+    padding: 10px 15px;
+}
+
+.order-row {
+    padding: 15px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.delivered-badge {
+    background-color: #008e00;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.product-image {
+    width: 80px;
+    height: auto;
+    border: 1px solid #eee;
+    padding: 5px;
+}
+
+.circle-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+}
+
+.page-title {
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+.col-3 {
+    flex: 0 0 auto;
+    width: 12%;
+}
+.col-3a {
+    flex: 0 0 auto;
+    width: 35%;
+}

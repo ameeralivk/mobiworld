@@ -16,6 +16,10 @@ const orderSchema = new Schema({
         default:()=>uuidv4(),
         unique:true
     },
+    paymentMethod:{
+        type:String,
+        require:true,
+    },
     orderedItems:[{
         product:{
             type:Schema.Types.ObjectId,

@@ -520,6 +520,7 @@ const addtocartpage = async (product, quantity) => {
 }
 const getcart = async (req, res) => {
   const user = req.session.User
+  console.log('getcart')
   try {
     if(!user){
       req.session.message = 'Please login'
@@ -528,7 +529,9 @@ const getcart = async (req, res) => {
     if (req.session.message) {
       const isexist = await cartSchema.findOne({ userId: user._id })
       if (isexist == null) {
-        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0 })
+      const message =  req.session.message 
+      req.session.message = null
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0 ,message })
       }
       const message = req.session.message;
       req.session.message = null
@@ -602,63 +605,73 @@ const checkoutpage = async (req, res) => {
     req.session.message = 'Please login';
     return res.redirect('/user/login');
    }
+   const cart = await cartSchema.findOne({userId:userid._id})
+   console.log(cart,'cart mandaf')
   try {
- 
-    // Check if user is blocked
-    const user = await userschema.find({ _id: userid._id, isBlocked: false });
-    if (user.length === 0) {
-      req.session.message = 'User is blocked';
-      return res.redirect('/user/login');
-    }
-
-    // Fetch the user's populated cart
-    const populatedCart = await cartSchema
-      .findOne({ userId: userid._id })
-      .populate('items.productId');
-    if (populatedCart.items.length == 0) {
-      req.session.message = 'Cart is empty';
-      return res.redirect('/user/getcart');
-    }
-
-    // Check each product in the cart
-    for (const item of populatedCart.items) {
-      const product = item.productId;
-      if (product.isBlocked) {
-        req.session.message = `${item.productId.productName} is blocked by admin`;
+     if(cart){
+      const user = await userschema.find({ _id: userid._id, isBlocked: false });
+      if (user.length === 0) {
+        req.session.message = 'User is blocked';
+        return res.redirect('/user/login');
+      }
+  
+      // Fetch the user's populated cart
+      const populatedCart = await cartSchema
+        .findOne({ userId: userid._id })
+        .populate('items.productId');
+      if (populatedCart.items.length == 0) {
+        req.session.message = 'Cart is empty';
         return res.redirect('/user/getcart');
       }
-
-      if (product.quantity === 0) {
-        req.session.message = `${item.productId.productName} is outofstock`;
-        return res.redirect('/user/getcart');
+  
+      // Check each product in the cart
+      for (const item of populatedCart.items) {
+        const product = item.productId;
+        if (product.isBlocked) {
+          req.session.message = `${item.productId.productName} is blocked by admin`;
+          return res.redirect('/user/getcart');
+        }
+  
+        if (product.quantity === 0) {
+          req.session.message = `${item.productId.productName} is outofstock`;
+          return res.redirect('/user/getcart');
+        }
+        if(item.quantity>product.quantity){
+          req.session.message = `please decrease the quantity of the ${product.productName}`
+         return res.redirect('/user/getcart')
+  
+         }
+        if (product.isDeleted) {
+          req.session.message = `${item.productId.productName} is deleted by admin`;
+          return res.redirect('/user/getcart');
+        }
       }
-      if(item.quantity>product.quantity){
-        req.session.message = `please decrease the quantity of the ${product.productName}`
-       return res.redirect('/user/getcart')
-
-       }
-      if (product.isDeleted) {
-        console.log(item.productId, 'this product')
-        req.session.message = `${item.productId.productName} is deleted by admin`;
-        return res.redirect('/user/getcart');
+      if(req.session.message){
+        const message = req.session.message
+        req.session.message = null
+        const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
+      const product = cart.items.map(item=>item.productId)
+      const total = cart.totalPrice
+      const address = await addressSchema.Address.find({userId:userid._id})
+      const addresses = address.map(address=>address.address)
+      return res.render('checkoutpage',{product,total,address:addresses,message});
       }
-    }
-    if(req.session.message){
-      const message = req.session.message
-      req.session.message = null
       const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
-    const product = cart.items.map(item=>item.productId)
-    const total = cart.totalPrice
-    const address = await addressSchema.Address.find({userId:userid._id})
-    const addresses = address.map(address=>address.address)
-    return res.render('checkoutpage',{product,total,address:addresses,message});
-    }
-    const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
-    const product = cart.items.map(item=>item.productId)
-    const total = cart.totalPrice
-    const address = await addressSchema.Address.find({userId:userid._id})
-    const addresses = address.map(address=>address.address)
-    return res.render('checkoutpage',{product,total,address:addresses});
+      const product = cart.items.map(item=>item.productId)
+      const total = cart.totalPrice
+      const address = await addressSchema.Address.find({userId:userid._id})
+      const addresses = address.map(address=>address.address)
+      return res.render('checkoutpage',{product,total,address:addresses});
+
+
+     }
+     else{
+      console.log('yes reay')
+      req.session.message = 'cart is empty'
+      return res.redirect('/user/getcart')
+     }
+    // Check if user is blocked
+  
   } catch (error) {
     console.error('Error in checkout page:', error);
     return res.status(500).send('An error occurred.');
@@ -669,7 +682,6 @@ const deletecartbutton = async(req,res)=>{
   const productId = req.params.id
   const user = req.session.User
   try {
-    console.log(productId)
      const cart = await cartSchema.findOne({userId:user._id})
      const product = cart.items.filter(item=>item.productId.toString() !== productId)
      cart.items = product
@@ -693,7 +705,6 @@ const deletecartbutton = async(req,res)=>{
 const searchmain = async(req,res)=>{
   try {
     const searchval = req.query.query
-    console.log(searchval)
     const results = await Product.find({ 
       productName: { $regex: searchval, $options: 'i' } 
   });
@@ -729,9 +740,7 @@ const paymentpage = async(req,res)=>{
         'address.altPhone': data.altphone,
         'address.state': data.state,
       })
-      console.log(exitsaddress,'exitst ad')
       if(exitsaddress){
-        console.log('already exite')
         req.session.message = 'address already exist'
         return res.redirect('/user/checkoutpage')
       }
@@ -751,7 +760,6 @@ const paymentpage = async(req,res)=>{
         console.log(adduser,'useradd')
         const save = await adduser.save()
         req.session.newaddress = save.address[0]._id
-        console.log(save,'save')
         if (save) {
           res.redirect('/user/getpaymentpage')
         }
@@ -792,12 +800,12 @@ const orderplacedpage = async(req,res)=>{
   const payment = req.body.paymentMethod
   const isexit = await userschema.find({_id:user._id,isBlocked:false})
   const items = await cartSchema.findOne({userId:user._id}).populate('items.productId')
+  console.log(items,'items hakeem')
   try {
     if(payment === 'cash'){
       if(isexit.length>0){
         if(req.session.address){
           const orderededuser = await cartSchema.findOne({userId:user._id})
-          console.log(orderededuser,'ordereduser')
           const totalPrice = orderededuser.totalPrice
           const address = req.session.address
           req.session.address = null
@@ -808,6 +816,7 @@ const orderplacedpage = async(req,res)=>{
           }))
               const newOrder = new orderSchema({
                 userId: user._id,
+                paymentMethod:'Cash ON Delivery',
                 orderedItems:orderedItems,
                 totalPrice: totalPrice,
                 finalAmount:totalPrice,
@@ -820,18 +829,25 @@ const orderplacedpage = async(req,res)=>{
             if(saved){
               const orderededuser = await cartSchema.findOne({userId:user._id}).populate('items.productId')
               updateQuantities(orderededuser.items)
-              const remove = await cartSchema.deleteOne({userId:user._id})
-              if(remove){
-                console.log('removed')
-                
+              if(items){
+                const remove = await cartSchema.deleteOne({userId:user._id})
+                return res.redirect('/user/paymentsuccesspage')
               }
+              else{
+                return res.redirect('/user/getcart')
+              }
+                
             }
               
         }
         else{
           const orderededuser = await cartSchema.findOne({userId:user._id})
-          console.log(orderededuser,'ordereduser')
-          const totalPrice = orderededuser.totalPrice
+          if(orderededuser){
+            const totalPrice = orderededuser.totalPrice
+          }
+          else{
+            return res.redirect('/user/getcart')
+          }
           const address = req.session.newaddress
           req.session.newaddress = null
           const orderedItems = orderededuser.items.map(item=>({
@@ -850,10 +866,6 @@ const orderplacedpage = async(req,res)=>{
                 couponApplied:false,
               });
               await newOrder.save();
-              console.log("New Order Created:", newOrder);
-              console.log(newOrder,'neworeder')
-            console.log(data,'data')
-          console.log(req.body)
         }
       }
       else{
@@ -863,7 +875,7 @@ const orderplacedpage = async(req,res)=>{
 
     }
     else{
-      console.log('hakeem brototype')
+      console.log('other payment')
     }
    
     
@@ -889,7 +901,63 @@ async function updateQuantities(items) {
       }
   }
 }
+const getpaymentsuccesspage =async(req,res)=>{
+  const user = req.session.User
+  const orderdetails = await orderSchema.findOne({userId:user._id})
+  try {
 
+      res.render('paymentsuccesspage',{orderdetails})
+
+  } catch (error) {
+    console.error('error from getpaymentsuccesspage',error)
+  }
+}
+
+
+//order
+
+const orderpage = async(req,res)=>{
+  const user = req.session.User
+  try {
+    if(user){
+      const orders = await orderSchema.find({userId:user._id}).populate('orderedItems.product')
+      console.log(orders,'hidasfdsa')
+      return res.render('orderpage',{orders})
+    }
+    else{
+      req.session.message = 'user not found'
+      res.redirect('/user/login')
+    }
+   
+  } catch (error) {
+    console.log('error from order controller',error)
+  }
+}
+
+const pagination = async(req,res)=>{
+  const user = req.session.User
+  const items = await orderSchema.find({userId:user._id}).populate('orderedItems.product')
+  const product = items.map(item=>item.orderedItems)
+  console.log(product.flat(1),'product')
+  const count = product.flat(1)
+  try {
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 10; 
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const currentItems = items.slice(startIndex, endIndex);
+    console.log(currentItems,'currentitems')
+    const totalPages = Math.ceil(count.length / limit);
+    res.json({
+        data: currentItems,
+        totalPages: totalPages,
+        page: page
+    });
+
+  } catch (error) {
+    
+  }
+}
 
 module.exports = {
   getproductmainpage,
@@ -913,4 +981,7 @@ module.exports = {
   paymentpage,
   getpaymentpage,
   orderplacedpage,
+  getpaymentsuccesspage,
+  orderpage,
+  pagination,
 }

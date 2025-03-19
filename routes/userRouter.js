@@ -42,6 +42,13 @@ router.get('/searchmain/search',homecontroller.searchmain)
 router.post('/paymentpage',homecontroller.paymentpage)
 router.get('/getpaymentpage',homecontroller.getpaymentpage)
 router.post('/orderplacedpage',homecontroller.orderplacedpage)
+router.get('/paymentsuccesspage',homecontroller.getpaymentsuccesspage)
+
+
+
+//order
+router.get('/order',homecontroller.orderpage)
+router.get('/pagination/:id',homecontroller.pagination)
 
 //profile routes
 router.get('/profile',userAuth,homecontroller.getprofilepage)
