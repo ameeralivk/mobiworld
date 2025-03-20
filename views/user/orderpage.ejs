@@ -78,20 +78,29 @@
 
         <script>
             let currentPage = 1;
-            const itemsPerPage = 2;
+            const itemsPerPage = 5;
             
             function fetchData(page) {
                 fetch(`/pagination/items?page=${page}&limit=${itemsPerPage}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log(data.data.length)
                         const orders = data.data;
+                        console.log(orders.length) 
+                        const totalpage = data.totalPages
+                        console.log(totalpage,'totalpage')
+                        console.log(currentPage,'currentapg')
                         const orderList = document.getElementById('order-list');
                         orderList.innerHTML = '';
-                        if (orders.length < itemsPerPage) {
+                        if (currentPage >= totalpage) {
                             document.getElementById('next').style.display = 'none';
                         } else {
                             document.getElementById('next').style.display = 'block'; // Show the "Next" button
+                        }
+                        if(currentPage == 1){
+                            document.getElementById('previous').style.display = 'none'
+                        }
+                        else{
+                            document.getElementById('previous').style.display = 'block'
                         }
 
                         orders.forEach(order => {
@@ -102,7 +111,7 @@
                                 orderRow.innerHTML = `
                                 <div class="col-3a">#ORD-${order.orderId}</div>
                                 <div class="col-3">${item.quantity}</div>
-                                <div class="col-3">₹${order.totalPrice}</div>
+                                <div class="col-3">₹${order.totalPrice.toLocaleString('en-IN')}</div>
                                 <div class="col-3">${item.product.productName}</div>
                                 <div class="col-2">
                                     <span class="delivered-badge">${order.status}</span>

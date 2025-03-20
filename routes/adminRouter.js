@@ -4,7 +4,7 @@ const admincontroller = require('../controllers/admincontroller')
 const {adminAuth,userAuth,login} = require('../middlewares/auth')
 const categorycontroller = require('../controllers/categorycontroller')
 const productcontroller = require('../controllers/productcontroller')
-
+const orderscontroller = require('../controllers/ordercontroller')
 
 
 //admin controller and user controller
@@ -44,5 +44,10 @@ router.get('/editproductpage/:id',productcontroller.editproductpage)
 router.get('/product/search',productcontroller.searchproduct)
 router.post('/editproduct/:id',productcontroller.editproduct)
 router.post('/product/clear',productcontroller.productclear)
+
+
+//orders routes 
+router.get('/orders',orderscontroller.getorders)
+router.post('/updatestatus',orderscontroller.updatestatus)
 
 module.exports = router;  

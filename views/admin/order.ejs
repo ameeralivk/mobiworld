@@ -1,0 +1,153 @@
+<%- include("../../views/partials/admin/layout") %>
+    <link rel="stylesheet" href="\css\admin css\orders.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <body>
+        <div class="modal" id="myModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-dark">Modal title</h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalbody" class="text-dark"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container mt-5">
+            <h2>Orders</h2>
+
+            <div class="row mb-3">
+                <!-- <div class="col-md-6 ">
+                <input type="text" id="dateSearch" class="form-control bg-dark" placeholder="Search by Order Date (e.g., 6/10/2024)">
+            </div> -->
+                <div class="input-group w-50">
+                    <input type="search" class="form-control bg-dark text-white " placeholder="Search...">
+                    <span class="input-group-text bg-dark text-info">
+                        <i class="bi-search "></i>
+                    </span>
+                </div>
+                <div class="col-md-3">
+                    <select id="statusFilter" class="form-select bg-dark text-white">
+                        <option value="">Filter by Status</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="ON WAY">On Way</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="statusFilter" class="form-select bg-dark text-white">
+                        <option value="">Sort by date</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="ON WAY">On Way</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <table class="table table-dark table-bordered" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>USER NAME</th>
+                        <th>ORDER ID</th>
+                        <th>AMOUNT</th>
+                        <th>ORDER DATE</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach(order=> { %>
+                        <tr>
+                            <td>
+                                <%= order.userId.name %>
+                            </td>
+                            <td>#ORD-<%= order.orderId %>
+                            </td>
+                            <input type="hidden" id="id" value=" <%= order.orderId %>">
+                            <td>₹<%= order.totalPrice.toLocaleString('en-IN') %>
+                            </td>
+                            <td>
+                                <%= order.invoiceDate.toLocaleDateString() %>
+                            </td>
+                            <td>
+                                <select class="form-select status-dropdown bg-dark text-white">
+                                    <option id="currentstatus" value="" selected>
+                                        <%= order.status %>
+                                    </option>
+                                    <option value="Shipped">Shipped</option>
+                                    <option value="Delivered">Delivered</option>
+                                </select>
+                            </td>
+                            <td><button id="Updatebutton" type="button" class="btn btn-primary updatebutton">Update</button></td>
+
+
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+
+
+            <div class="d-flex justify-content-between align-items-center">
+                <span>SHOWING 1 OF 10</span>
+                <nav>
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" href="#">«</a></li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item"><a class="page-link" href="#">»</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Bootstrap JS and jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <!-- Custom JS -->
+        <!-- Bootstrap JS Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            const updatebutton = document.querySelectorAll('.updatebutton')
+            updatebutton.forEach((button, index) => {
+                button.addEventListener('click', function () {
+                    const currentvalue = document.querySelectorAll('.status-dropdown')[index].value
+                    const currentcartId = document.querySelectorAll('.id')[index].value
+                    console.log(currentcartId)
+                    const Update = document.getElementById('okbutton')
+                    if (!currentvalue) {
+                        const modalbody = document.getElementById('modalbody')
+                        modalbody.innerText = 'NO Changes Applied'
+
+                    }
+                      dataToSend = {
+                        orderId : currentcartId,
+                        status :currentvalue,
+                      }
+                        fetch('/admin/updatestatus', {
+                            method: 'POST',                   
+                            headers: {
+                                'Content-Type': 'application/json'  
+                            },
+                            body: JSON.stringify(dataToSend)  
+                        })
+                            .then(response => response.json())  
+                            .then(data => console.log(data))    
+                            .catch(error => console.error('Error:', error));  
+                    });
+
+
+                })
+
+        </script>
+    </body>
+
+    </html>

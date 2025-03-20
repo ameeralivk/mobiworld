@@ -1,0 +1,45 @@
+body {
+    background-color: #1a1a1a;
+    color: #fff;
+}
+.table-dark th, .table-dark td {
+    border-color: #333;
+}
+.status-delivered {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.status-cancelled {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.status-onway {
+    background-color: #ffc107;
+    color: black;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.action-btn {
+    background-color: transparent;
+    border: none;
+    color: #fff;
+}
+.pagination .page-link {
+    background-color: #333;
+    color: #fff;
+    border: none;
+}
+.pagination .page-item.active .page-link {
+    background-color: #6f42c1;
+}
+
+::placeholder {
+    color:white; /* Lighter placeholder color */
+}
