@@ -851,6 +851,7 @@ const orderplacedpage = async(req,res)=>{
           }
           const address = req.session.newaddress
           req.session.newaddress = null
+          const totalPrice = orderededuser.totalPrice
           const orderedItems = orderededuser.items.map(item=>({
             product : item.productId,
             quantity : item.quantity,

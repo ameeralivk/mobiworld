@@ -50,5 +50,7 @@ router.post('/product/clear',productcontroller.productclear)
 router.get('/orders',orderscontroller.getorders) 
 router.post('/updatestatus',orderscontroller.updatestatus)
 router.get('/orderdetails/:id',orderscontroller.orderdetails) 
-
+router.post('/searchorder',orderscontroller.searchorder)
+router.post('/statusfilter',orderscontroller.statusfilter)
+router.post('/Datefilter',orderscontroller.Datefilter)
 module.exports = router;  

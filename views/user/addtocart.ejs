@@ -99,7 +99,7 @@
                                 <h4 class="mb-4">CART TOTALS</h4>
                                 <div class="row mb-2">
                                     <div class="col-6">Subtotal</div>
-                                    <div class="col-6 text-end">₹<%=totalPrice.toLocaleString('en-IN') %></div>
+                                    <div id="Subtotal" class="col-6 text-end">₹<%=totalPrice.toLocaleString('en-IN') %></div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="col-6">Delivery</div>
@@ -170,6 +170,7 @@
                                 const result = await response.json()
                                 if (result.success) {
                                     document.getElementById('totalamound').innerText = `₹${result.total.toLocaleString('en-IN')}`
+                                    document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`
                                 }
                             }
 
@@ -227,6 +228,7 @@
                                 if (result.success) {
                                     console.log(result)
                                     document.getElementById('totalamound').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
+                                    document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
                                     const productrow = button.closest('tr')
                                     productrow.remove()
                                 }
