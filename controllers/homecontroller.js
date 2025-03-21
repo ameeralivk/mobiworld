@@ -723,6 +723,7 @@ const searchmain = async(req,res)=>{
 const paymentpage = async(req,res)=>{
   const user = req.session.User
   const data = req.body
+  console.log(data,'this is what i wnd')
   const User = await userschema.findOne({_id:user._id,isBlocked:false})
   console.log(User,'User')
   try {

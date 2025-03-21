@@ -1,20 +1,16 @@
 <%- include("../../views/partials/admin/layout") %>
     <link rel="stylesheet" href="\css\admin css\orders.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
 
     <body>
         <div class="modal" id="myModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
-                <div class="modal-content">
+                <div class="modal-content bg-dark">
                     <div class="modal-header">
                         <h5 class="modal-title text-dark">Modal title</h5>
-                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
                     </div>
-                    <div class="modal-body">
-                        <p id="modalbody" class="text-dark"></p>
-                    </div>
+                    <div class="modal-body" id="modalBodyContent"></div>
                     <div class="modal-footer">
                         <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -22,6 +18,13 @@
                 </div>
             </div>
         </div>
+
+
+
+
+
+
+
         <div class="container mt-5">
             <h2>Orders</h2>
 
@@ -62,17 +65,21 @@
                         <th>AMOUNT</th>
                         <th>ORDER DATE</th>
                         <th>STATUS</th>
+                        <th>UPDATE</th>
                     </tr>
                 </thead>
                 <tbody>
                     <% orders.forEach(order=> { %>
                         <tr>
+
                             <td>
-                                <%= order.userId.name %>
+                                <a class="text-decoration-none text-white order-link" href="javascript:void(0)"  data-order-id="<%= order.orderId %>">
+                                    <%= order.userId.name %>
+                                </a>
                             </td>
                             <td>#ORD-<%= order.orderId %>
                             </td>
-                            <input type="hidden" id="id" value=" <%= order.orderId %>">
+                            <input type="hidden" class="id" value=" <%= order.orderId %>">
                             <td>₹<%= order.totalPrice.toLocaleString('en-IN') %>
                             </td>
                             <td>
@@ -80,15 +87,20 @@
                             </td>
                             <td>
                                 <select class="form-select status-dropdown bg-dark text-white">
-                                    <option id="currentstatus" value="" selected>
+                                    <option id="currentstatus" value="" selected disabled>
                                         <%= order.status %>
                                     </option>
-                                    <option value="Shipped">Shipped</option>
-                                    <option value="Delivered">Delivered</option>
+                                    <option value="<%= order.status == 'Shipped' ? 'Pending' : 'Shipped' %>">
+                                        <%= order.status=='Shipped' ? 'Pending' : 'Shipped' %>
+                                    </option>
+                                    <option value="<%= order.status == 'Delivered' ? 'Pending' : 'Delivered' %>">
+                                        <%= order.status=='Delivered' ? 'Pending' : 'Delivered' %>
+                                    </option>
                                 </select>
-                            </td>
-                            <td><button id="Updatebutton" type="button" class="btn btn-primary updatebutton">Update</button></td>
 
+                            </td>
+                            <td><button id="Updatebutton" type="button"
+                                    class="btn btn-primary updatebutton">Update</button></td>
 
                         </tr>
                         <% }) %>
@@ -114,8 +126,18 @@
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <!-- Custom JS -->
         <!-- Bootstrap JS Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.all.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+
+            function showModal(userName) {
+                // document.getElementById("modalbody").innerText = `You clicked on ${userName}'s order.`;
+                var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                myModal.show();
+            }
+
+
+
             const updatebutton = document.querySelectorAll('.updatebutton')
             updatebutton.forEach((button, index) => {
                 button.addEventListener('click', function () {
@@ -124,28 +146,194 @@
                     console.log(currentcartId)
                     const Update = document.getElementById('okbutton')
                     if (!currentvalue) {
-                        const modalbody = document.getElementById('modalbody')
-                        modalbody.innerText = 'NO Changes Applied'
+                        Swal.fire({
+                            icon: "error",
+                            title: "Oops...",
+                            text: "NO Data selected!",
+                        });
 
                     }
-                      dataToSend = {
-                        orderId : currentcartId,
-                        status :currentvalue,
-                      }
-                        fetch('/admin/updatestatus', {
-                            method: 'POST',                   
-                            headers: {
-                                'Content-Type': 'application/json'  
-                            },
-                            body: JSON.stringify(dataToSend)  
+                    else {
+                        Swal.fire({
+                            title: 'Are you sure?',
+                            text: `Do you want to change the status to ${currentvalue}?`,
+                            icon: 'warning',  // This sets the icon to a warning
+                            showCancelButton: true,
+                            confirmButtonText: 'Yes, update it!',
+                            cancelButtonText: 'No, cancel',
+                            reverseButtons: true
+                        }).then((result) => {
+                            dataToSend = {
+                                orderId: currentcartId,
+                                status: currentvalue,
+                            }
+                            if (result.isConfirmed) {
+                                fetch('/admin/updatestatus', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(dataToSend)
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        return Swal.fire({
+                                            title: 'Updated!',
+                                            text: data.message,
+                                            icon: 'success',
+                                            confirmButtonText: 'OK'
+                                        });
+                                    }).then((result) => {
+                                        console.log(result)
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/admin/orders'
+                                        }
+                                    })
+                                    .catch(error => console.error('Error:', error));
+                            }
                         })
-                            .then(response => response.json())  
-                            .then(data => console.log(data))    
-                            .catch(error => console.error('Error:', error));  
-                    });
+                    }
+
+                });
 
 
-                })
+            })
+           
+           
+
+     function showOrderModal(orderId) {
+        console.log('hi ameer ali')
+    // Fetch the order details from the server
+    fetch(`/admin/orderdetails/${orderId}`)
+        .then(response => response.json()) 
+        .then(orderDetails => {
+            console.log(orderDetails.order,orderDetails.address)
+            // Check if we got the correct data
+            if (orderDetails) {
+                // Get the modal body element by ID
+                const modalBody = document.getElementById('modalBodyContent');
+
+                // Build the HTML content for the modal
+                let modalContent = `
+                    <!-- Order Header -->
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <h5 class="mb-1">Order #ORD-${orderDetails.order.orderId}</h5>
+                            <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h6 class="mb-2">Order Items</h6>
+                            
+                 ${orderDetails.order.orderedItems.map(item => `
+                <div class="card mb-2">
+                    <div class="card-body py-2 bg-dark">
+                        <div class="row align-items-center">
+                            <div class="col-2">
+                                <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                            </div>
+                            <div class="col-7">
+                                <p class="mb-0 fw-bold">${item.product.productName}</p>
+                                <small >${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                            </div>
+                            <div class="col-3 text-end">
+                                <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice ).toLocaleString('en-IN')}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+        
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body bg-dark">
+                                    <h6 class="mb-2">Order Summary</h6>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Subtotal:</span>
+                                        <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Shipping:</span>
+                                        <span>₹0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Tax:</span>
+                                        <span>₹0</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Total:</span>
+                                        <span>₹${(orderDetails.order.totalPrice).toLocaleString('en-IN')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information -->
+                    <div class="row">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <div class="card h-100">
+                                <div class="card-body bg-dark">
+                                    <h6 class="card-title">Shipping Address</h6>
+                                    <p class="card-text mb-0">
+                                        ${orderDetails.address.address[0].name}<br>
+                                        ${orderDetails.address.address[0].addressType}<br>
+                                        ${orderDetails.address.address[0].city}, ${orderDetails.address.address[0].state} ${orderDetails.address.address[0].pincode}<br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body bg-dark">
+                                    <h6 class="card-title">Payment Method</h6>
+                                    <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Insert the modal content into the modal body
+                modalBody.innerHTML = modalContent;
+
+                // Show the modal
+                var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                myModal.show();
+            } else {
+                // Handle error, if no order details are found
+                alert('Order not found');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching order details:', error);
+            alert('Something went wrong!');
+        });
+}
+
+
+
+
+
+
+            document.querySelectorAll('.order-link').forEach(link => {
+                link.addEventListener('click', function () {
+                    const orderId = this.getAttribute('data-order-id'); 
+                    showOrderModal(orderId);
+                });
+            });
 
         </script>
     </body>

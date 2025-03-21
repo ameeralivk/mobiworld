@@ -47,7 +47,8 @@ router.post('/product/clear',productcontroller.productclear)
 
 
 //orders routes 
-router.get('/orders',orderscontroller.getorders)
+router.get('/orders',orderscontroller.getorders) 
 router.post('/updatestatus',orderscontroller.updatestatus)
+router.get('/orderdetails/:id',orderscontroller.orderdetails) 
 
 module.exports = router;  
