@@ -43,9 +43,18 @@ const addcategorypage = async(req,res)=>{
 const addcategory = async(req,res)=>{
     const {category,description} = req.body
    try {
-    const newcategory = new Category({name:category,description:description})
-    await newcategory.save()
-    res.redirect("/admin/Category")
+     const duplicate = await Category.findOne({name:category})
+        if(duplicate){
+            req.session.msg = 'No duplicate brandname is allowed'
+            res.redirect("/admin/Category")
+        }
+        else{
+            req.session.msg = 'new category created successfully'
+            const newcategory = new Category({name:category,description:description})
+            await newcategory.save()
+            res.redirect("/admin/Category")
+        }
+    
    } catch (error) {
     console.log("categorycondroller error",error)
    }

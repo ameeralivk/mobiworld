@@ -40,35 +40,6 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="brand" class="form-label">Brand:</label>
-                                    <input name="brand" type="text" class="form-control" id="brand">
-                                    <p id="branderror" class="error-message" style="display: none" ></p>
-                                </div>
-                            </div>
-                        </div> -->
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="brand" class="form-label">Brand:</label>
-                                    <select name="brand" class="form-control" id="brand">
-                                        <% Category.forEach(category => { %>
-                                        <option value="<%=category.name%>"><%=category.name%></option>
-                                        <% }); %>
-                                    </select>
-                                    <p id="branderror" class="error-message" style="display: none"></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        
-
-
-                        
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -85,6 +56,61 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Tax:</label>
+                                    <select name="tax" class="form-control">
+                                        <option value="9">9%</option>
+                                        <option value="9">12%</option>
+                                        <option value="9">18%</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Brand:</label>
+                                    <select name="brand" class="form-control" id="brand">
+                                        <% brand.forEach(brand => { %>
+                                        <option value="<%=brand.brandName%>"><%=brand.brandName%></option>
+                                        <% }); %>
+                                    </select>
+                                    <p id="branderror" class="error-message" style="display: none"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Brand:</label>
+                                    <input name="brand" type="text" class="form-control" id="brand">
+                                    <p id="branderror" class="error-message" style="display: none" ></p>
+                                </div>
+                            </div>
+                        </div> -->
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Categories:</label>
+                                    <select name="category" class="form-control" id="cat">
+                                        <% Category.forEach(category => { %>
+                                        <option value="<%=category.name%>"><%=category.name%></option>
+                                        <% }); %>
+                                    </select>
+                                    <p id="categoryerror" class="error-message" style="display: none"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        
+
+
+                        
+                        
                         
                         <!-- <div class="mb-3">
                             <label class="form-label">Colours Available:</label>
@@ -194,6 +220,7 @@
 //    })
 
     // Image preview functionality
+  
     document.getElementById('productImage').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -222,22 +249,27 @@
     // const colorerror = document.getElementById('colorerror');
 
     form.addEventListener('submit', function(event) {
+        event.preventDefault()
+        console.log('hidsa')
+        console.log('hi')
         const name = document.getElementById('productName').value;
         const description = document.getElementById('productDescription').value;
         const brand = document.getElementById('brand').value;
         const rate = document.getElementById('productAmount').value;
         const stock = document.getElementById('stockCount').value;
+        const category = document.getElementById('cat').value;
         // const color = document.getElementsByName('color')[0].value;
 
 
-        const nameerror = document.getElementById('nameerror');
+    const nameerror = document.getElementById('nameerror');
     const descriptionerror = document.getElementById('descriptionerror');
     const branderror = document.getElementById('branderror');
     const rateerror = document.getElementById('rateerror');
     const stockerror = document.getElementById('stockerror');
+    const categoryerror = document.getElementById('categoryerror')
     // const colorerror = document.getElementById('colorerror');
-
-        if (name.trim() === '' || description.trim() === '' || brand.trim() === '' || rate.trim() === '' || stock.trim() === '' ) {
+        console.log(category)
+        if (name.trim() === '' || description.trim() === '' || brand.trim() === '' || rate.trim() === '' || stock.trim() === '' || category.trim()=== '' ) {
             if (name.trim() === '') {
                 event.preventDefault();
                 nameerror.innerText = "Name field is empty";
@@ -263,13 +295,13 @@
                 stockerror.innerText = "Stock field is empty";
                 stockerror.style.display = "block";
             }
-            // if (color.trim() === '') {
-            //     event.preventDefault();
-            //     colorerror.innerText = "Color field is empty";
-            //     colorerror.style.display = "block";
-            // }
+            if (category.trim() === '') {
+                event.preventDefault();
+                categoryerror.innerText = "Category field is empty";
+                categoryerror.style.display = "block";
+            }
         }
-
+        
         setTimeout(() => {
             if (nameerror.style.display === 'block') {
                 nameerror.style.display = 'none';
@@ -290,6 +322,7 @@
             //     colorerror.style.display = 'none';
             // }
         }, 3000);
+        form.submit()
     });
 
 

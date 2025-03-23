@@ -12,13 +12,14 @@ const productSchema = new Schema({
         required: true,
     },
     brand:{
-        type: String,
+        type: Schema.Types.ObjectId,
+        ref :'Brand',
         required: true,
     },
     category:{
         type:Schema.Types.ObjectId,
         ref : "Category",
-        required: false,
+        required:true,
     },
     regularPrice:{
         type : Number,
@@ -36,8 +37,8 @@ const productSchema = new Schema({
         type: Number,
         default: true,
     },
-    color:{
-        type:[String],
+    Tax:{
+        type: Number,
         required:false,
     },
     productImage:{

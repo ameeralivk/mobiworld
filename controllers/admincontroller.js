@@ -8,15 +8,20 @@ const connectDB = require('../config/db')
 connectDB()
 
 const loadlogin = async (req,res)=>{
-    if(req.session.message){
-        const message = req.session.message;
-        req.session.message = null
-       return res.render('admin-login',{message})
+    try {
+        if(req.session.message){
+            const message = req.session.message;
+            req.session.message = null
+           return res.render('admin-login',{message})
+        }
+        if(req.session.data){
+            return res.redirect('/admin/dashboard')
+        }
+        res.render('admin-login',{message:null})
     }
-    if(req.session.data){
-        return res.redirect('/admin/dashboard')
+     catch (error) {
+        console.log('error from admincontroller',error)
     }
-    res.render('admin-login',{message:null})
 }
 const dashboard = async(req,res)=>{
    return res.render('dashboard')
@@ -28,7 +33,7 @@ try {
     req.session.data = null
     console.log(req.session.data)
     res.render('admin-login',{message:''})
-} catch (error) {
+} catch (error) { 
     console.log("error occured at admincontroller",error);
     
 }
@@ -127,13 +132,6 @@ const clear = async(req,res)=>{
 
     const paginatedData = await getPaginatedData(page, limit);
     try { 
-        // res.render('users',{users ,
-        //                     clearInput:true,
-        //                     data:paginatedData.data,
-        //                     totalPages:paginatedData.totalPages,
-        //                     currentPage:paginatedData.currentPage,
-        //                     limit,
-        //                 })
         res.redirect('/admin/users')
     } catch (error) { 
         console.log(error)         
@@ -175,6 +173,6 @@ module.exports ={
     loadusers,
     blockUnblock,
     searchuser,
-    clear, 
+    clear,  
     logout,
 }

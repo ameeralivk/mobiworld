@@ -8,6 +8,7 @@ const { render } = require('ejs')
 const env = require('dotenv').config()
 const productSchema = require('../models/productSchema')
 const categories = require('../models/categorySchema')
+const brandschema =require('../models/brandSchema')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
@@ -457,7 +458,7 @@ const logout = async (req,res)=>{
 }
 const shoppage = async(req,res)=>{
     const product = await productSchema.find({isDeleted:false,isBlocked:false})
-    const category = await categories.find({})
+    const category = await brandschema.find({})
     try {
         res.render('shoppage',{product,category:category,count:product.length})
     } catch (error) {

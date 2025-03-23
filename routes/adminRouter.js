@@ -5,6 +5,7 @@ const {adminAuth,userAuth,login} = require('../middlewares/auth')
 const categorycontroller = require('../controllers/categorycontroller')
 const productcontroller = require('../controllers/productcontroller')
 const orderscontroller = require('../controllers/ordercontroller')
+const brandcontroller = require('../controllers/brandcontroller')
 
 
 //admin controller and user controller
@@ -53,4 +54,17 @@ router.get('/orderdetails/:id',orderscontroller.orderdetails)
 router.post('/searchorder',orderscontroller.searchorder)
 router.post('/statusfilter',orderscontroller.statusfilter)
 router.post('/Datefilter',orderscontroller.Datefilter)
+router.post('/cancelorder',orderscontroller.cancelorder)
 module.exports = router;  
+
+
+//brand routes 
+router.get('/brands',brandcontroller.getbrands) 
+router.get('/addbrand',brandcontroller.addbrand)
+router.post('/addbrand',brandcontroller.registerbrand)
+router.get('/editbrandpage/:id',brandcontroller.editbrandpage)
+router.post('/editbrand',brandcontroller.editbrand)
+router.delete('/brands/:id',brandcontroller.deletebrand)
+router.get('/deletebrand',brandcontroller.loadDeletebrand)
+router.get('/brand/search',brandcontroller.brandSearch)
+router.post('/brand/clear',brandcontroller.brandclear)

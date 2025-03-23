@@ -1,0 +1,86 @@
+
+<%- include("../../views/partials/admin/layout") %>
+<link rel="stylesheet" href="\css\admin css\addcategory.css">
+<body>
+
+  <nav class="navbar justify-content-end">
+    <div class="user-avatar">
+      <span>U</span>
+    </div>
+  </nav>
+  <div class="d-flex justify-content-between align-items-center">
+
+
+  <div class="container form-container">
+    <h1 class="form-title">Add Brands</h1>
+    
+    <form id="form" method="post" action="/admin/addbrand">
+      <div class="mb-3">
+        <label for="categoryName" class="form-label">Brand Name:</label>
+        <input name="brandname" type="text" class="form-control" id="categoryName" >
+        <p id="categoryerror" class="error-message" style="display: none" ></p>
+      </div>
+      
+      <div class="mb-4">
+        <label for="description" class="form-label">Description:</label>
+        <textarea name="description" class="form-control" id="description"></textarea>
+        <p id="descriptionerror" class="error-message" style="display: none" ></p>
+      </div>
+
+      <div class="mb-3">
+        <label for="categoryName" class="form-label">Offer:</label>
+        <input name="Offer" type="text" class="form-control" id="categoryName" >
+        <p id="categoryerror" class="error-message" style="display: none" ></p>
+      </div>
+      
+      <div class="text-end">
+        <button type="submit" class="btn btn-add-category">Add Brand</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const form = document.getElementById('form')
+   const  categoryerror = document.getElementById('categoryerror')
+   const descriptionerror = document.getElementById('descriptionerror')
+  
+
+   form.addEventListener('submit',function(event){
+    const category =  document.getElementById('categoryName').value
+    const description = document.getElementById('description').value
+    console.log(category)
+    console.log(description)
+    if(category.trim() == '' || description.trim() == ''){
+      if(category.trim() == ''){
+      event.preventDefault()
+      document.getElementById('categoryerror').innerText = "brand field is not empty"
+      
+      document.getElementById('categoryerror').style.display = "block"
+      
+    }
+     if(description.trim() == ""){
+      event.preventDefault()
+      document.getElementById('descriptionerror').innerText = "description field is not empty"
+      document.getElementById('descriptionerror').style.display = "block"
+    }
+    }
+   
+    setTimeout(()=>{
+          if(categoryerror.style.display == 'block'){
+            categoryerror.style.display = 'none'
+          }
+          if(descriptionerror.style.display == 'block'){
+            descriptionerror.style.display = 'none'
+          }
+     },3000)
+  
+
+   })
+  
+   
+  </script>
+</body>
+</html> 
+
+

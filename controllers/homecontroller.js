@@ -2,13 +2,15 @@ const nodemailer = require('nodemailer')
 const Product = require('../models/productSchema')
 const userschema = require('../models/user')
 const addressSchema = require('../models/addressSchema')
-const { render } = require('ejs')
+const { render, name } = require('ejs')
 const { compareSync } = require('bcrypt')
 const cartSchema = require('../models/cartSchema')
 const Cart = require('../models/cartSchema')
 const categories = require('../models/categorySchema')
 const { connect } = require('mongoose')
 const orderSchema = require('../models/orderSchema')
+const brandschema = require('../models/brandSchema')
+const Category = require('../models/categorySchema')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -38,39 +40,42 @@ const getproductmainpage = async (req, res) => {
   }
 }
 const getfilterpage = async (req, res) => {
-  const cat = await categories.find({})
+  const cat = await brandschema.find({})
   try {
+    console.log('hi')
     const { sort, category, priceFrom, priceTo } = req.query;
-    console.log(sort)
+     const cat = await brandschema.find({brandName:category})
+     const categories = await brandschema.find({})
     let filter = {}
-    if (category) {
-      filter.brand = category;
-    }
-    if (priceFrom || priceTo) {
-      filter.salePrice = {};
-      if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
+    console.log('hello')
+    if (cat && cat.length>0) { 
+      filter.brand = cat[0]._id
+    }  
+    if (priceFrom || priceTo) { 
+      filter.salePrice = {}; 
+      if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);  
       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
     }
     if (sort === 'A to Z') {
       const products = await Product.find(filter).sort({ productName: 1 });
-      return res.render('shoppage', { product: products, category: cat });
+      return res.render('shoppage', { product: products, category: categories }); 
     }
     if (sort === 'Z to A') {
       const products = await Product.find(filter).sort({ productName: -1 });
-      return res.render('shoppage', { product: products, category: cat });
+      return res.render('shoppage', { product: products, category: categories });
     }
-    if (sort === 'Low To High') {
+    if (sort === 'Low To High') {  
       const products = await Product.find(filter).sort({ salePrice: 1 });
-      return res.render('shoppage', { product: products, category: cat });
+      return res.render('shoppage', { product: products, category: categories });
     }
     if (sort === 'High To Low') {
       const products = await Product.find(filter).sort({ salePrice: -1 });
-      return res.render('shoppage', { product: products, category: cat });
+      return res.render('shoppage', { product: products, category: categories });
     }
     console.log(filter, 'filter')
     const products = await Product.find(filter);
     console.log(products)
-    return res.render('shoppage', { product: products, category: cat });
+    return res.render('shoppage', { product: products, category: categories }); 
 
   }
   catch (error) {

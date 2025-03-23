@@ -55,7 +55,7 @@
               <select name="category" class="form-select">
                 <option value="">All</option>
                 <% category.forEach(function(category) { %>
-                <option><%= category.name %></option>
+                <option><%= category.brandName %></option>
                 <% }); %>
               </select>
               <div class="price-range">
@@ -89,6 +89,8 @@
                       <i class="bi bi-star-fill"></i>
                       <i class="bi bi-star-fill"></i>
                       <i class="bi bi-star star-empty"></i>
+                      <i class="bi wishlisticon bi-heart-fill text-primary fs-6"></i>
+
                     </div>
                     <h3 class="product-title"><%= product.productName %></h3>
                     <p class="product-price">₹<%= product.salePrice %></p>

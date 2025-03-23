@@ -1,0 +1,38 @@
+<%- include("../../views/partials/admin/layout") %>
+<link rel="stylesheet" href="\css\admin css\editcategory.css">
+<body>
+
+  
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="form-container">
+          <h2 class="heading">Edit Brands</h2>
+          
+          <form  method="post" action="/admin/editbrand">
+            <div class="mb-4">
+              <label for="categoryName" class="form-label">Brand Name:</label>
+              <input name="brandname" value="<%= brand.brandName %>" type="text" class="form-control" id="categoryName" placeholder="">
+            </div>
+            <input type="hidden" name="id" value="<%= brand._id %>">
+            <div class="mb-4">
+              <label for="description" class="form-label">Description:</label>
+              <textarea name="description"  class="form-control" id="description" rows="4"><%= brand.description %></textarea>
+            </div>
+            <div class="mb-4">
+                <label for="categoryName" class="form-label">Offer:</label>
+                <input name="Offer" value="<%= brand.Offer %>" type="text" class="form-control" id="categoryName" placeholder="">
+              </div>
+            
+            <button type="submit" class="btn update-btn">Update</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

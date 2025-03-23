@@ -1,16 +1,18 @@
 <%- include("../../views/partials/admin/layout") %>
 
 
-        <% if (msg) { %>
-            <div id="message" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <strong>Failed!</strong> <%= msg %>
-            </div>
-            <% } %>
+    <% if (msg) { %>
+        <div id="message" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Failed!</strong>
+            <%= msg %>
+        </div>
+        <% } %>
 
             <link rel="stylesheet" href="\css\admin css\editproduct.css">
-<body>
 
-    <!-- <div id="cropper-container" style="display:none;">
+            <body>
+
+                <!-- <div id="cropper-container" style="display:none;">
         <img id="image-to-crop" src="" alt="Image to Crop">
         <button onclick="cropImage()">Crop Image</button>
     </div>
@@ -139,128 +141,279 @@ function cropImage() {
     </script>
 </body> -->
 
-<body>
-    <div id="cropper-container" style="display:none;">
-        <img id="image-to-crop" src="" alt="Image to Crop">
-        <button onclick="cropImage()">Crop Image</button>
-    </div>
+                <body>
+                    <div id="cropper-container" style="display:none;">
+                        <img id="image-to-crop" src="" alt="Image to Crop">
+                        <button onclick="cropImage()">Crop Image</button>
+                    </div>
 
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-12">
-                <form action="/admin/editproduct/<%= product._id %>" method="post"  enctype="multipart/form-data">
-                <h2 class="text-center my-4">Edit Products</h2>
-                <div class="row justify-content-center">
-                    <div class="col-11 col-md-8">
+                    <div class="container-fluid">
                         <div class="row">
-                            <div class="image-container" onclick="document.getElementById('file-input-1').click()">
-                                <input name="productImage1" type="file" id="file-input-1" accept="image/*" onchange="displayImage(this,1)" style="display:none;">
-                                <img src="<%= product.productImage[0] %>" alt="Product Image">
-                            </div>
-                            <div class="image-container" onclick="document.getElementById('file-input-2').click()">
-                                <input name="productImage2" type="file" id="file-input-2" accept="image/*" onchange="displayImage(this,2)" style="display:none;">
-                                <img src="<%= product.productImage[1] %>" alt="Product Image">
-                            </div>
-                              <input type="hidden" name="id" value="<%= product._id%>">
-                            <div class="image-container" onclick="document.getElementById('file-input-3').click()">
-                                <input name="productImage3" type="file" id="file-input-3" accept="image/*" onchange="displayImage(this,3)" style="display:none;">
-                                <img src="<%= product.productImage[2] %>" alt="Product Image">
-                            </div>
-                            <p>Tap to change the image</p>
-                            <div class="col-12 col-md-8">
-                                <p>PRODUCT NAME</p>
-                                <div class="mb-3">
-                                    <input  name="productName" type="text" value="<%= product.productName %>" class="form-control" placeholder="Product Name">
-                                </div>
-                                <p>PRODUCT DESCRIPTION</p>
-                                <div class="mb-3">
-                                    <input name="productDescription" type="text" value="<%= product.description %>" class="form-control" placeholder="Product Description">
-                                </div>
-                                <p>PRODUCT CATEGORIES</p>
-                                <div class="mb-3">
-                                    <select name="brand" class="form-select">
-                                        <% if (product) { %>
-                                            <option value="<%= product.brand %>"><%= product.brand %></option>
-                                        <% } %>
-                                        <% fullproduct.forEach(prod => {%>
-                                            <% if (prod.name != product.name) { %>
-                                        <option><%= prod.name %></option>
-                                            <% } %>
-                                        <% }); %>
-                                    </select>
-                                </div>
-                                <p>RATE</p>
-                                <div class="mb-3">
-                                    <input name="price" type="text" value="<%= product.salePrice %>" class="form-control" placeholder="Product Amount">
-                                </div>
-                                <p>STOCK</p>
-                                <div class="mb-3">
-                                    <input name="count" type="text" value="<%= product.quantity %>" class="form-control" placeholder="Stock Count">
-                                </div>
-                                <!-- <p>COLORS AVAILABLE</p> -->
-                                <div class="row">
-                                    <!-- <div class="col-4 mb-2">
+                            <div class="col-12">
+                                <form id="form" action="/admin/editproduct/<%= product._id %>" method="post"
+                                    enctype="multipart/form-data">
+                                    <h2 class="text-center my-4">Edit Products</h2>
+                                    <div class="row justify-content-center">
+                                        <div class="col-11 col-md-8">
+                                            <div class="row">
+                                                <div class="image-container"
+                                                    onclick="document.getElementById('file-input-1').click()">
+                                                    <input name="productImage1" type="file" id="file-input-1"
+                                                        accept="image/*" onchange="displayImage(this,1)"
+                                                        style="display:none;">
+                                                    <img src="<%= product.productImage[0] %>" alt="Product Image">
+                                                </div>
+                                                <div class="image-container"
+                                                    onclick="document.getElementById('file-input-2').click()">
+                                                    <input name="productImage2" type="file" id="file-input-2"
+                                                        accept="image/*" onchange="displayImage(this,2)"
+                                                        style="display:none;">
+                                                    <img src="<%= product.productImage[1] %>" alt="Product Image">
+                                                </div>
+                                                <input type="hidden" name="id" value="<%= product._id%>">
+                                                <div class="image-container"
+                                                    onclick="document.getElementById('file-input-3').click()">
+                                                    <input name="productImage3" type="file" id="file-input-3"
+                                                        accept="image/*" onchange="displayImage(this,3)"
+                                                        style="display:none;">
+                                                    <img src="<%= product.productImage[2] %>" alt="Product Image">
+                                                </div>
+                                                <p>Tap to change the image</p>
+                                                <div class="col-12 col-md-8">
+                                                    <p>PRODUCT NAME</p>
+                                                    <div class="mb-3">
+                                                        <input id="name" name="productName" type="text"
+                                                            value="<%= product.productName %>" class="form-control"
+                                                            placeholder="Product Name">
+                                                        <p id="nameerror" class="text-danger"></p>
+                                                    </div>
+                                                    <p>PRODUCT DESCRIPTION</p>
+                                                    <div class="mb-3">
+                                                        <input id="productDescription" name="productDescription"
+                                                            type="text" value="<%= product.description %>"
+                                                            class="form-control" placeholder="Product Description">
+                                                        <p id="descerror" class="text-danger"></p>
+                                                    </div>
+                                                    <p>PRODUCT BRAND</p>
+                                                    <div class="mb-3">
+                                                        <select id="brand" name="brand" class="form-select">
+                                                            <% if (product) { %>
+                                                                <option value="<%= product.brand.brandName %>">
+                                                                    <%= product.brand.brandName %>
+                                                                </option>
+                                                                <% } %>
+                                                                    <% fullproduct.forEach(prod=> {%>
+                                                                        <% if (prod.brandName !=product.brandName) { %>
+                                                                            <option>
+                                                                                <%= prod.brandName %>
+                                                                            </option>
+                                                                            <% } %>
+                                                                                <% }); %>
+                                                        </select>
+                                                        <p id="branderror" class="text-danger"></p>
+                                                    </div>
+                                                    <p>PRODUCT CATEGORIES</p>
+                                                    <div class="mb-3">
+                                                        <select id="cat" name="category" class="form-select">
+                                                            <% if (product) { %>
+                                                                <option value="<%= product.category.name %>">
+                                                                    <%= product.category.name %>
+                                                                </option>
+                                                                <% } %>
+                                                                    <% fullcategory.forEach(prod=> {%>
+                                                                        <% if (prod.name !=product.name) { %>
+                                                                            <option>
+                                                                                <%= prod.name %>
+                                                                            </option>
+                                                                            <% } %>
+                                                                                <% }); %>
+                                                        </select>
+                                                        <p id="categoryerror" class="text-danger"></p>
+                                                    </div>
+                                                    <p>PRODUCT GST</p>
+                                                    <div class="mb-3">
+                                                        <select id="tax" name="tax" class="form-select">
+                                                            <% if (product) { %>
+                                                                <option  value="<%= product.Tax %>">
+                                                                    <%= product.Tax%>
+                                                                </option>
+                                                                <% } %>
+                                                                   
+                                                                            <option value="12" >
+                                                                              12
+                                                                            </option>
+                                                                            <option value="18">
+                                                                                18
+                                                                            </option>
+                                                                            
+                                                        </select>
+                                                        <p id="gsterror" class="text-danger"></p>
+                                                    </div>
+                                                    <p>RATE</p>
+                                                    <div class="mb-3">
+                                                        <input id="price" name="price" type="text"
+                                                            value="<%= product.salePrice %>" class="form-control"
+                                                            placeholder="Product Amount">
+                                                        <p id="priceerror" class="text-danger"></p>
+                                                    </div>
+                                                    <p>STOCK</p>
+                                                    <div class="mb-3">
+                                                        <input id="stock" name="count" type="text"
+                                                            value="<%= product.quantity %>" class="form-control"
+                                                            placeholder="Stock Count">
+                                                        <p id="stockerror" class="text-danger"></p>
+                                                    </div>
+                                                    <!-- <p>COLORS AVAILABLE</p> -->
+                                                    <div class="row">
+                                                        <!-- <div class="col-4 mb-2">
                                         <input name="color" value="<%= product.color %>" type="text" class="color-box">
                                     </div> -->
-                                    <div class="text-end">
-                                        <button  class="btn submit-btn">SUBMIT CHANGES</button>
+                                                        <div class="text-end">
+                                                            <button class="btn submit-btn">SUBMIT CHANGES</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                </form>
                             </div>
                         </div>
                     </div>
-                </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/cropperjs@1.5.12/dist/cropper.min.js"></script>
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                    <script src="https://unpkg.com/cropperjs@1.5.12/dist/cropper.min.js"></script>
 
-    <script>
-        let cropper;
-        let currentImageContainer;
+                    <script>
+                        let cropper;
+                        let currentImageContainer;
 
-        function displayImage(input, containerIndex) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const cropperContainer = document.getElementById('cropper-container');
-                    const imageToCrop = document.getElementById('image-to-crop');
+                        function displayImage(input, containerIndex) {
+                            if (input.files && input.files[0]) {
+                                const reader = new FileReader();
+                                reader.onload = function (e) {
+                                    const cropperContainer = document.getElementById('cropper-container');
+                                    const imageToCrop = document.getElementById('image-to-crop');
 
-                    imageToCrop.src = e.target.result;
-                    currentImageContainer = document.querySelectorAll('.image-container')[containerIndex - 1];
-                    document.querySelector('.row').style.display = 'none';
-                    cropperContainer.style.display = 'block';
-                    cropperContainer.style.width = '400px'
-                    cropperContainer.style.height = '300px'
+                                    imageToCrop.src = e.target.result;
+                                    currentImageContainer = document.querySelectorAll('.image-container')[containerIndex - 1];
+                                    document.querySelector('.row').style.display = 'none';
+                                    cropperContainer.style.display = 'block';
+                                    cropperContainer.style.width = '400px'
+                                    cropperContainer.style.height = '300px'
 
 
-                    cropper = new Cropper(imageToCrop, {
-                        aspectRatio: 1, // Adjust the aspect ratio as needed
-                        viewMode: 1,
-                    });
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+                                    cropper = new Cropper(imageToCrop, {
+                                        aspectRatio: 1, // Adjust the aspect ratio as needed
+                                        viewMode: 1,
+                                    });
+                                }
+                                reader.readAsDataURL(input.files[0]);
+                            }
+                        }
 
-        function cropImage() {
-            if (cropper) {
-                const croppedCanvas = cropper.getCroppedCanvas();
-                const croppedImageURL = croppedCanvas.toDataURL();
-                currentImageContainer.querySelector('img').src = croppedImageURL; // Update the src attribute of the img element
-                document.getElementById('cropper-container').style.display = 'none';
-                document.querySelector('.row').style.display = 'flex';
-                cropper.destroy();
-                cropper = null; // Reset the Cropper instance
-            } else {
-                console.error('Cropper instance is not defined.');
-            }
-        }
-    </script>
-</body>
-</html>
+                        function cropImage() {
+                            if (cropper) {
+                                const croppedCanvas = cropper.getCroppedCanvas();
+                                const croppedImageURL = croppedCanvas.toDataURL();
+                                currentImageContainer.querySelector('img').src = croppedImageURL; // Update the src attribute of the img element
+                                document.getElementById('cropper-container').style.display = 'none';
+                                document.querySelector('.row').style.display = 'flex';
+                                cropper.destroy();
+                                cropper = null; // Reset the Cropper instance
+                            } else {
+                                console.error('Cropper instance is not defined.');
+                            }
+                        }
+                        const form = document.getElementById('form')
+
+                        form.addEventListener('submit', function (e) {
+                            const name = document.getElementById('name').value
+                            const nameerror = document.getElementById('nameerror')
+                            const productDescription = document.getElementById('productDescription').value
+                            const productDescriptionerror = document.getElementById('descerror')
+                            const brand = document.getElementById('brand').value
+                            const branderror = document.getElementById('branderror')
+                            const price = document.getElementById('price').value
+                            const priceerror = document.getElementById('priceerror')
+                            const stock = document.getElementById('stock').value
+                            const stockerror = document.getElementById('stockerror')
+                            const category = document.getElementById('cat').value
+                            const categoryerror = document.getElementById('categoryerror')
+                            const gst = document.getElementById('tax').value;
+                            const gsterror = document.getElementById('gsterror')
+                            e.preventDefault()
+                            let isValid = true; // Flag to check form validity
+
+                            // Clear previous error messages
+                            nameerror.style.display = 'none';
+                            productDescriptionerror.style.display = 'none';
+                            branderror.style.display = 'none';
+                            priceerror.style.display = 'none';
+                            stockerror.style.display = 'none';
+                            categoryerror.style.display = 'none';
+                            gsterror.style.display = 'none';
+                            
+
+                            // Validate each field
+                            if (name.trim() === '') {
+                                isValid = false;
+                                nameerror.innerText = 'Name is required';
+                                nameerror.style.display = 'block';
+                            }
+
+                            if (productDescription.trim() === '') {
+                                isValid = false;
+                                productDescriptionerror.innerText = 'Description is required';
+                                productDescriptionerror.style.display = 'block';
+                            }
+
+                            if (brand.trim() === '') {
+                                isValid = false;
+                                branderror.innerText = 'Brand is required';
+                                branderror.style.display = 'block';
+                            }
+                            if (category.trim() === '') {
+                                isValid = false;
+                                categoryerror.innerText = 'category is required';
+                                categoryerror.style.display = 'block';
+                            }
+                            if (gst.trim() === '') {
+                                isValid = false;
+                                gsterror.innerText = 'gst is required';
+                                gsterror.style.display = 'block';
+                            }
+
+                            if (price.trim() === '') {
+                                isValid = false;
+                                priceerror.innerText = 'Price is required';
+                                priceerror.style.display = 'block';
+                            } else if (isNaN(price)) {
+                                isValid = false;
+                                priceerror.innerText = 'Price must be a valid number';
+                                priceerror.style.display = 'block';
+                            }
+
+                            if (stock.trim() === '') {
+                                isValid = false;
+                                stockerror.innerText = 'Stock is required';
+                                stockerror.style.display = 'block';
+                            } else if (isNaN(stock)) {
+                                isValid = false;
+                                stockerror.innerText = 'Stock must be a valid number';
+                                stockerror.style.display = 'block';
+                            }
+
+                            // If the form is valid, allow submission
+                            if (isValid) {
+                                form.submit(); // Submit the form if all validations pass
+                            }
+
+
+                        })
+                    </script>
+                </body>
+
+                </html>
 
 
 
@@ -270,4 +423,4 @@ function cropImage() {
 
 
 
-</html>
+                </html>

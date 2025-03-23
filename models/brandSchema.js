@@ -5,10 +5,23 @@ const brandSchema = new Schema({
     brandName:{
         type: String,
         required:true,
+        unique:true,
     },
     brandImage:{
         type: [String],
         required:true
+    },
+    description :{
+        type: String,
+        required: true,
+    },
+    Offer:{
+        type:String,
+        require:false,
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false,
     },
     isBlocked:{
         type:Boolean,

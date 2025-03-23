@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,11 +7,40 @@
     <link rel="stylesheet" href="\css\productmainpage.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="\css\shoppage_header.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="\css\shoppage_footer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_footer.css">
 </head>
+<style>
+.main-image-container {
+    width: 100%;
+    margin-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    height: 400px;
+}
+.main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: crosshair;
+    border: 2px solid black;
+    border-radius: 45px;
+}
+.zoom-lens {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    width: 200px;
+    height: 200px;
+    background-repeat: no-repeat;
+    display: none;
+    pointer-events: none;
+    border-radius: 100px;
+}
+
+</style>
 <body>
     
     <%- include("../../views/partials/user/shoppage_header") %>
@@ -22,32 +49,24 @@
             <%= message %>
         </p>
         <% } %>
-    <!-- Add necessary styles for zoom functionality -->
-
 
     <div class="container mt-5">
         <div class="row">
-            <!-- Product Images Section -->
+            <!-- Product Images Section - Modified Layout -->
             <div class="col-md-6">
-                <div class="row mb-4">
-                    <div class="col-6 mb-3">
-                        <div class="product-image-container" id="zoom-image-container-0">
-                            <img src="<%= product.productImage[0] %>" alt="iPhone 16 Pro Max Front View"
-                                class="img-fluid rounded" data-index="0" id="zoom-image-0">
+                <!-- Main Image Display with Mouse-Follow Zoom -->
+                <div class="main-image-container" id="main-image-display">
+                    <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="img-fluid main-image" id="main-product-image">
+                    <div class="zoom-lens" id="zoom-lens"></div>
+                </div>
+                
+                <!-- Thumbnail Images -->
+                <div class="thumbnail-container">
+                    <% for(let i=0; i<product.productImage.length && i<3; i++) { %>
+                        <div class="thumbnail <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>">
+                            <img src="<%= product.productImage[i] %>" alt="<%= product.productName %> view <%= i+1 %>" class="img-fluid">
                         </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="product-image-container" id="zoom-image-container-1">
-                            <img src="<%= product.productImage[1] %>" alt="iPhone 16 Pro Max Back View"
-                                class="img-fluid rounded" data-index="1" id="zoom-image-1">
-                        </div>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <div class="product-image-container" id="zoom-image-container-2">
-                            <img src="<%= product.productImage[2] %>" alt="iPhone 16 Pro Max Side View"
-                                class="img-fluid rounded" data-index="2" id="zoom-image-2">
-                        </div>
-                    </div>
+                    <% } %>
                 </div>
 
                 <!-- What's in the Box Section -->
@@ -68,7 +87,8 @@
                 <!-- Price Section -->
                 <div class="price-section mb-4">
                     <span class="original-price me-2"></span>
-                    <span class="sale-price">₹<%= product.salePrice %></span>
+                    <span class="sale-price fw-bold">₹<%= product.salePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+
                 </div>
 
                 <!-- Product Information -->
@@ -136,41 +156,102 @@
         </div>
     </div>
     <input type="hidden" id="product-id" value="<%= product._id %>">
-    <!-- Zoom Modal -->
-    <div id="imageZoomModal" class="zoom-modal">
-        <span class="zoom-modal-close">&times;</span>
-        <img class="zoom-modal-content" id="zoomedImage">
-    </div>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const zoomImages = document.querySelectorAll('.product-image-container img:not(.no-zoom)');
-            const zoomModal = document.getElementById('imageZoomModal');
-            const zoomedImage = document.getElementById('zoomedImage');
-            const closeModal = document.querySelector('.zoom-modal-close');
+            // Image gallery functionality
+            const mainImageContainer = document.getElementById('main-image-display');
+            const mainImage = document.getElementById('main-product-image');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const zoomLens = document.getElementById('zoom-lens');
+            
+            // Initialize with first image
+            mainImage.src = thumbnails[0].querySelector('img').src;
 
-            zoomImages.forEach(img => {
-                img.addEventListener('click', function () {
-                    // Set the zoomed image source
-                    zoomedImage.src = this.src;
-                    zoomModal.style.display = 'block';
+            // Mouse-follow zoom functionality
+            let zoomActive = false;
+            const zoomLevel = 2.5; // Zoom magnification level
+            
+            function getOffset(el) {
+                const rect = el.getBoundingClientRect();
+                return {
+                    left: rect.left + window.scrollX,
+                    top: rect.top + window.scrollY,
+                    width: rect.width,
+                    height: rect.height
+                };
+            }
+
+            // Setup zoom lens
+            mainImageContainer.addEventListener('mouseenter', function(e) {
+                zoomLens.style.display = 'block';
+                zoomLens.style.backgroundImage = `url('${mainImage.src}')`;
+                zoomLens.style.backgroundSize = `${mainImage.width * zoomLevel}px ${mainImage.height * zoomLevel}px`;
+                zoomActive = true;
+                updateZoomLens(e);
+            });
+
+            mainImageContainer.addEventListener('mouseleave', function() {
+                zoomLens.style.display = 'none';
+                zoomActive = false;
+            });
+
+            mainImageContainer.addEventListener('mousemove', function(e) {
+                if (zoomActive) {
+                    updateZoomLens(e);
+                }
+            });
+
+            // Function to update zoom lens position and background position
+            function updateZoomLens(e) {
+                e.preventDefault();
+                
+                const containerOffset = getOffset(mainImageContainer);
+                let mouseX = e.pageX - containerOffset.left;
+                let mouseY = e.pageY - containerOffset.top;
+                
+                // Calculate lens position
+                const lensWidth = zoomLens.offsetWidth;
+                const lensHeight = zoomLens.offsetHeight;
+                
+                // Keep lens within boundaries
+                if (mouseX < lensWidth / 2) mouseX = lensWidth / 2;
+                if (mouseX > containerOffset.width - lensWidth / 2) mouseX = containerOffset.width - lensWidth / 2;
+                if (mouseY < lensHeight / 2) mouseY = lensHeight / 2;
+                if (mouseY > containerOffset.height - lensHeight / 2) mouseY = containerOffset.height - lensHeight / 2;
+                
+                // Position the lens
+                zoomLens.style.left = `${mouseX - lensWidth / 2}px`;
+                zoomLens.style.top = `${mouseY - lensHeight / 2}px`;
+                
+                // Calculate background position for the lens
+                const bgX = mouseX * zoomLevel - lensWidth / 2;
+                const bgY = mouseY * zoomLevel - lensHeight / 2;
+                
+                zoomLens.style.backgroundPosition = `-${bgX}px -${bgY}px`;
+            }
+
+            // Add click event to thumbnails
+            thumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('click', function() {
+                    // Update main image
+                    const imgSrc = this.querySelector('img').src;
+                    mainImage.src = imgSrc;
+                    
+                    // Update zoom lens background
+                    if (zoomActive) {
+                        zoomLens.style.backgroundImage = `url('${imgSrc}')`;
+                        zoomLens.style.backgroundSize = `${mainImage.width * zoomLevel}px ${mainImage.height * zoomLevel}px`;
+                    }
+                    
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
                 });
             });
 
-            closeModal.addEventListener('click', function () {
-                zoomModal.style.display = 'none';
-            });
-
-            zoomModal.addEventListener('click', function (e) {
-                if (e.target === zoomModal) {
-                    zoomModal.style.display = 'none';
-                }
-            });
-        });
-
-        // Quantity selector with +/- buttons
-        document.addEventListener('DOMContentLoaded', function () {
+            // Quantity selector with +/- buttons
             const quantityInput = document.getElementById('quantity');
             const minusButton = document.getElementById('quantity-minus');
             const plusButton = document.getElementById('quantity-plus');
@@ -178,16 +259,15 @@
             const maxStock = parseInt(currentStockInput.value);
 
             // Update input value when minus button is clicked
-            minusButton.addEventListener('click', function () {
+            minusButton.addEventListener('click', function() {
                 const currentValue = parseInt(quantityInput.value);
                 if (currentValue > 1) {
-                        quantityInput.value = currentValue - 1;
-                   
+                    quantityInput.value = currentValue - 1;
                 }
             });
 
             // Update input value when plus button is clicked
-            plusButton.addEventListener('click', function () {
+            plusButton.addEventListener('click', function() {
                 const currentValue = parseInt(quantityInput.value);
                 // Make sure we don't exceed available stock or max of 3
                 const maxAllowed = Math.min(maxStock,);
@@ -195,19 +275,13 @@
                     quantityInput.value = currentValue + 1;
                 }
             });
-        });
 
-
-
-
-
-        document.addEventListener('DOMContentLoaded', function () {
+            // Stock button functionality
             const stockButton = document.getElementById('stock-button');
-            const quantityInput = document.getElementById('currentstock'); // Reference to the text box
-            const stock = quantityInput.value
+            const stock = parseInt(currentStockInput.value);
+            
             // Function to update the button dynamically
             function updateStockButton() {
-                console.log(stock)
                 if (stock > 0) {
                     stockButton.textContent = "In Stock";
                     stockButton.classList.add('btn-success'); // Add "In Stock" style
@@ -216,55 +290,43 @@
                     stockButton.textContent = "Out of Stock";
                     stockButton.classList.add('btn-danger'); // Add "Out of Stock" style
                     stockButton.classList.remove('btn-success');
-                    document.getElementById('addtocartbutton').disabled = true
-                    document.getElementById('buynow').disabled = true
-                    document.getElementById('quantityselect').style.display = 'none'
+                    document.getElementById('addtocartbutton').disabled = true;
+                    document.getElementById('buynow').disabled = true;
+                    document.getElementById('quantityselect').style.display = 'none';
                 }
             }
-
-            // Event listener to detect changes in the text box
-            quantityInput.addEventListener('input', updateStockButton); // Update stock button when input value changes
 
             updateStockButton();
         });
 
-        document.getElementById('addtocartbutton').addEventListener('click', function () {
+        // Add to cart functionality
+        document.getElementById('addtocartbutton').addEventListener('click', function() {
             // Get product ID and quantity from the form
             const productId = document.getElementById('product-id').value;
             const quantity = document.getElementById('quantity').value;
-            sendtobackend()
-             function sendtobackend(){
-            fetch('/add-to-cart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId, quantity }),
-            })
+            
+            function sendtobackend() {
+                fetch('/add-to-cart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productId, quantity }),
+                })
                 .then(response => response.json())
                 .then(data => {
                     console.log('Server Response:', data);
-                    window.location.href = '/user/getcart'
-                    // if (data.redirectUrl) {
-                    //     window.location.href = data.redirectUrl
-                    // }
+                    window.location.href = '/user/getcart';
                 })
                 .catch(error => {
                     console.error('Error:', error); // Handle errors
                     alert('Failed to add item to cart.');
                 });
             }
+            
+            sendtobackend();
         });
     </script>
 
     <%- include("../../views/partials/user/shoppage_footer") %>
 
-
-
-
 </body>
 </html>
-
-
-
-        <!-- </body>
-
-        </html> -->

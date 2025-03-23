@@ -48,6 +48,7 @@
                         <option value="Delivered">Delivered</option>
                         <option value="Pending">Pending</option>
                         <option value="Shipped">Shipped</option>
+                        <option value="Cancelled">Cancelled</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -116,9 +117,9 @@
                 <span>SHOWING 1 OF 10</span>
                 <nav>
                     <ul class="pagination">
-                        <li id="previous" class="page-item"><a class="page-link" href="#">«</a></li>
+                        <li id="previous" class="page-item me-4"><a class="page-link" href="#">«</a></li>
                         <li id="pagenumber" class="page-item active"><a  class="page-link" href="#">1</a></li>
-                        <li id="next" class="page-item"><a class="page-link" href="#">»</a></li>
+                        <li id="next" class="page-item ms-4"><a class="page-link" href="#">»</a></li>
                     </ul>
                 </nav>
             </div>
@@ -138,11 +139,10 @@
             let totalPages = Math.ceil(totalCount / pageSize);
 
             document.getElementById('previous').addEventListener('click',function(){
-               const val = document.getElementById('pagenumber').textContent
-                console.log(val)
+              
             })
             document.getElementById('next').addEventListener('click',function(){
-               const val = document.getElementById('pagenumber').value
+             
             })
 
             document.getElementById('DateFilter').addEventListener('change', function () {
@@ -562,7 +562,6 @@
 
 
             function showOrderModal(orderId) {
-                console.log('hi ameer ali')
                 // Fetch the order details from the server
                 fetch(`/admin/orderdetails/${orderId}`)
                     .then(response => response.json())
@@ -608,7 +607,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('')}
+             `).join('')}
         
                         </div>
                     </div>

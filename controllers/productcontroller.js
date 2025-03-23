@@ -6,13 +6,15 @@ const category = require('../models/categorySchema')
 const Product = require('../models/productSchema')
 const { triggerAsyncId } = require('async_hooks')
 const { findByIdAndUpdate } = require('../models/user')
-
+const brandschema = require('../models/brandSchema')
+const Category = require('../models/categorySchema')
 
 const addproductpage = async(req,res)=>{
        const Category = await category.find({isDeleted:false})
+       const brand = await brandschema.find({isDeleted:false})
   try {
      
-     res.render('addproduct',{msg:'',Category})
+     res.render('addproduct',{msg:'',Category,brand})
   } catch (error) {
     
   }
@@ -47,25 +49,30 @@ const productpage = async(req,res)=>{
 
 const addproduct = async (req,res)=>{
    const prod = await Product.find({})
+   const brand = await brandschema.find({})
+   const Category = await category.find({})
    try {
       firstupload(req, res, async (err) => {
-         console.log(req.files)
-         
+         console.log(req.body)
          if (err) {
           console.log(err)
          } else {
            if (req.files.length == 0) {
-             res.render('addproduct', { product:prod,
+             res.render('addproduct', { product:prod,brand,Category,
                                      msg: 'No file selected!' });
            } else {
             const imagePaths = req.files.map(file=>`/cardimages/${file.filename}`)
+            const categ = await category.findOne({name:req.body.category})
+            const brand = await brandschema.findOne({brandName:req.body.brand})
             const newProduct = new product({
                productName: req.body.productName,
                description: req.body.productDescription,
                productImage:imagePaths,
-               brand:req.body.brand,
+               brand:brand._id,
                salePrice:req.body.price,
                quantity:req.body.count,
+               Tax:parseInt(req.body.tax),
+               category:categ._id,
              });
              newProduct.save()
              res.redirect('product')
@@ -84,6 +91,8 @@ const editproduct = async(req,res)=>{
    const fullproduct = await Product.find({})
    try {
      upload(req, res,async(err) => {
+      const brand = await brandschema.findOne({brandName:req.body.brand})
+      const category = await Category.findOne({name:req.body.category}) 
          if (err) {
           console.log(err) 
          } else {
@@ -106,9 +115,11 @@ const editproduct = async(req,res)=>{
                productName: req.body.productName,
                description: req.body.productDescription,
                productImage:imagePaths,
-               brand:req.body.brand,
+               brand:brand._id,
+               category:category._id,
                salePrice:req.body.price,
                quantity:req.body.count,
+               Tax:parseInt(req.body.tax)
 
              })
              req.session.msg = 'product updated successfull'
@@ -234,12 +245,14 @@ const productclear =async(req,res)=>{
 
  const editproductpage = async(req,res)=>{
    const id =  req.params.id
-   const product = await Product.findById(id)
-   const fullproduct = await category.find({})
-   console.log(fullproduct)
+   const product = await Product.findById(id).populate('category').populate('brand')
+   console.log(product,'product')
+   const fullproduct = await brandschema.find({})
+   const fullcategory = await category.find({})
+   console.log(fullproduct,'fullproduct')
    try { 
       console.log(product)   
-      res.render('editproduct',{msg:'',product,fullproduct})
+      res.render('editproduct',{msg:'',product,fullproduct,fullcategory})
    } catch (error) {    
       console.log(error)  
    }

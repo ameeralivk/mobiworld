@@ -1,7 +1,7 @@
 const User = require('../models/user')
 const orderSchema = require('../models/orderSchema')
 const addressschema = require('../models/addressSchema')
-
+const productschema = require('../models/productSchema')
 
 const getorders = async (req, res) => {
     const orders = await orderSchema.find().populate('userId').populate('orderedItems.product')
@@ -29,6 +29,7 @@ const updatestatus = async (req, res) => {
 }
 const orderdetails = async (req, res) => {
     const orderid = req.params
+    console.log(orderid,'orderid')
     const order = await orderSchema.findOne({ orderId: orderid.id }).populate('orderedItems.product')
     const addressIdFromOrder = order.address
     const address = await addressschema.Address.findOne({
@@ -91,7 +92,64 @@ const Datefilter = async(req,res)=>{
          console.error('error from statusfilter',error)
      }
  }
-
+// const cancelorder = async(req,res)=>{
+//   const  {orderId,items} = req.body
+//     try {
+//         const order = await orderSchema.findOne({orderId:orderId}).populate('userId').populate('orderedItems.product')
+//         const quantity = order.orderedItems[0].quantity
+//         const product = await productschema.findOne({_id:items})
+//         const newqunatity =product.quantity + quantity
+//         product.quantity = newqunatity
+//         product.save()
+//         console.log(product,'productid')
+//         await orderSchema.deleteOne({ _id: order._id });
+//         if(order){
+//             order.status = 'Cancelled'
+//           const saved =  order.save()
+//           if(saved){
+//             const orders = await orderSchema.find({})
+//             res.status(200).json({data:orders})
+//           }
+            
+            
+//         }
+//     } catch (error) {
+//         console.error('error from ordercontroller',error)
+//     }
+// }
+const cancelorder = async (req, res) => {
+    const { orderId, items } = req.body;
+  
+    try {
+      const order = await orderSchema.findOne({ orderId: orderId }).populate('userId').populate('orderedItems.product');
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+      const quantity = order.orderedItems[0].quantity;
+      const product = await productschema.findOne({ _id: items });
+      
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+  
+      const newQuantity = product.quantity + quantity;
+      product.quantity = newQuantity;
+  
+      await product.save();
+      console.log(product, 'productid');
+      order.status = 'Cancelled';
+      await order.save();
+  
+      // After deletion, return all orders
+      const orders = await orderSchema.find({}).populate('userId').populate('orderedItems.product');
+      res.status(200).json({ data: orders });
+  
+    } catch (error) {
+      console.error('Error from ordercontroller:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  };
+  
 
 module.exports = {
     getorders,
@@ -100,4 +158,5 @@ module.exports = {
     searchorder,
     statusfilter,
     Datefilter,
+    cancelorder,
 }
