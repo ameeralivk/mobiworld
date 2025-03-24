@@ -1022,33 +1022,36 @@ const pagination = async(req,res)=>{
 //   }
 // };
 
+// Add this to save the PDF
 const puppeteer = require('puppeteer');
- // Adjust according to your model path
+
+
+
 
 const pdfdownload = async (req, res) => {
   console.log('Generating PDF...');
   const { id } = req.params;
 
   try {
-    // Fetch order details from the database
-    const cart = await orderSchema.findOne({ _id: id });
-
+ 
+    const cart = await orderSchema.findOne({ _id: id }).populate('userId').populate('orderedItems.product');
+    console.log(cart,'cart')
     if (!cart) {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    // Prepare dynamic data for the invoice
+ const totalPriceWithGST = cart.totalPrice+cart.totalGST
     const invoiceData = {
+      items:cart.orderedItems,
       cartId: cart._id,
       date: new Date().toLocaleDateString(),
       customerName: cart.userId.name,
       totalPrice: cart.totalPrice,
       totalGST: cart.totalGST,
-      totalPriceWithGST: cart.totalPriceWithGST,
-      items: cart.items,
+      totalPriceWithGST: totalPriceWithGST,
     };
 
-    // Render the EJS template into HTML
+console.log(invoiceData,'invoice data')
     const templatePath = path.join(__dirname, '../views', 'invoice-template.ejs');
     console.log(`Rendering template from: ${templatePath}`);
 
@@ -1060,14 +1063,12 @@ const pdfdownload = async (req, res) => {
 
       console.log('EJS rendering successful, launching Puppeteer...');
 
-      // Launch Puppeteer
-
+     
       const browser = await puppeteer.launch({ headless: 'new' });
-
       const page = await browser.newPage();
       await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
 
-      // Generate PDF
+
       const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true,
@@ -1076,10 +1077,13 @@ const pdfdownload = async (req, res) => {
       await browser.close();
       console.log('PDF generated successfully!');
 
-      // Send the generated PDF as a response
+    
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
-      res.send(pdfBuffer);
+      res.setHeader('Content-Disposition', `attachment; filename=invoice-${id}.pdf`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+
+      res.end(pdfBuffer); 
+
     });
 
   } catch (error) {
@@ -1087,6 +1091,10 @@ const pdfdownload = async (req, res) => {
     res.status(500).send('An error occurred while generating the PDF');
   }
 };
+
+
+
+
 
 
 

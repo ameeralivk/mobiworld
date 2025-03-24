@@ -141,7 +141,14 @@
                             order.orderedItems.forEach(item => {
                                 const orderRow = document.createElement('div');
                                 orderRow.classList.add('row', 'order-row', 'align-items-center');
-
+                                let downloadBtnHTML = '';
+                                if (order.status === 'Delivered') {
+                                 downloadBtnHTML = `
+                                 <a href="/download-invoice/${order._id}" download class="download-btn">
+                                 <span>PDF</span>
+                                 <div class="icon"></div>
+                                 </a>`;
+                                 }
                                 orderRow.innerHTML = `
                                 <!-- Close Button -->
                                 <button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')"></button>
@@ -156,12 +163,8 @@
                                     <img src="${item.product.productImage[0]}" alt="Product" class="product-image">
                                 </div>
                                 <div class="col-1 ms-3">
-                                   <a href="/download-invoice/${order._id}" download class="download-btn">
-                                    <span>PDF</span>
-                                   <div class="icon"></div>
-                                    </a>
-                                </div>
-                            
+                                   ${downloadBtnHTML}
+                                </div>  
                                  
                             `;
                                 orderList.appendChild(orderRow);
