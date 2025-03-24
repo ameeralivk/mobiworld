@@ -102,6 +102,10 @@
                                     <div id="Subtotal" class="col-6 text-end">₹<%=totalPrice.toLocaleString('en-IN') %></div>
                                 </div>
                                 <div class="row mb-2">
+                                    <div class="col-6">TotalGST</div>
+                                    <div id="totalgst" class="col-6 text-end">₹<%=totalGST.toLocaleString('en-IN') %></div>
+                                </div>
+                                <div class="row mb-2">
                                     <div class="col-6">Delivery</div>
                                     <div class="col-6 text-end">₹0.00</div>
                                 </div>
@@ -110,8 +114,8 @@
                                     <div class="col-6 text-end">₹0.00</div>
                                 </div>
                                 <div class="row mb-4 pt-2 border-top mt-2">
-                                    <div class="col-6 fw-bold">TOTAL</div>
-                                    <div id="totalamound" class="col-6 text-end fw-bold">₹<%=totalPrice.toLocaleString('en-IN') %>
+                                    <div class="col-6 fw-bold">TOTAL(Including GST)</div>
+                                    <div id="totalamound" class="col-6 text-end fw-bold">₹<%=(totalPrice + totalGST).toLocaleString('en-IN')%>
                                     </div>
                                 </div>
 
@@ -169,8 +173,9 @@
                                 })
                                 const result = await response.json()
                                 if (result.success) {
-                                    document.getElementById('totalamound').innerText = `₹${result.total.toLocaleString('en-IN')}`
+                                    document.getElementById('totalamound').innerText = `₹${(result.total + result.totalGST).toLocaleString('en-IN')}`
                                     document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`
+                                    document.getElementById('totalgst').innerText = `₹${result.totalGST.toLocaleString('en-IN')}`
                                 }
                             }
 
@@ -227,8 +232,9 @@
                                 const result = await response.json()
                                 if (result.success) {
                                     console.log(result)
-                                    document.getElementById('totalamound').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
+                                    document.getElementById('totalamound').innerText = `₹${(result.cartTotal+result.carttotalGST).toLocaleString('en-IN')}`
                                     document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
+                                     document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`
                                     const productrow = button.closest('tr')
                                     productrow.remove()
                                 }

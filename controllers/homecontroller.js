@@ -11,6 +11,9 @@ const { connect } = require('mongoose')
 const orderSchema = require('../models/orderSchema')
 const brandschema = require('../models/brandSchema')
 const Category = require('../models/categorySchema')
+const PDFDocument = require('pdfkit')
+const path = require('path')
+const ejs = require('ejs');
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -484,10 +487,13 @@ const addtocart = async (req, res) => {
           productId: product._id,
           quantity,
           price: product.salePrice,
+          gstPercentage:product.Tax,
+          totalPriceWithGST: (product.salePrice * quantity) + (product.salePrice * quantity * product.gstPercentage / 100),
           totalPrice: product.salePrice * quantity,
         }]
       });
-      cart.calculateTotalPrice();
+      // cart.calculateTotalPrice();
+      cart.calculateGST();
       await cart.save();
     } else {
       // Update existing cart
@@ -502,10 +508,13 @@ const addtocart = async (req, res) => {
           productId: product._id,
           quantity,
           price: product.salePrice,
+          gstPercentage:product.Tax,
           totalPrice: product.salePrice * quantity,
+          totalPriceWithGST:(product.salePrice*quantity)+(product.salePrice*quantity*product.gstPercentage/100)
         });
       }
-      cart.calculateTotalPrice();
+      // cart.calculateTotalPrice();
+      cart.calculateGST();
       await cart.save();
     }
 
@@ -536,7 +545,7 @@ const getcart = async (req, res) => {
       if (isexist == null) {
       const message =  req.session.message 
       req.session.message = null
-        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0 ,message })
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0,totalGST:'' ,message })
       }
       const message = req.session.message;
       req.session.message = null
@@ -548,13 +557,13 @@ const getcart = async (req, res) => {
         ...product._doc,
         quantity: quantity[index]
       }))
-      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice, message: message })
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: message })
     }
 
     else {
       const isexist = await cartSchema.findOne({ userId: user._id })
       if (isexist == null) {
-        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0 })
+        return res.render('addtocart', { combineddata: [], quantity: '',totalGST:'',totalPrice: 0 })
       }
       const item = isexist.items.map(item => item.productId)
       const quantity = isexist.items.map(item => item.quantity)
@@ -566,7 +575,7 @@ const getcart = async (req, res) => {
         ...product._doc,
         quantity: quantity[index]
       }))
-      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice, message: '' })
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: '' })
     }
 
 
@@ -587,11 +596,14 @@ const updatequantity = async (req, res) => {
     if (item) {
       item.quantity = quantity;
       item.totalPrice = item.quantity * item.price;
-      cart.calculateTotalPrice();
+      cart.calculateGST()
+      // cart.calculateTotalPrice();
       const saved = await cart.save()
       if (saved) {
         const total = saved.calculateTotalPrice()
-        res.status(200).json({ success: true, total })
+        const totalGST = saved.calculateGST()
+        console.log('total',total)
+        res.status(200).json({ success: true, total,totalGST })
       }
 
     }
@@ -611,7 +623,6 @@ const checkoutpage = async (req, res) => {
     return res.redirect('/user/login');
    }
    const cart = await cartSchema.findOne({userId:userid._id})
-   console.log(cart,'cart mandaf')
   try {
      if(cart){
       const user = await userschema.find({ _id: userid._id, isBlocked: false });
@@ -657,16 +668,18 @@ const checkoutpage = async (req, res) => {
         const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
       const product = cart.items.map(item=>item.productId)
       const total = cart.totalPrice
+      const totalGST = cart.totalGST
       const address = await addressSchema.Address.find({userId:userid._id})
       const addresses = address.map(address=>address.address)
-      return res.render('checkoutpage',{product,total,address:addresses,message});
+      return res.render('checkoutpage',{product,total,totalGST,address:addresses,message});
       }
       const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
       const product = cart.items.map(item=>item.productId)
       const total = cart.totalPrice
+      const totalGST = cart.totalGST
       const address = await addressSchema.Address.find({userId:userid._id})
       const addresses = address.map(address=>address.address)
-      return res.render('checkoutpage',{product,total,address:addresses});
+      return res.render('checkoutpage',{product,total,totalGST,address:addresses});
 
 
      }
@@ -690,13 +703,16 @@ const deletecartbutton = async(req,res)=>{
      const cart = await cartSchema.findOne({userId:user._id})
      const product = cart.items.filter(item=>item.productId.toString() !== productId)
      cart.items = product
-     cart.calculateTotalPrice()
+    //  cart.calculateTotalPrice()
+    cart.calculateGST()
      const cartTotal = cart.totalPrice
+     const cartGST = cart.totalGST
     const saved = await cart.save()
     if(saved){
       res.json({
         success: true,
         cartTotal: cartTotal,
+        carttotalGST: cartGST,
       });
     }
      console.log(product,'product')
@@ -812,7 +828,8 @@ const orderplacedpage = async(req,res)=>{
       if(isexit.length>0){
         if(req.session.address){
           const orderededuser = await cartSchema.findOne({userId:user._id})
-          const totalPrice = orderededuser.totalPrice
+          const totalPrice =  orderededuser.totalPrice
+          const totalGST = orderededuser.totalGST
           const address = req.session.address
           req.session.address = null
           const orderedItems = orderededuser.items.map(item=>({
@@ -823,6 +840,7 @@ const orderplacedpage = async(req,res)=>{
               const newOrder = new orderSchema({
                 userId: user._id,
                 paymentMethod:'Cash ON Delivery',
+                totalGST:totalGST,
                 orderedItems:orderedItems,
                 totalPrice: totalPrice,
                 finalAmount:totalPrice,
@@ -836,6 +854,7 @@ const orderplacedpage = async(req,res)=>{
               const orderededuser = await cartSchema.findOne({userId:user._id}).populate('items.productId')
               updateQuantities(orderededuser.items)
               if(items){
+                req.session.order = saved.orderId
                 const remove = await cartSchema.deleteOne({userId:user._id})
                 return res.redirect('/user/paymentsuccesspage')
               }
@@ -857,6 +876,7 @@ const orderplacedpage = async(req,res)=>{
           const address = req.session.newaddress
           req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
+          const totalGST = orderededuser.totalGST
           const orderedItems = orderededuser.items.map(item=>({
             product : item.productId,
             quantity : item.quantity,
@@ -865,6 +885,7 @@ const orderplacedpage = async(req,res)=>{
               const newOrder = new orderSchema({
                 userId: user._id,
                 orderedItems:orderedItems,
+                totalGST:totalGST,
                 totalPrice: totalPrice,
                 finalAmount:totalPrice,
                 address:address,
@@ -910,7 +931,11 @@ async function updateQuantities(items) {
 }
 const getpaymentsuccesspage =async(req,res)=>{
   const user = req.session.User
-  const orderdetails = await orderSchema.findOne({userId:user._id})
+  const orderid = req.session.order
+  console.log(orderid,'orderid')
+  req.session.orderId = null
+  const orderdetails = await orderSchema.findOne({orderId:orderid})
+  console.log(orderdetails,'orderdetails')
   try {
 
       res.render('paymentsuccesspage',{orderdetails})
@@ -966,6 +991,110 @@ const pagination = async(req,res)=>{
   }
 }
 
+
+
+
+// const pdfdownload = async(req,res)=>{
+//   const { id } = req.params; 
+//   try {
+
+//     const doc = new PDFDocument();
+
+
+//     res.setHeader('Content-Type', 'application/pdf');
+//     res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
+    
+   
+//     doc.pipe(res);
+
+ 
+//     doc.fontSize(20).text('Invoice', { align: 'center' });
+//     doc.moveDown();
+
+
+//     doc.text('Cart ID: ' + id);
+//     doc.text('gdfsgfsd');
+    
+//     doc.end(); 
+//   } catch (error) {
+//     console.error('Error generating the PDF:', error);
+//     res.status(500).send('An error occurred while generating the PDF');
+//   }
+// };
+
+const puppeteer = require('puppeteer');
+ // Adjust according to your model path
+
+const pdfdownload = async (req, res) => {
+  console.log('Generating PDF...');
+  const { id } = req.params;
+
+  try {
+    // Fetch order details from the database
+    const cart = await orderSchema.findOne({ _id: id });
+
+    if (!cart) {
+      return res.status(404).json({ message: 'Cart not found' });
+    }
+
+    // Prepare dynamic data for the invoice
+    const invoiceData = {
+      cartId: cart._id,
+      date: new Date().toLocaleDateString(),
+      customerName: cart.userId.name,
+      totalPrice: cart.totalPrice,
+      totalGST: cart.totalGST,
+      totalPriceWithGST: cart.totalPriceWithGST,
+      items: cart.items,
+    };
+
+    // Render the EJS template into HTML
+    const templatePath = path.join(__dirname, '../views', 'invoice-template.ejs');
+    console.log(`Rendering template from: ${templatePath}`);
+
+    ejs.renderFile(templatePath, invoiceData, async (err, htmlContent) => {
+      if (err) {
+        console.error('Error rendering EJS:', err);
+        return res.status(500).json({ message: 'Error rendering template' });
+      }
+
+      console.log('EJS rendering successful, launching Puppeteer...');
+
+      // Launch Puppeteer
+
+      const browser = await puppeteer.launch({ headless: 'new' });
+
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
+
+      // Generate PDF
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+      });
+
+      await browser.close();
+      console.log('PDF generated successfully!');
+
+      // Send the generated PDF as a response
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=invoice.pdf');
+      res.send(pdfBuffer);
+    });
+
+  } catch (error) {
+    console.error('Error generating the PDF:', error);
+    res.status(500).send('An error occurred while generating the PDF');
+  }
+};
+
+
+
+
+
+
+
+
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -991,4 +1120,5 @@ module.exports = {
   getpaymentsuccesspage,
   orderpage,
   pagination,
+  pdfdownload,
 }

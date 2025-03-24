@@ -49,3 +49,52 @@
     flex: 0 0 auto;
     width: 35%;
 }
+
+
+.download-btn {
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    font-family: Arial, sans-serif;
+    text-decoration: none;
+    color: black;
+    width: 75px; /* Adjust width as needed */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Styling for the text part */
+.download-btn span {
+    flex: 1;
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Styling for the arrow icon container */
+.download-btn .icon {
+    background-color: #ff4d4d; /* Red background for the arrow */
+    border-radius: 5px;
+    padding: 5px;
+    margin-left: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+/* Styling for the arrow */
+.download-btn .icon::before {
+    content: "↓"; /* Unicode for downward arrow */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Hover effect */
+.download-btn:hover {
+    background-color: #f0f0f0;
+}

@@ -85,7 +85,7 @@
                             <td>#ORD-<%= order.orderId %>
                             </td>
                             <input type="hidden" class="id" value=" <%= order.orderId %>">
-                            <td>₹<%= order.totalPrice.toLocaleString('en-IN') %>
+                            <td>₹<%= (order.totalPrice+order.totalGST).toLocaleString('en-IN') %>
                             </td>
                             <td>
                                 <%= order.invoiceDate.toLocaleDateString() %>
@@ -628,12 +628,12 @@
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span>Tax:</span>
-                                        <span>₹0</span>
+                                        <span>₹${(orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span>Total:</span>
-                                        <span>₹${(orderDetails.order.totalPrice).toLocaleString('en-IN')}</span>
+                                        <span>₹${(orderDetails.order.totalPrice+orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>

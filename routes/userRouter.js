@@ -43,6 +43,7 @@ router.post('/paymentpage',homecontroller.paymentpage)
 router.get('/getpaymentpage',homecontroller.getpaymentpage)
 router.post('/orderplacedpage',homecontroller.orderplacedpage)
 router.get('/paymentsuccesspage',homecontroller.getpaymentsuccesspage)
+router.get('/download-invoice/:id',homecontroller.pdfdownload)
 
 
 

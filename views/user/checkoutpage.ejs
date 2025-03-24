@@ -176,6 +176,11 @@
                                 <div class="col-6 price">₹<%= total.toLocaleString('en-IN') %>
                                 </div>
                             </div>
+                            <div class="row mt-3">
+                                <div class="col-6">totalGST</div>
+                                <div class="col-6 price">₹<%= totalGST.toLocaleString('en-IN') %>
+                                </div>
+                            </div>
 
                             <div class="row mt-2">
                                 <div class="col-6">Delivery</div>
@@ -189,7 +194,7 @@
 
                             <div class="row mt-3">
                                 <div class="col-6"><strong>TOTAL</strong></div>
-                                <div class="col-6 price"><strong>₹<%= total.toLocaleString('en-IN') %></strong></div>
+                                <div class="col-6 price"><strong>₹<%= (total+totalGST).toLocaleString('en-IN') %></strong></div>
                             </div>
                         </div>
                     </div>

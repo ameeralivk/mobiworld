@@ -20,6 +20,10 @@ const orderSchema = new Schema({
         type:String,
         require:true,
     },
+    totalGST:{
+        type:Number,
+        require:true,
+    },
     orderedItems:[{
         product:{
             type:Schema.Types.ObjectId,

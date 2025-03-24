@@ -19,20 +19,20 @@
 <body>
     <%- include("../../views/partials/user/shoppage_header") %>
 
-    <div class="modal" id="myModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content bg-dark">
-                <div class="modal-header">
-                    <h5 class="modal-title text-dark">Modal title</h5>
-                </div>
-                <div class="modal-body" id="modalBodyContent"></div>
-                <div class="modal-footer">
-                    <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <div class="modal" id="myModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-dark">Modal title</h5>
+                    </div>
+                    <div class="modal-body" id="modalBodyContent"></div>
+                    <div class="modal-footer">
+                        <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <div class="account-header">
             <div class="container">
@@ -148,13 +148,21 @@
 
                                 <div class="col-3a"><a class='text-decoration-none text-dark order-link' onclick="modalopen('${order.orderId}')" href='#'>#ORD-${order.orderId}</a></div> 
                                 <div class="col-3">${item.quantity}</div>
-                                <div class="col-3">${new Date( order.createdOn).toLocaleString('en-IN')}</div>
+                                <div class="col-3">${new Date(order.createdOn).toLocaleString('en-IN')}</div>
                                 <div class="col-2">
                                     <span class="delivered-badge">${order.status}</span>
                                 </div>
                                 <div class="col-1">
                                     <img src="${item.product.productImage[0]}" alt="Product" class="product-image">
                                 </div>
+                                <div class="col-1 ms-3">
+                                   <a href="/download-invoice/${order._id}" download class="download-btn">
+                                    <span>PDF</span>
+                                   <div class="icon"></div>
+                                    </a>
+                                </div>
+                            
+                                 
                             `;
                                 orderList.appendChild(orderRow);
                             });
@@ -180,7 +188,7 @@
                     fetchData(currentPage);
                 }
             });
-            function cancelorder(id,items) {
+            function cancelorder(id, items) {
                 Swal.fire({
                     title: 'Are you sure?',
                     text: 'Do you want to cancel this order?',
@@ -196,20 +204,20 @@
                                 'Content-Type': 'application/json',
 
                             },
-                            body: JSON.stringify({ orderId: id,items })
+                            body: JSON.stringify({ orderId: id, items })
                         })
-                        .then(response => response.json())
-                        .then(data=>{
-                            if(data){
-                              window.location.href = '/user/order'
-                            }
-                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data) {
+                                    window.location.href = '/user/order'
+                                }
+                            })
                     }
                 })
 
 
-            } 
-            function modalopen(id){
+            }
+            function modalopen(id) {
                 showOrderModal(id)
             }
 
@@ -281,12 +289,12 @@
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span class="text-white">Tax:</span>
-                                        <span class="text-white">₹0</span>
+                                        <span class="text-white">₹${orderDetails.order.totalGST.toLocaleString('en-IN')}</span>
                                     </div>
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span class="text-white">Total:</span>
-                                        <span class="text-white">₹${(orderDetails.order.totalPrice).toLocaleString('en-IN')}</span>
+                                        <span class="text-white">₹${(orderDetails.order.totalPrice + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>
