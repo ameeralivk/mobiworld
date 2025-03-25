@@ -481,7 +481,7 @@ const addtocart = async (req, res) => {
     let cart = await cartSchema.findOne({ userId: user._id });
 
     if (!cart) {
-      // Create new cart if it doesn't exist
+      let wishlist = await wishlistSchema.findOne({ userId: user._id });
       cart = new cartSchema({
         userId: user._id,
         items: [{
@@ -493,9 +493,11 @@ const addtocart = async (req, res) => {
           totalPrice: product.salePrice * quantity,
         }]
       });
-      // cart.calculateTotalPrice();
       cart.calculateGST();
       await cart.save();
+      console.log('hidas fasdfmd dsaf safmas f')
+      wishlist.Products = wishlist.Products.filter(item => !item.productId.equals(product._id));
+      await wishlist.save();
     } else {
       // Update existing cart
       const existingItem = cart.items.find(item => item.productId.toString() === productId.toString());
@@ -514,9 +516,12 @@ const addtocart = async (req, res) => {
           totalPriceWithGST:(product.salePrice*quantity)+(product.salePrice*quantity*product.gstPercentage/100)
         });
       }
-      // cart.calculateTotalPrice();
+      let wishlist = await wishlistSchema.findOne({ userId: user._id });
       cart.calculateGST();
       await cart.save();
+      console.log('hidas fasdfmd dsaf safmas f')
+      wishlist.Products = wishlist.Products.filter(item => !item.productId.equals(product._id));
+      await wishlist.save();
     }
 
     return res.json({ message: 'Cart updated successfully' });
@@ -1025,6 +1030,7 @@ const pagination = async(req,res)=>{
 
 // Add this to save the PDF
 const puppeteer = require('puppeteer');
+const Wishlist = require('../models/wishlistSchema')
 
 
 
@@ -1132,7 +1138,14 @@ const getwishlistpage = async (req, res) => {
   }
 };
 
-
+const getwishlist = async(req,res)=>{
+  const theProducts = await wishlistSchema.find({}).populate('Products.productId')
+  try {
+    res.render('wishlist',{theProducts})
+  } catch (error) {
+    console.error('error from homecontroller',error)
+  }
+}
 
 
 
@@ -1167,4 +1180,5 @@ module.exports = {
   pagination,
   pdfdownload,
   getwishlistpage,
+  getwishlist,
 }

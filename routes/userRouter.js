@@ -45,6 +45,7 @@ router.post('/orderplacedpage',homecontroller.orderplacedpage)
 router.get('/paymentsuccesspage',homecontroller.getpaymentsuccesspage)
 router.get('/download-invoice/:id',homecontroller.pdfdownload)
 router.post('/getwishlist/:id',homecontroller.getwishlistpage)
+router.get('/getwishlist',homecontroller.getwishlist)
 
 
 

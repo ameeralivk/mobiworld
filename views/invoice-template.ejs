@@ -61,7 +61,7 @@
                     <tr>
                         <td><%= item.product.productName %></td>
                         <td><%= item.quantity %></td>
-                        <td>₹<%= item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
+                        <td>₹<%= (item.price*item.quantity).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></td>
                     </tr>
                 <% }); %>
             </tbody>
