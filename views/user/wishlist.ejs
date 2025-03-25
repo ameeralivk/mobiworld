@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="\css\addtocart.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_header.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_footer.css">
+</head>
+
+<body>
+    <%- include("../../views/partials/user/shoppage_header") %>
+
+    <% if (typeof message !=='undefined' && message) { %>
+        <p id="mess" class="error-message">
+            <%= message %>
+        </p>
+        <% } %>
+                <!-- Cart Header -->
+                <div class="cart-header">
+                    <div class="container">
+                        <h1>wishlist</h1>
+                    </div>
+                </div>
+
+                <!-- Cart Content -->
+                <div class="container mb-5">
+                    <!-- Cart Items Table -->
+                    <div class="row">
+                        <div class="col-12">
+                            <table class="table">
+                                <thead>
+                                    <tr class="table-header">
+                                        <th style="width: 5%"></th>
+                                        <th style="width: 15%">Product</th>
+                                        <th style="width: 10%">productName</th>
+                                        <th style="width: 40%">productDescription</th>
+                                        <th style="width: 15%" class="text-center">Price</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% theProducts.forEach(product=> { %>
+                                        <% product.Products.forEach(item=> { %>
+                                            <!-- Samsung Item -->
+                                            <tr class="cart-item align-middle">
+                                                <td>
+                                                    <button data-id="<%= item.productId._id %>"
+                                                        class="remove-btn rounded mt-3">✕</button>
+                                                </td>
+                                                <td>
+                                                    <img src="<%=item.productId.productImage[0]%>"
+                                                        alt="Samsung Galaxy S23 Ultra" class="cart-image rounded">
+                                                </td>
+                                                <td>
+                                                    <h5>
+                                                        <input type="hidden" value="<%= product._id %>">
+                                                        <%= item.productId.productName %>
+                                                    </h5>
+                                                    <!-- <p class="text-muted small">Meet the Galaxy S25 Ultra - your AI companion that adapts, anticipates, and connects seamlessly.</p> -->
+                                                </td>
+                                                <td>
+
+                                                    <%= item.productId.description %>
+
+                                                        <!-- <p class="text-muted small">Meet the Galaxy S25 Ultra - your AI companion that adapts, anticipates, and connects seamlessly.</p> -->
+                                                </td>
+                                                <td class="text-center">
+                                                    <%= item.productId.salePrice.toLocaleString('en-IN') %>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-primary w-5">
+                                                        <i class="bi bi-cart-plus "></i> Add to Cart
+                                                    </button>
+                                                </td>
+                                                <input type="hidden" id="currentstock"
+                                                    value="<%= item.productId.quantity %>">
+                                                <td id="Total" class="text-center"> </td>
+                                            </tr>
+                                            <% }); %>
+                                                <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Cart Totals and Checkout -->
+
+                </div>
+                <input id="quantity1-<%= product.quantity %>" type="hidden" value="<%= product.quantity %>">
+                <input id="rate" type="hidden" value="<%= product.salePrice %>">
+                <!-- Bootstrap JS -->
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+                <link rel="stylesheet"
+                    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+                <!-- SweetAlert2 CDN -->
+                <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.css" rel="stylesheet">
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.all.min.js"></script>
+                
+                <script>
+                  
+                    document.addEventListener("DOMContentLoaded", function() {
+                      
+                        const messageElement = document.getElementById("mess");
+                
+                  
+                        if (messageElement) {
+                         
+                            setTimeout(function() {
+                                messageElement.style.display = "none";
+                            }, 3000);
+                        }
+                    });
+                </script>
+                
+
+
+</body>
+
+</html>

@@ -14,6 +14,7 @@ const Category = require('../models/categorySchema')
 const PDFDocument = require('pdfkit')
 const path = require('path')
 const ejs = require('ejs');
+const wishlistSchema = require('../models/wishlistSchema')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -1092,8 +1093,44 @@ console.log(invoiceData,'invoice data')
   }
 };
 
+const getwishlistpage = async (req, res) => {
+  const { id } = req.params;
+  const user = req.session.User;
 
+  if (!user) {
+      return res.json({ success: false, message: 'Please login' });
+  }
 
+  try {
+      let wishlist = await wishlistSchema.findOne({ userId: user._id });
+      console.log(wishlist,'wishlist')
+      if (!wishlist) {
+          wishlist = new wishlistSchema({
+              userId: user._id,
+              Products: [{ productId:id }]
+          });
+          await wishlist.save();
+          return res.json({ success: true, added: true });
+      }
+      else{
+        const exist = wishlist.Products.find(item => item.productId.equals(id));
+        console.log(exist)
+        if(exist){
+          wishlist.Products = wishlist.Products.filter(item => !item.productId.equals(id));
+          await wishlist.save();
+          return res.json({ success: true, added: false });
+        }
+        wishlist.Products.push({productId:id})
+        await wishlist.save();
+          return res.json({ success: true, added: true });
+      }
+
+     
+  } catch (error) {
+      console.error('Error toggling wishlist:', error);
+      res.json({ success: false, message: 'Server error' });
+  }
+};
 
 
 
@@ -1129,4 +1166,5 @@ module.exports = {
   orderpage,
   pagination,
   pdfdownload,
+  getwishlistpage,
 }

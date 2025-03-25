@@ -9,6 +9,7 @@ const env = require('dotenv').config()
 const productSchema = require('../models/productSchema')
 const categories = require('../models/categorySchema')
 const brandschema =require('../models/brandSchema')
+const wishlistSchema = require('../models/wishlistSchema')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
@@ -457,10 +458,13 @@ const logout = async (req,res)=>{
     }
 }
 const shoppage = async(req,res)=>{
-    const product = await productSchema.find({isDeleted:false,isBlocked:false})
-    const category = await brandschema.find({})
+    const user = req.session.User
     try {
-        res.render('shoppage',{product,category:category,count:product.length})
+     const product = await productSchema.find({isDeleted:false,isBlocked:false})
+    const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+    const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+    const category = await brandschema.find({})
+        res.render('shoppage',{product,category:category,count:product.length,wishlistProductIds})
     } catch (error) {
         console.error('error from usercontroller',error)
     }

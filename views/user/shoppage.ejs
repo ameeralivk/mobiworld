@@ -89,8 +89,9 @@
                       <i class="bi bi-star-fill"></i>
                       <i class="bi bi-star-fill"></i>
                       <i class="bi bi-star star-empty"></i>
-                      <i class="bi wishlisticon bi-heart-fill text-primary fs-6"></i>
-
+                      <i onclick="toggleWishlist(event, this, '<%= product._id %>')" 
+                        class="bi <%= wishlistProductIds.includes(product._id.toString()) ? 'bi-heart-fill text-primary' : 'bi-heart text-muted' %> fs-6 d-flex justify-content-end">
+                     </i>
                     </div>
                     <h3 class="product-title"><%= product.productName %></h3>
                     <p class="product-price">₹<%= product.salePrice %></p>
@@ -113,6 +114,35 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
  
   <script>
+   async function toggleWishlist(event,icon,productId){
+         event.preventDefault();
+         try {
+        const response = await fetch(`/user/getwishlist/${productId}`, {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            if (data.added) {
+                icon.classList.remove('bi-heart', 'text-muted');
+                icon.classList.add('bi-heart-fill', 'text-primary');
+            } else {
+                icon.classList.remove('bi-heart-fill', 'text-primary');
+                icon.classList.add('bi-heart', 'text-muted');
+            }
+        } else {
+            alert(data.message || 'Something went wrong!');
+        }
+    } catch (error) {
+        console.error('Error toggling wishlist:', error);
+    }
+        
+
+    }
       document.getElementById('searchicon').addEventListener('click',function(){
         console.log('hi')
         const searchdata = document.getElementById('searchval').value
