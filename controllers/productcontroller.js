@@ -261,7 +261,7 @@ const productclear =async(req,res)=>{
  async function getPaginatedData(page, limit) {
    try {
        const skip = (page - 1) * limit;
-       const data = await Product.find({isDeleted:false}).sort({createdAt:-1}).skip(skip).limit(limit).exec();
+       const data = await Product.find({isDeleted:false}).sort({createdAt:-1}).skip(skip).limit(limit).populate('brand').exec();
        const totalDocuments = await Product.countDocuments({isDeleted:false});
 
        return {

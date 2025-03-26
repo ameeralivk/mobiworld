@@ -14,7 +14,9 @@ const Category = require('../models/categorySchema')
 const PDFDocument = require('pdfkit')
 const path = require('path')
 const ejs = require('ejs');
+const Razorpay = require("razorpay");
 const wishlistSchema = require('../models/wishlistSchema')
+const crypto = require("crypto");
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -45,6 +47,7 @@ const getproductmainpage = async (req, res) => {
 }
 const getfilterpage = async (req, res) => {
   const cat = await brandschema.find({})
+  const user = req.session.User
   try {
     console.log('hi')
     const { sort, category, priceFrom, priceTo } = req.query;
@@ -61,25 +64,35 @@ const getfilterpage = async (req, res) => {
       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
     }
     if (sort === 'A to Z') {
+       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+       const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
       const products = await Product.find(filter).sort({ productName: 1 });
-      return res.render('shoppage', { product: products, category: categories }); 
+      return res.render('shoppage', { product: products, category: categories,wishlistProductIds }); 
     }
     if (sort === 'Z to A') {
+       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+          const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
       const products = await Product.find(filter).sort({ productName: -1 });
-      return res.render('shoppage', { product: products, category: categories });
+      return res.render('shoppage', { product: products, category: categories,wishlistProductIds });
     }
     if (sort === 'Low To High') {  
+       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+       const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
       const products = await Product.find(filter).sort({ salePrice: 1 });
-      return res.render('shoppage', { product: products, category: categories });
+      return res.render('shoppage', { product: products, category: categories,wishlistProductIds });
     }
     if (sort === 'High To Low') {
+       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+          const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
       const products = await Product.find(filter).sort({ salePrice: -1 });
-      return res.render('shoppage', { product: products, category: categories });
+      return res.render('shoppage', { product: products, category: categories,wishlistProductIds });
     }
     console.log(filter, 'filter')
+     const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+     const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
     const products = await Product.find(filter);
     console.log(products)
-    return res.render('shoppage', { product: products, category: categories }); 
+    return res.render('shoppage', { product: products, category: categories,wishlistProductIds }); 
 
   }
   catch (error) {
@@ -828,7 +841,6 @@ const orderplacedpage = async(req,res)=>{
   const payment = req.body.paymentMethod
   const isexit = await userschema.find({_id:user._id,isBlocked:false})
   const items = await cartSchema.findOne({userId:user._id}).populate('items.productId')
-  console.log(items,'items hakeem')
   try {
     if(payment === 'cash'){
       if(isexit.length>0){
@@ -938,13 +950,22 @@ async function updateQuantities(items) {
 const getpaymentsuccesspage =async(req,res)=>{
   const user = req.session.User
   const orderid = req.session.order
-  console.log(orderid,'orderid')
-  req.session.orderId = null
-  const orderdetails = await orderSchema.findOne({orderId:orderid})
-  console.log(orderdetails,'orderdetails')
+  console.log(orderid,'orderid1')
+ 
   try {
-
-      res.render('paymentsuccesspage',{orderdetails})
+    if(orderid){
+      req.session.orderId = null
+      const orderdetails = await orderSchema.findOne({orderId:orderid})
+      console.log(orderdetails,'orderdetails')
+        res.render('paymentsuccesspage',{orderdetails})
+    }
+    else{
+     const razorpayid= req.session.razorpayid 
+     const orderdetails = await orderSchema.findOne({razorpayOrderId:razorpayid})
+     console.log(orderdetails,'orderdetails')
+       res.render('paymentsuccesspage',{orderdetails})
+    }
+   
 
   } catch (error) {
     console.error('error from getpaymentsuccesspage',error)
@@ -958,7 +979,7 @@ const orderpage = async(req,res)=>{
   const user = req.session.User
   try {
     if(user){
-      const orders = await orderSchema.find({userId:user._id}).populate('orderedItems.product')
+      const orders = await orderSchema.find({userId:user._id}).populate('orderedItems.product').sort({createdOn:-1})
       console.log(orders,'hidasfdsa')
       return res.render('orderpage',{orders})
     }
@@ -1146,11 +1167,108 @@ const getwishlist = async(req,res)=>{
     console.error('error from homecontroller',error)
   }
 }
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAYX_KEY_ID,
+  key_secret: process.env.RAZORPAYX_KEY_SECRET,
+});
+const createRazorpayOrder = async (req, res) => {
+  try {
+    const user = req.session.User;
+    if(!user){
+      req.session.message = 'please login'
+      res.redirect('/user/login')
+    }
+    else{
+      const cart = await cartSchema.findOne({ userId: user._id }).populate("items.productId");
+
+    if (!cart) {
+      return res.status(400).json({ message: "Cart is empty" });
+    }
+     
+    const totalAmount = (cart.totalPrice+cart.totalGST) * 100; // Convert to paise
+    const options = {
+      amount: totalAmount,
+      currency: "INR",
+      receipt: `order_${Date.now()}`,
+      payment_capture: 1,
+    };
+    const razorpayOrder = await razorpay.orders.create(options);
+    req.session.orderdetails = {
+      orderId:razorpayOrder.id,
+      amount: cart.totalPrice,
+      userId: user._id,
+      orderedItems:[{
+        product:cart.items[0].productId,
+        quantity:cart.items[0].quantity,
+        price:cart.items[0].price,
+      }],
+      totalGST:cart.totalGST,
+    };
+    res.json({ razorpayOrder,secretekey:process.env.RAZORPAYX_KEY_ID,name:user.name,email:user.email,phone:user.phone});
+  } 
+    }
+    catch (error) {
+      console.error("Error creating Razorpay order:", error);
+      res.status(500).json({ message: "Error processing payment" });
+    }
+    
+};
+
+const verifypayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const secret = process.env.RAZORPAYX_KEY_SECRET;
+
+    const generated_signature = crypto.createHmac("sha256", secret)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
+      if(generated_signature === razorpay_signature){
+        const orderDetails = req.session.orderdetails;
+        req.session.orderDetails = null;
+        req.session.razorpayid = orderDetails.orderId
+        if (!orderDetails) {
+          return res.status(400).send("Session expired, please try again.");
+        }
+    
+        const newOrder = new orderSchema({
+          razorpayOrderId:orderDetails.orderId,
+          userId: orderDetails.userId,
+          paymentMethod:'Online Payment',
+          totalGST:orderDetails.totalGST,
+          orderedItems:orderDetails.orderedItems,
+          totalPrice: orderDetails.amount,
+          finalAmount:orderDetails.amount,
+          address:req.session.address,
+          status:"Confirmed",
+          invoiceDate: new Date(),
+          couponApplied:false,
+    
+        });
+    
+        await newOrder.save();
+        await cartSchema.deleteOne({ userId: orderDetails.userId });
+      }
+      else{
+         console.log('failed')
+      }
+   
+
+    res.redirect("/user/paymentsuccesspage");
+  } catch (error) {
+    console.error("Payment verification failed:", error);
+    res.status(500).send("Payment verification failed");
+  }
+};
 
 
 
-
-
+const paymentfailedpage = async(req,res)=>{
+  try {
+    res.render('paymentfailedpage')
+  } catch (error) {
+    console.error('error from homecontroler',error)
+  }
+}
 
 
 module.exports = {
@@ -1181,4 +1299,7 @@ module.exports = {
   pdfdownload,
   getwishlistpage,
   getwishlist,
+  createRazorpayOrder,
+  verifypayment,
+  paymentfailedpage,
 }

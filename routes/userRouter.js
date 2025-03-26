@@ -46,6 +46,9 @@ router.get('/paymentsuccesspage',homecontroller.getpaymentsuccesspage)
 router.get('/download-invoice/:id',homecontroller.pdfdownload)
 router.post('/getwishlist/:id',homecontroller.getwishlistpage)
 router.get('/getwishlist',homecontroller.getwishlist)
+router.post('/create-razorpay-order',homecontroller.createRazorpayOrder)
+router.post('/verify-payment',homecontroller.verifypayment)
+router.get('/paymentfailedpage',homecontroller.paymentfailedpage)
 
 
 

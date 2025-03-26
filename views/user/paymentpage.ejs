@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,133 +9,155 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href='\css\paymentpage.css'>
     <link rel="stylesheet" href="\css\shoppage_header.css">
-    <!-- Custom CSS -->
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
+
 <body>
     <%- include("../../views/partials/user/shoppage_header") %>
-    <!-- Payment Header -->
+        <!-- Payment Header -->
 
-    <% if (typeof message !=='undefined' && message) { %>
-        <p id="mess" class="error-message">
-            <%= message %>
-        </p>
-        <% } %>
-    <div class="payment-header">
-        <h1>PAYMENTS</h1>
-    </div>
-
-    <div class="payment-container">
-        <!-- Payment Form -->
-        <div class="payment-method-title">CHOOSE PAYMENT METHOD</div>
-
-        <form action="/user/orderplacedpage" method="post">
-            <!-- Cash on Delivery Option -->
-            <div class="payment-option">
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery" value="cash"checked>
-                    <label class="form-check-label ms-2" for="cashOnDelivery">
-                        Cash on delivery
-                    </label>
-                </div>
-            </div>
-
-            <!-- Credit/Debit Card Option -->
-            <div class="payment-option">
-                <div class="form-check d-flex align-items-center">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" value="card" >
-                    <label class="form-check-label ms-2" for="cardPayment">
-                        Credit or debit card
-                    </label>
-                    <div class="card-icons">
-                        <div class="card-icon visa">VISA</div>
-                        <div class="card-icon mastercard">MC</div>
-                        <div class="card-icon maestro">MTRO</div>
-                    </div>
+        <% if (typeof message !=='undefined' && message) { %>
+            <p id="mess" class="error-message">
+                <%= message %>
+            </p>
+            <% } %>
+                <div class="payment-header">
+                    <h1>PAYMENTS</h1>
                 </div>
 
-                <!-- Card Details (visible when card payment is selected) -->
-                <div class="card-form">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" id="cardNumber" placeholder="Card number">
-                    </div>
+                <div class="payment-container">
+                    <!-- Payment Form -->
+                    <div class="payment-method-title">CHOOSE PAYMENT METHOD</div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY">
+                    <form action="/user/orderplacedpage" method="post">
+                        <!-- Cash on Delivery Option -->
+                        <div class="payment-option">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery"
+                                    value="cash" checked>
+                                <label class="form-check-label ms-2" for="cashOnDelivery">
+                                    Cash on delivery
+                                </label>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="text" class="form-control" id="cvv" placeholder="CVC">
+
+                        <!-- Credit/Debit Card Option -->
+                        <div class="payment-option">
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="upiPayment"
+                                    value="razorpay">
+                                <label class="form-check-label ms-2" for="upiPayment">
+                                    Online Payment (Razorpay)
+                                </label>
+                            </div>
+
+                            <!-- Card Details (visible when card payment is selected) -->
+
                         </div>
-                    </div>
+
+                        <!-- Wallet Option -->
+                        <div class="payment-option">
+                            <div class="form-check d-flex align-items-center">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="walletPayment"
+                                    value="wallet">
+                                <label class="form-check-label ms-2" for="walletPayment">
+                                    Wallet
+                                </label>
+                                <div class="wallet-icon">W</div>
+                            </div>
+                        </div>
+
+                        <!-- UPI Option -->
+                        <div class="payment-option">
+
+
+                            <!-- UPI Details (visible when UPI payment is selected) -->
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2 mt-4">
+                            <button id="pay-btn" class="btn btn-primary complete-btn" type="submit">Complete
+                                Payment</button>
+                        </div>
+                    </form>
                 </div>
-            </div>
 
-            <!-- Wallet Option -->
-            <div class="payment-option">
-                <div class="form-check d-flex align-items-center">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="walletPayment" value="wallet">
-                    <label class="form-check-label ms-2" for="walletPayment">
-                        Wallet
-                    </label>
-                    <div class="wallet-icon">W</div>
-                </div>
-            </div>
+                <!-- Bootstrap JS and dependencies -->
+                <script
+                    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-            <!-- UPI Option -->
-            <div class="payment-option">
-                <div class="form-check d-flex align-items-center">
-                    <input class="form-check-input" type="radio" name="paymentMethod" id="upiPayment" value="upi">
-                    <label class="form-check-label ms-2" for="upiPayment">
-                        UPI
-                    </label>
-                </div>
+                <script>
+                    document.getElementById("pay-btn").addEventListener("click", async function () {
+                        const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
+                        console.log(selectedPayment)
+                        if (selectedPayment === "cash") {
+                            // Submit the form normally for Cash on Delivery
+                            document.getElementById("payment-form").submit();
+                        } else if (selectedPayment === "razorpay") {
+                            // Call backend to create Razorpay order
+                            try {
+                                console.log('hi')
+                                const response = await fetch("/user/create-razorpay-order", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ paymentMethod: "razorpay" })
+                                });
 
-                <!-- UPI Details (visible when UPI payment is selected) -->
-                <div class="upi-form">
-                    <div class="mb-3">
-                        <input type="text" class="form-control" id="upiId" placeholder="Enter UPI ID">
-                    </div>
-                </div>
-            </div>
+                                const data = await response.json();
+                                console.log(data.phone,data.email,data.name)
+                                if (!data.razorpayOrder) {
+                                    alert("Failed to create Razorpay order.");
+                                    return;
+                                }
 
-            <!-- Submit Button -->
-            <div class="d-grid gap-2 mt-4">
-                <button class="btn btn-primary complete-btn" type="submit">Complete Payment</button>
-            </div>
-        </form>
-    </div>
+                                // Initialize Razorpay Checkout
+                                const options = {
+                                    key: data.secretekey, // Replace with your Razorpay Key
+                                    amount: data.razorpayOrder.amount,
+                                    currency: "INR",
+                                    order_id: data.razorpayOrder.id,
+                                    name: "My E-Commerce",
+                                    description: "Order Payment",
+                                    prefill: {
+                                        name:data.name,
+                                        email: data.email,
+                                        contact: data.phone, // Pass mobile number here
+                                    },
+                                    handler: async function (response) {
+                                        console.log(response, 'response')
+                                        const verifyResponse = await fetch("/user/verify-payment", {
+                                            method: "POST",
+                                            headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({
+                                                razorpay_payment_id: response.razorpay_payment_id,
+                                                razorpay_order_id: response.razorpay_order_id,
+                                                razorpay_signature: response.razorpay_signature,
+                                            }),
 
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+                                        });
+                                        // Redirect after successful payment
+                                        window.location.href = "/user/paymentsuccesspage";
+                                    },
+                                    theme: { color: "#3399cc" },
+                                    modal: {
+                                        ondismiss: function () {
+                                            window.location.href = "/user/paymentfailedpage"
+                                        }
+                                    }
+                                };
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
-            const cardForm = document.querySelector('.card-form');
-            const upiForm = document.querySelector('.upi-form');
+                                const rzp = new Razorpay(options);
+                                rzp.open();
+                            } catch (error) {
+                                console.error("Payment error:", error);
+                            }
+                        }
+                    });
 
-            // Function to toggle visibility of forms based on selected payment method
-            function toggleForms() {
-                if (document.getElementById('cardPayment').checked) {
-                    cardForm.style.display = 'block';
-                    upiForm.style.display = 'none'; // Hide UPI form
-                } else if (document.getElementById('upiPayment').checked) {
-                    upiForm.style.display = 'block';
-                    cardForm.style.display = 'none'; // Hide card form
-                } else {
-                    cardForm.style.display = 'none';
-                    upiForm.style.display = 'none'; // Hide both forms
-                }
-            }
 
-            // Add event listeners to all payment method radios
-            paymentRadios.forEach(radio => {
-                radio.addEventListener('change', toggleForms);
-            });
 
-            // Initialize visibility on page load
-            toggleForms();
-        });
-    </script>
+                </script>
 </body>
+
 </html>

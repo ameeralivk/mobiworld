@@ -16,6 +16,12 @@ const orderSchema = new Schema({
         default:()=>uuidv4(),
         unique:true
     },
+    razorpayOrderId: {
+        type: String,
+        required:function() {
+            return this.paymentMethod === "Online Payment"; 
+        }
+    },
     paymentMethod:{
         type:String,
         require:true,
@@ -63,7 +69,7 @@ const orderSchema = new Schema({
     status:{
         type:String,
         required:true,
-        enum:['Pending','processing','Shipped','Delivered','Cancelled','Return Request','Returned']
+        enum:['Pending','processing','Shipped','Delivered','Cancelled','Confirmed','Return Request','Returned']
     },
     createdOn:{
         type:Date,

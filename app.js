@@ -10,8 +10,14 @@ const ejs = require('ejs')
 const session = require('express-session')
 const passport =require('./config/passport')
 const nocache = require('nocache')
+const axios = require('axios')
 dotenv.config()
 db()
+const RAZORPAYX_URL = "https://api.razorpay.com/v1";
+const auth = {
+  username: process.env.RAZORPAYX_KEY_ID,
+  password: process.env.RAZORPAYX_KEY_SECRET,
+};
 app.use(nocache())
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
