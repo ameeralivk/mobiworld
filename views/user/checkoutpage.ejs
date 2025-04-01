@@ -189,12 +189,12 @@
 
                             <div class="row mt-2">
                                 <div class="col-6">Discount</div>
-                                <div class="col-6 price">₹0.00</div>
+                                <div class="col-6 price">₹<%= offerPrice %></div>
                             </div>
 
                             <div class="row mt-3">
                                 <div class="col-6"><strong>TOTAL</strong></div>
-                                <div class="col-6 price"><strong>₹<%= (total+totalGST).toLocaleString('en-IN') %></strong></div>
+                                <div class="col-6 price"><strong>₹<%= ((total-offerPrice)+totalGST).toLocaleString('en-IN') %></strong></div>
                             </div>
                         </div>
                     </div>

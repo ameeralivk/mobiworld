@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Offers Table</title>
+    <style>
+        input[type="date"] {
+            color-scheme: dark;
+            /* Ensures white icon on supported browsers */
+        }
+    </style>
+</head>
+
+<body>
+    <%- include("../../views/partials/admin/layout") %>
+    <% if (message) { %>
+        <div id="message" class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Success</strong> <%= message %>
+        </div>
+        <% } %>
+        <% if (error) { %>
+            <div id="message" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Failed!</strong> <%= error %>
+            </div>
+            <% } %>
+        <div class="modal fade" id="editOfferModal" tabindex="-1" aria-labelledby="editOfferModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered bg-dark">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-bottom-0">
+                        <h2 class="modal-title w-100 text-center text-white" id="editOfferModalLabel">ADD Offer</h2>
+                        <button type="button" class="btn-close bg-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form onsubmit="return validateOfferForm(event)" action="/admin/addOffer" method="post">
+
+                            <!-- Offer Name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label text-white">Offer Name:</label>
+                                <input type="text" class="form-control bg-dark text-white" name="name" id="name">
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-3">
+                                <label for="description" class="form-label text-white">Description:</label>
+                                <textarea class="form-control bg-dark text-white" name="description"
+                                    id="description"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="discountType" class="form-label text-white">User:</label>
+                                <select class="form-select bg-dark text-white" name="user" id="user">
+                                    <option value="">Select Users</option>
+                                    <% users.forEach(user=> { %>
+                                        <option value="<%= user._id %>">
+                                            <%= user.name %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+
+                            <!-- Offer Type -->
+                            <div class="mb-3">
+                                <label for="offerType" class="form-label text-white">Offer Type:</label>
+                                <select class="form-select bg-dark text-white" name="offerType" id="offerType">
+                                    <option value="">Select Offer Type</option>
+                                    <option value="category">Category</option>
+                                    <option value="brand">Brand</option>
+                                    <option value="product">Product</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Category Selection (Shows only if offerType is 'category') -->
+                            <div class="mb-3" id="productSelect" style="display: none;">
+                                <label for="productId" class="form-label text-white">Select Product:</label>
+                                <select class="form-select bg-dark text-white" name="productId" id="productId">
+                                    <% products.forEach(product=> { %>
+                                        <option value="<%= product._id %>">
+                                            <%= product.productName %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="categorySelect" style="display: none;">
+                                <label for="categoryId" class="form-label text-white">Select Category:</label>
+                                <select class="form-select bg-dark text-white" name="categoryId" id="categoryId">
+                                    <% categories.forEach(category=> { %>
+                                        <option value="<%= category._id %>">
+                                            <%= category.name %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="brandSelect" style="display: none;">
+                                <label for="brandId" class="form-label text-white">Select Brand:</label>
+                                <select class="form-select bg-dark text-white" name="brandId" id="brandId">
+                                    <% brands.forEach(brand=> { %>
+                                        <option value="<%= brand._id %>">
+                                            <%= brand.brandName %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+
+                            <!-- Discount Type -->
+                            <div class="mb-3">
+                                <label for="discountType" class="form-label text-white">Discount Type:</label>
+                                <select class="form-select bg-dark text-white" name="discountType" id="discountType">
+                                    <option value="">Select Discount Type</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="fixed">Fixed Amount</option>
+                                </select>
+                            </div>
+
+                            <!-- Discount Value -->
+                            <div class="mb-3">
+                                <label for="discountValue" class="form-label text-white">Discount Value:</label>
+                                <input type="number" class="form-control bg-dark text-white" name="discountValue"
+                                    id="discountValue">
+                            </div>
+
+                            <!-- Max Discount -->
+                            <div class="mb-3">
+                                <label for="maxDiscount" class="form-label text-white">Max Discount (Optional):</label>
+                                <input type="number" class="form-control bg-dark text-white" name="maxDiscount"
+                                    id="maxDiscount">
+                            </div>
+                            <div class="mb-3">
+                                <label for="StartsOn" class="form-label text-white">Starting Date:</label>
+                                <input type="date" class="form-control bg-dark text-white" name="startDate"
+                                    id="startDate">
+                            </div>
+                            <!-- Expiry Date -->
+                            <div class="mb-3">
+                                <label for="expiredOn" class="form-label text-white">Expiry Date:</label>
+                                <input type="date" class="form-control bg-dark text-white" name="expiredOn"
+                                    id="expiredOn">
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-submit w-100 text-primary">SUBMIT OFFER</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="container-fluid p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Offers</h2>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#editOfferModal">ADD OFFER
+                    +</button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>NO</th>
+                            <th>OFFER</th>
+                            <th>OFFER TYPE</th>
+                            <th>START DATE</th>
+                            <th>END DATE</th>
+                            <th>DISCOUNT TYPE</th>
+                            <th>MAX DISCOUNT</th>
+                            <th>DISCOUNT</th>
+                            <!-- <th>ACTIONS</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% offers.forEach(offer => { %>
+                        <tr>
+                            <td>1</td>
+                            <td><%= offer.name %></td>
+                            <td><%= offer.offerType %></td>
+                            <td><%= offer.startDate.toLocaleDateString('en-GB') %> </td>
+                            <td><%= offer.expiredOn.toLocaleDateString('en-GB') %></td>
+                            <td><%= offer.discountType %></td>
+                            <td><%= offer.maxDiscount %></td>
+                            <% if (offer.discountType === 'percentage') { %>
+                                <td><%= offer.discountValue %>%</td>
+                              <% } else { %>
+                                <td><%= offer.discountValue %></td>
+                              <% } %>
+                              
+                            <!-- <td>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-light"><i class="bi bi-pencil"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                </div>
+                            </td> -->
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center" style="display: flex; flex-wrap: wrap;">
+                    <!-- Previous Button -->
+                    <li class="page-item <%= page <= 1 ? 'disabled' : '' %>">
+                        <a class="page-link" href="<%= page > 1 ? '?page=' + (page - 1) : '#' %>">&lt;</a>
+                    </li>
+            
+                    <!-- Page Numbers -->
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= page === i ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                        </li>
+                    <% } %>
+            
+                    <!-- Next Button -->
+                    <li class="page-item <%= page >= totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="<%= page < totalPages ? '?page=' + (page + 1) : '#' %>">&gt;</a>
+                    </li>
+                </ul>
+            </nav>
+            
+            
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+
+            document.addEventListener("DOMContentLoaded", function () {
+                const offerForm = document.querySelector("form");
+                const offerType = document.getElementById("offerType");
+                const categorySelect = document.getElementById("categorySelect");
+                const brandSelect = document.getElementById("brandSelect");
+                const productSelect = document.getElementById("productSelect")
+                const productId = document.getElementById("productId")
+                const categoryId = document.getElementById("categoryId");
+                const brandId = document.getElementById("brandId");
+                const discountValue = document.getElementById("discountValue");
+                const maxDiscount = document.getElementById("maxDiscount");
+                const expiredOn = document.getElementById("expiredOn");
+
+                // Show/hide category or brand dropdown based on offerType
+                offerType.addEventListener("change", function () {
+                    if (offerType.value === "category") {
+                        categorySelect.style.display = "block";
+                        brandSelect.style.display = "none";
+                        brandId.value = ""; // Clear brand selection
+                    } else if (offerType.value === "brand") {
+                        brandSelect.style.display = "block";
+                        categorySelect.style.display = "none";
+                        categoryId.value = ""; // Clear category selection
+                    }
+                    else if(offerType.value === "product") {
+                        productSelect.style.display = "block"
+                        categorySelect.style.display = "none"
+                        brandSelect.style.display = "none"
+                        categoryId.value = ""
+                        brandId.value = ""
+                    }
+                     else {
+                        categorySelect.style.display = "none";
+                        brandSelect.style.display = "none";
+                        productSelect.style.display = "none"
+                    }
+                });
+
+                function validateOfferForm(event) {
+                    let isValid = true;
+                    let errorMessage = "";
+
+                    if (!offerType.value) {
+                        errorMessage += "<li>Please select an Offer Type.</li>";
+                        isValid = false;
+                    }
+
+                    // Validate Category or Brand selection
+                    if (offerType.value === "category" && !categoryId.value) {
+                        errorMessage += "<li>Please select a Category.</li>";
+                        isValid = false;
+                    }
+                    if (offerType.value === "brand" && !brandId.value) {
+                        errorMessage += "<li>Please select a Brand.</li>";
+                        isValid = false;
+                    }
+
+                    // Validate Discount Value
+                    if (discountValue.value.trim() === "" || discountValue.value <= 0) {
+                        errorMessage += "<li>Discount Value must be a positive number.</li>";
+                        isValid = false;
+                    }
+
+                    // Validate Max Discount (if entered)
+                    if (maxDiscount.value.trim() !== "" && maxDiscount.value < 0) {
+                        errorMessage += "<li>Max Discount must be a positive number.</li>";
+                        isValid = false;
+                    }
+
+                    // Validate Expiry Date (Must be in the future)
+
+                    const todayDate = new Date();
+                    todayDate.setHours(0, 0, 0, 0);
+
+                    const selectedDate = new Date(expiredOn.value);
+                    if (!expiredOn.value) {
+                        errorMessage += "<li>Expiry Date is required</li>";
+                        isValid = false;
+                    }
+                    if (selectedDate.getTime() < todayDate.getTime()) {
+                        errorMessage += "<li>Expiry Date must be above today</li>";
+                        isValid = false;
+                    }
+
+
+                    // Show error message if validation fails
+                    if (!isValid) {
+                        event.preventDefault();
+                        Swal.fire({
+                            icon: "error",
+                            title: "Form Validation Error",
+                            html: `<ul style="text-align: left;">${errorMessage}</ul>`,
+                            confirmButtonColor: "#d33",
+                        });
+                        return false; // Prevent form submission
+                    }
+                    return true;
+                }
+
+                offerForm.addEventListener("submit", validateOfferForm);
+            });
+
+        </script>
+</body>
+
+</html>

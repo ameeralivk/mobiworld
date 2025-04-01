@@ -12,6 +12,23 @@ const CouponSchema = new Schema({
        default:Date.now,
        required:true,
     },
+    usage:{
+        type:Boolean,
+        required:true,
+    },
+    discountType:{
+        type:String,
+        required:true,
+        enum:["percentage","fixed"]
+    },
+    discountValue: {
+        type: Number,
+        required: true,
+    },
+    status:{
+        type:Boolean,
+        required:true,
+    },
     expiredOn :{
         type:Date,
         required:true
@@ -24,6 +41,10 @@ const CouponSchema = new Schema({
         type:Number,
         required:true,
     },
+    maxDiscount:{
+        type:Number,
+        required:true,
+    },
     isList:{
         type:Boolean,
         default:true
@@ -31,7 +52,27 @@ const CouponSchema = new Schema({
     userId:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:'User'
-    }]
+    }],
+    appliesTo: {
+        type: String,
+        required: true,
+        enum: ["all", "category", "brand","product"], 
+        default: "all"
+    },
+    categoryId: [{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: function() { return this.appliesTo === "category"; }, 
+    }],
+    brandId: [{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Brand',
+        required: function() { return this.appliesTo === "brand"; },
+    }],
+    productId:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'User',
+    }],
 })
 
 const Coupon = mongoose.model("Coupon",CouponSchema)

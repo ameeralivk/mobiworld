@@ -6,6 +6,7 @@ const categorycontroller = require('../controllers/categorycontroller')
 const productcontroller = require('../controllers/productcontroller')
 const orderscontroller = require('../controllers/ordercontroller')
 const brandcontroller = require('../controllers/brandcontroller')
+const offerController = require('../controllers/offercontroller')
 
 
 //admin controller and user controller
@@ -68,3 +69,9 @@ router.delete('/brands/:id',brandcontroller.deletebrand)
 router.get('/deletebrand',brandcontroller.loadDeletebrand)
 router.get('/brand/search',brandcontroller.brandSearch)
 router.post('/brand/clear',brandcontroller.brandclear)
+
+
+//admin offers
+router.get('/offersPage',offerController.offersPage)
+router.post('/addOffer',offerController.addOffer)
+router.get('/addCoupon',offerController.getCoupons)
