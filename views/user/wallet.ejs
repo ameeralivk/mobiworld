@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Interface</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\css\wallet.css">
+    <link rel="stylesheet" href="\css\shoppage.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_header.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+</head>
+<body>
+    <%- include("../../views/partials/user/shoppage_header") %>
+    <div class="container">
+        <h2 class="page-title">Welcome To Your Wallet</h2>
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="wallet-card">
+                    <h5 class="card-title">MOBIWORLD</h5>
+                    <p class="card-number">**** **** **** 1234</p>
+                    <div class="balance">$<%= wallet.WalletTotal %></div>
+                    <div class="valid-thru"><%= expiryDate %></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-3">
+            <div class="col-12">
+                <p class="mb-2">Add Amount</p>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Enter amount">
+                    <button class="add-btn btn px-3 py-2" type="button" style="margin-left: 10px;">Add</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <table class="table transaction-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% wallet.transaction.forEach(trans=> { %>
+                        <tr>
+                            <td>1</td>
+                            <td>$<%= trans.Total %></td>
+                            <td><%= trans.Type %></td>
+                            <td><%= new Date(trans.createdOn).toDateString() %></td>
+                        </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

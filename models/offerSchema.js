@@ -42,7 +42,7 @@ const OfferSchema = new Schema({
             return this.offerType === "brand";
         },
     },
-    prouductId:[{
+    productId:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Product",
         required: function () {

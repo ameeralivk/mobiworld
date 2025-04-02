@@ -66,9 +66,15 @@ const searchorder = async (req, res) => {
 const statusfilter = async(req,res)=>{
    const {status} = req.body
     try {
+        if(status == "All"){
+            const order = await orderSchema.find({}).populate('userId')
+            if(order){
+              return  res.status(200).json({data:order})
+            }
+        }
         const order = await orderSchema.find({status:status}).populate('userId')
         if(order){
-            res.status(200).json({data:order})
+          return  res.status(200).json({data:order})
         }
     } catch (error) {
         console.error('error from statusfilter',error)

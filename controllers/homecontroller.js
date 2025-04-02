@@ -19,6 +19,7 @@ const wishlistSchema = require('../models/wishlistSchema')
 const crypto = require("crypto");
 const offerschema = require('../models/offerSchema')
 const mongoose = require('mongoose')
+const walletSchema = require('../models/walletSchem')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -28,7 +29,8 @@ const getproductmainpage = async (req, res) => {
   const allOffers = await offerschema.find({
     $or: [
       { categoryId:product.category? new mongoose.Types.ObjectId(product.category):null },
-      { brandId: product.brand ? new mongoose.Types.ObjectId(product.brand) : null }
+      { brandId: product.brand ? new mongoose.Types.ObjectId(product.brand) : null },
+      { productId: { $in: [new mongoose.Types.ObjectId(product._id)] } }
     ],
     status:true,
     startDate:{$lte:new Date()},
@@ -70,6 +72,9 @@ const getTotalOffers = async (product) => {
   }
   if (product.brand) {
     filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+  }
+  if (product._id != null) {
+    filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
   }
 
   const offerList = await offerschema.find({
@@ -118,6 +123,9 @@ const getBestOfferForProduct = async (product) => {
   }
   if (product.brand != null) {
     filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+  }
+  if (product._id != null) {
+    filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
   }
   console.log(filterConditions,'filtercondition')
   const offers = await offerschema.find({
@@ -668,7 +676,7 @@ const getcart = async (req, res) => {
       if (isexist == null) {
       const message =  req.session.message 
       req.session.message = null
-        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0,totalGST:'' ,message })
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0,totalGST:'' ,message,offerPrice:'' })
       }
       const message = req.session.message;
       req.session.message = null
@@ -693,7 +701,7 @@ const getcart = async (req, res) => {
     else {
       const isexist = await cartSchema.findOne({ userId: user._id })
       if (isexist == null) {
-        return res.render('addtocart', { combineddata: [], quantity: '',totalGST:'',totalPrice: 0 })
+        return res.render('addtocart', { combineddata: [], quantity: '',totalGST:'',totalPrice: 0,offerPrice:0 })
       }
       const item = isexist.items.map(item => item.productId)
       const quantity = isexist.items.map(item => item.quantity)
@@ -1253,6 +1261,7 @@ const pdfdownload = async (req, res) => {
       totalPrice: cart.totalPrice,
       totalGST: cart.totalGST,
       totalPriceWithGST: totalPriceWithGST,
+      offer:cart.discount?cart.discount:0,
     };
 
 console.log(invoiceData,'invoice data')
@@ -1370,16 +1379,16 @@ const createRazorpayOrder = async (req, res) => {
     };
     const razorpayOrder = await razorpay.orders.create(options);
     req.session.orderdetails = {
-      orderId:razorpayOrder.id,
+      orderId: razorpayOrder.id,
       amount: cart.totalPrice,
       userId: user._id,
-      orderedItems:[{
-        product:cart.items[0].productId,
-        quantity:cart.items[0].quantity,
-        price:cart.items[0].price,
-      }],
-      totalGST:cart.totalGST,
-    };
+      orderedItems: cart.items.map(item => ({
+          product: item.productId,
+          quantity: item.quantity,
+          price: item.price
+      })),
+      totalGST: cart.totalGST,
+  };
     res.json({ razorpayOrder,secretekey:process.env.RAZORPAYX_KEY_ID,name:user.name,email:user.email,phone:user.phone});
   } 
     }
@@ -1418,10 +1427,11 @@ const verifypayment = async (req, res) => {
           status:"Confirmed",
           invoiceDate: new Date(),
           couponApplied:false,
+          discount:req.session.offerprice
     
         });
-    
         await newOrder.save();
+        req.session.offerprice = null
         await cartSchema.deleteOne({ userId: orderDetails.userId });
       }
       else{
@@ -1446,7 +1456,71 @@ const paymentfailedpage = async(req,res)=>{
   }
 }
 
-
+const returnorder = async(req,res)=>{
+  try {
+    const user = req.session.User
+    const{orderId,returnReason} = req.body
+    console.log('sidheeq')
+    const order = await orderSchema.findOne({_id:orderId})
+    console.log(order,'orders')
+    if(order.paymentMethod === "Online Payment"){
+     const find = await walletSchema.findOne({userId:user._id})
+     console.log(find,'find')
+     if(!find){
+      const wallet = new walletSchema({
+        userId: user._id,
+        transaction: [{
+          Total:(order.finalAmount+order.totalGST)-order.discount,
+          Type:'Credit'
+        }]
+      })
+      await wallet.calculateWalletTotal()
+      await wallet.save()
+      console.log(wallet)
+     }
+     const wallet = await walletSchema.findOne({userId:user._id})
+       wallet.transaction.push({
+          Total:(order.finalAmount+order.totalGST)-order.discount,
+          Type:'Credit',
+      })
+      await wallet.calculateWalletTotal()
+      await wallet.save()
+      console.log(wallet)
+      order.ReturnReason =  returnReason
+      order.status = "Return Request"
+      await order.save()
+      res.redirect('/user/order')
+    }
+    else{
+      order.ReturnReason =  returnReason
+      order.status = "Return Request"
+      await order.save()
+      res.redirect('/user/order')
+    }
+  } catch (error) {
+    console.error('error from homecontroller returnorder',error)
+  }
+}
+const getwallet= async(req,res)=>{
+  const user = req.session.User
+  try {
+    const wallet = await walletSchema.findOne({userId:user._id})
+    const createdOn = wallet.createdOn
+    const expiryDate = new Date(createdOn);
+    expiryDate.setDate(expiryDate.getDate() + 30);
+    const currentDate = new Date()
+    const differenceInDays = Math.floor((currentDate - createdOn) / (1000 * 60 * 60 * 24));
+    if(differenceInDays <= 30){
+      console.log(wallet,'wallet')
+     return  res.render('wallet',{wallet,expiryDate})
+    }
+    else{
+     return  res.render('wallet',{wallet:0,expiryDate:0})
+    }
+  } catch (error) {
+    console.log('error from getwallet',error)
+  }
+}
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -1478,4 +1552,6 @@ module.exports = {
   createRazorpayOrder,
   verifypayment,
   paymentfailedpage,
+  returnorder,
+  getwallet,
 }

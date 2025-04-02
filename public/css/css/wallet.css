@@ -1,0 +1,37 @@
+
+.wallet-card {
+    background-color: #0a3b4a;
+    color: white;
+    border-radius: 0;
+    padding: 20px;
+}
+.card-number {
+    letter-spacing: 1px;
+}
+.balance {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 15px;
+}
+.valid-thru {
+    text-align: right;
+    font-size: 14px;
+}
+.add-btn {
+    background-color: #5acad2;
+    border: none;
+    color: black;
+    font-weight: 500;
+    border-radius: 15px;
+}
+.transaction-table th, .transaction-table td {
+    vertical-align: middle;
+}
+.page-title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+.card-title {
+    font-weight: bold;
+}

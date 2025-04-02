@@ -45,11 +45,14 @@
                 <div class="col-md-3">
                     <select id="statusFilter" class="form-select bg-dark text-white">
                         <option value="" disabled selected>Filter by Status</option>
+                        <option value="All">All</option>
                         <option value="Delivered">Delivered</option>
                         <option value="Pending">Pending</option>
                         <option value="Shipped">Shipped</option>
                         <option value="Cancelled">Cancelled</option>
                         <option value="Confirmed">Confirmed</option>
+                        <option value="Returned">Returned</option>
+                        <option value="Return Request">Return Request</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -74,6 +77,9 @@
                     </tr>
                 </thead>
                 <tbody id="body">
+                    <% 
+                    const statuses = ["Pending", "Shipped", "Delivered", "Cancelled","Confirmed","Returned"]; // Define all possible statuses
+                    %>
                     <% orders.forEach(order=> { %>
                         <tr>
 
@@ -86,13 +92,13 @@
                             <td>#ORD-<%= order.orderId %>
                             </td>
                             <input type="hidden" class="id" value=" <%= order.orderId %>">
-                            <td>₹<%= (order.totalPrice+order.totalGST).toLocaleString('en-IN') %>
+                            <td>₹<%= ((order.totalPrice-order.discount)+order.totalGST).toLocaleString('en-IN') %>
                             </td>
                             <td>
                                 <%= order.invoiceDate.toLocaleDateString() %>
                             </td>
                             <td>
-                                <select class="form-select status-dropdown bg-dark text-white">
+                                <!-- <select class="form-select status-dropdown bg-dark text-white">
                                     <option id="currentstatus" value="" selected disabled>
                                         <%= order.status %>
                                     </option>
@@ -102,6 +108,19 @@
                                     <option value="<%= order.status == 'Delivered' ? 'Pending' : 'Delivered' %>">
                                         <%= order.status=='Delivered' ? 'Pending' : 'Delivered' %>
                                     </option>
+                                    <option value="<%= order.status == 'Cancelled' ? 'Pending' : 'Cancelled' %>">
+                                        <%= order.status=='Delivered' ? 'Pending' : 'Delivered' %>
+                                    </option>
+                                </select> -->
+                                <select class="form-select status-dropdown bg-dark text-white">
+                                    <option id="currentstatus" value="" selected disabled>
+                                        <%= order.status %>
+                                    </option>
+                                    <% statuses.forEach(status => { %>
+                                        <option value="<%= status %>" <%= order.status === status ? 'selected disabled' : '' %>>
+                                            <%= status %>
+                                        </option>
+                                    <% }); %>
                                 </select>
 
                             </td>
@@ -277,7 +296,7 @@
                         document.getElementById('body').innerText = ''
                         data.data.forEach(order => {
                             const row = document.createElement('tr');
-
+                            const statuses = ["Pending", "Shipped", "Delivered", "Cancelled","Confirmed","Returned"];
                             // Creating the table cells dynamically
                             row.innerHTML = `
                     <td>
@@ -291,16 +310,13 @@
                     <td>${new Date(order.invoiceDate).toLocaleDateString()}</td>
                     <td>
                         <select class="form-select status-dropdown bg-dark text-white">
-                            <option id="currentstatus" value="" selected disabled>
-                                ${order.status}
-                            </option>
-                            <option value="${order.status === 'Shipped' ? 'Pending' : 'Shipped'}">
-                                ${order.status === 'Shipped' ? 'Pending' : 'Shipped'}
-                            </option>
-                            <option value="${order.status === 'Delivered' ? 'Pending' : 'Delivered'}">
-                                ${order.status === 'Delivered' ? 'Pending' : 'Delivered'}
-                            </option>
-                        </select>
+                    <option value="" selected disabled>${order.status}</option> <!-- Current status displayed but not selectable -->
+                    ${statuses
+                   .filter(status => status !== order.status) // Exclude current status
+                     .map(status => `
+                      <option value="${status}">${status}</option>
+                     `).join('')}
+                      </select>
                     </td>
                     <td><button type="button" class="btn btn-primary updatebutton">Update</button></td>
                 `;
@@ -631,10 +647,14 @@
                                         <span>Tax:</span>
                                         <span>₹${(orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Discount:</span>
+                                        <span>₹${(orderDetails.order.discount).toLocaleString('en-IN')}</span>
+                                    </div>
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span>Total:</span>
-                                        <span>₹${(orderDetails.order.totalPrice+orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                        <span>₹${((orderDetails.order.totalPrice-orderDetails.order.discount)+orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>

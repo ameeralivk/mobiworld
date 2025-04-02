@@ -4,7 +4,7 @@ const offerschema = require('../models/offerSchema')
 const userschema = require('../models/user')
 const productSchema = require('../models/productSchema')
 const orderschema = require('../models/orderSchema')
-
+const mongoose = require('mongoose')
 
 const offersPage = async(req,res)=>{
     const categories = await categoryschema.find({})
@@ -37,7 +37,8 @@ const addOffer = async(req,res)=>{
     try {
         const categories = await categoryschema.find({})
         const brands = await brandSchema.find({})
-        const { name, description, offerType, categoryId, brandId, discountType, discountValue, maxDiscount, expiredOn,startDate } = req.body;
+        const { name, description, offerType, categoryId, brandId, discountType, discountValue, maxDiscount, expiredOn,startDate,productId } = req.body;
+        console.log(productId,'productId')
           if(offerType === "category"){
             const products = await productSchema.find({category:categoryId})
             if(products.length>0){
@@ -87,7 +88,36 @@ const addOffer = async(req,res)=>{
                 return   res.redirect('/admin/offersPage')
             }
            
-          }   
+          }  
+          if(offerType === "product"){
+            const products = await productSchema.find({_id:productId})
+            console.log(products,'producst')
+            const productObjectIds = productId.map(id => new mongoose.Types.ObjectId(id));
+            console.log(productObjectIds,'object id')
+            if(products.length>0){
+                const newOffer = new offerschema({
+                    name,
+                    description,
+                    offerType,
+                    categoryId: offerType === "category" ? categoryId : null,
+                    brandId: offerType === "brand" ? brandId : null,
+                    productId:productObjectIds,
+                    discountType,
+                    discountValue,
+                    maxDiscount: discountType === "percentage" ? maxDiscount : null,
+                    expiredOn,
+                    startDate,
+                  });
+                  newOffer.save()
+                return res.redirect('/admin/offersPage')
+
+            }
+            else{
+                req.session.error = "no category found"
+                return   res.redirect('/admin/offersPage')
+            }
+           
+          } 
     } catch (error) {
         console.log('error from offercontroller',error)
     }

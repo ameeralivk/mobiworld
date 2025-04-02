@@ -34,26 +34,27 @@ module.exports = router;
 router.get('/productmainpage/:id',homecontroller.getproductmainpage)
 router.get('/getfilterpage',homecontroller.getfilterpage)
 router.post('/add-to-cart',homecontroller.addtocart)
-router.get('/getcart',homecontroller.getcart)
+router.get('/getcart',userAuth,homecontroller.getcart)
 router.post('/updatequantity',homecontroller.updatequantity)
 router.get('/checkoutpage',homecontroller.checkoutpage)
 router.delete('/cartdelete/:id',homecontroller.deletecartbutton)
 router.get('/searchmain/search',homecontroller.searchmain)
 router.post('/paymentpage',homecontroller.paymentpage)
-router.get('/getpaymentpage',homecontroller.getpaymentpage)
+router.get('/getpaymentpage',userAuth,homecontroller.getpaymentpage)
 router.post('/orderplacedpage',homecontroller.orderplacedpage)
-router.get('/paymentsuccesspage',homecontroller.getpaymentsuccesspage)
-router.get('/download-invoice/:id',homecontroller.pdfdownload)
+router.get('/paymentsuccesspage',userAuth,homecontroller.getpaymentsuccesspage)
+router.get('/download-invoice/:id',userAuth,homecontroller.pdfdownload)
+router.post('/returnOrder',userAuth,homecontroller.returnorder)
 router.post('/getwishlist/:id',homecontroller.getwishlistpage)
-router.get('/getwishlist',homecontroller.getwishlist)
+router.get('/getwishlist',userAuth,homecontroller.getwishlist)
 router.post('/create-razorpay-order',homecontroller.createRazorpayOrder)
 router.post('/verify-payment',homecontroller.verifypayment)
-router.get('/paymentfailedpage',homecontroller.paymentfailedpage)
+router.get('/paymentfailedpage',userAuth,homecontroller.paymentfailedpage)
 
 
 
 //order
-router.get('/order',homecontroller.orderpage)
+router.get('/order',userAuth,homecontroller.orderpage)
 router.get('/pagination/:id',homecontroller.pagination)
 
 //profile routes
@@ -61,12 +62,13 @@ router.get('/profile',userAuth,homecontroller.getprofilepage)
 router.get('/editprofile',homecontroller.geteditpage)
 router.post('/editprofile',homecontroller.editprofile)
 router.post('/otpcheck',homecontroller.checkotp)
-router.get('/addresspage',homecontroller.addresspage)
-router.get('/addaddress',homecontroller.addaddress)
+router.get('/addresspage',userAuth,homecontroller.addresspage)
+router.get('/addaddress',userAuth,homecontroller.addaddress)
 router.post('/registeraddress',homecontroller.registeraddress)
-router.get('/editaddress/:id',homecontroller.editaddress)
+router.get('/editaddress/:id',userAuth,homecontroller.editaddress)
 router.post('/editaddress/:id',homecontroller.editaddresspost)
-router.get('/deleteaddress/:id',homecontroller.deleteaddress)
+router.get('/deleteaddress/:id',userAuth,homecontroller.deleteaddress)
 
-
+//wallet routes
+router.get('/getwallet',userAuth,homecontroller.getwallet)
 
