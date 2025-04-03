@@ -170,6 +170,7 @@
                                 const orderRow = document.createElement('div');
                                 orderRow.classList.add('row', 'order-row', 'align-items-center');
                                 let downloadBtnHTML = '';
+                                let cancell = '';
                                 if (order.status === 'Delivered') {
                                  downloadBtnHTML = `
                                  <a href="/download-invoice/${order._id}" download class="download-btn">
@@ -180,11 +181,13 @@
                                  <span class="bg-danger">Return</span>
                                  </a>
                                  `;
-                                 }                       
+                                 }
+                                 if(order.status != "Delivered" && order.status != "Returned"){
+                                    cancell =`<button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')"></button>`
+                                 }                      
                                 orderRow.innerHTML = `
                                 <!-- Close Button -->
-                                <button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')"></button>
-
+                                ${cancell}
                                 <div class="col-3a"><a class='text-decoration-none text-dark order-link' onclick="modalopen('${order.orderId}')" href='#'>#ORD-${order.orderId}</a></div> 
                                 <div class="col-3">${item.quantity}</div>
                                 <div class="col-3">${new Date(order.createdOn).toLocaleString('en-IN')}</div>
@@ -243,6 +246,7 @@
                         })
                             .then(response => response.json())
                             .then(data => {
+                                console.log(data)
                                 if (data) {
                                     window.location.href = '/user/order'
                                 }

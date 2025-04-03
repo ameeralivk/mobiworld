@@ -1026,6 +1026,7 @@ const orderplacedpage = async(req,res)=>{
       if(isexit.length>0){
         if(req.session.address){
           const orderededuser = await cartSchema.findOne({userId:user._id})
+
           const totalPrice =  orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
           const address = req.session.address
@@ -1104,8 +1105,103 @@ const orderplacedpage = async(req,res)=>{
       }
 
     }
-    else{
-      console.log('other payment')
+    else if(payment === 'wallet'){
+      if(isexit.length>0){
+        if(req.session.address){
+          const orderededuser = await cartSchema.findOne({userId:user._id})
+          const totalPrice =  orderededuser.totalPrice
+          const totalGST = orderededuser.totalGST
+          const address = req.session.address
+          req.session.address = null
+          const totalAmount = (totalPrice+totalGST)-(req.session.offerprice ? req.session.offerprice : 0)
+          const findwallet = await walletSchema.findOne({userId:user._id})
+          if(findwallet && findwallet.WalletTotal >= totalAmount){
+            findwallet.transaction.push({
+              Total:totalAmount,
+              Type:'Debit',
+              description:'amount debited from wallet',
+            })
+            await findwallet.calculateWalletTotal()
+            await findwallet.save()
+          }
+          else{
+            req.session.message = "wallet is empty or Insufficient Amount"
+            return res.redirect('/user/getcart')
+          }
+          const orderedItems = orderededuser.items.map(item=>({
+            product : item.productId,
+            quantity : item.quantity,
+            price : item.price,
+          }))
+              const newOrder = new orderSchema({
+                userId: user._id,
+                paymentMethod:'Wallet Transfer',
+                totalGST:totalGST,
+                orderedItems:orderedItems,
+                totalPrice: totalPrice,
+                finalAmount:totalPrice,
+                address:address,
+                status:"Confirmed", // Default status is 'Pending' if not provided
+                invoiceDate: new Date(),
+                couponApplied:false,
+                discount:req.session.offerprice,
+              });
+            const saved =  await newOrder.save();
+            if(saved){
+              req.session.offerprice = null
+              const orderededuser = await cartSchema.findOne({userId:user._id}).populate('items.productId')
+              updateQuantities(orderededuser.items)
+              if(items){
+                req.session.order = saved.orderId
+                const remove = await cartSchema.deleteOne({userId:user._id})
+                return res.redirect('/user/paymentsuccesspage')
+              }
+              else{
+                return res.redirect('/user/getcart')
+              }
+                
+            }
+              
+        }
+        else{
+          const orderededuser = await cartSchema.findOne({userId:user._id})
+          if(orderededuser){
+            const totalPrice = orderededuser.totalPrice
+          }
+          else{
+            return res.redirect('/user/getcart')
+          }
+          const address = req.session.newaddress
+          req.session.newaddress = null
+          const totalPrice = orderededuser.totalPrice
+          const totalGST = orderededuser.totalGST
+          const orderedItems = orderededuser.items.map(item=>({
+            product : item.productId,
+            quantity : item.quantity,
+            price : item.price,
+          }))
+            
+              const newOrder = new orderSchema({
+                userId: user._id,
+                paymentMethod:'wallet Transfer',
+                orderedItems:orderedItems,
+                totalGST:totalGST,
+                totalPrice: totalPrice,
+                finalAmount:totalPrice,
+                address:address,
+                status:"Confirmed", 
+                invoiceDate: new Date(),
+                couponApplied:false,
+                discount:req.session.offerprice,
+              });
+              await newOrder.save();
+              req.session.offerprice = null
+        }
+      }
+      else{
+        req.session.message = 'user Not found'
+        return res.redirect('/user/login')
+      }
     }
    
     
@@ -1140,14 +1236,15 @@ const getpaymentsuccesspage =async(req,res)=>{
     if(orderid){
       req.session.orderId = null
       const orderdetails = await orderSchema.findOne({orderId:orderid})
-      console.log(orderdetails,'orderdetails')
-        res.render('paymentsuccesspage',{orderdetails})
+      const offer = orderdetails.discount
+        res.render('paymentsuccesspage',{orderdetails,offer})
     }
     else{
      const razorpayid= req.session.razorpayid 
      const orderdetails = await orderSchema.findOne({razorpayOrderId:razorpayid})
+     const offer = orderdetails.discount
      console.log(orderdetails,'orderdetails')
-       res.render('paymentsuccesspage',{orderdetails})
+       res.render('paymentsuccesspage',{orderdetails,offer})
     }
    
 
@@ -1370,7 +1467,7 @@ const createRazorpayOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty" });
     }
      
-    const totalAmount = (cart.totalPrice+cart.totalGST) * 100; // Convert to paise
+    const totalAmount = ((cart.totalPrice+cart.totalGST-req.session.offerprice) * 100); // Convert to paise
     const options = {
       amount: totalAmount,
       currency: "INR",
@@ -1418,6 +1515,7 @@ const verifypayment = async (req, res) => {
         const newOrder = new orderSchema({
           razorpayOrderId:orderDetails.orderId,
           userId: orderDetails.userId,
+          discount:req.session.offerprice,
           paymentMethod:'Online Payment',
           totalGST:orderDetails.totalGST,
           orderedItems:orderDetails.orderedItems,
@@ -1431,11 +1529,25 @@ const verifypayment = async (req, res) => {
     
         });
         await newOrder.save();
-        req.session.offerprice = null
+        console.log(orderDetails,'orderd details')
+        await Promise.all(
+          orderDetails.orderedItems.map(async (item) => {
+            if (!item.product || !item.product._id) {
+              req.session.message = "item not found"
+              req.redirect('/user/getcart')
+            }
+        
+            await Product.updateOne(
+              { _id: item.product._id },
+              { $inc: { quantity: -item.quantity } }
+            );
+          })
+        ); 
+        req.session.offerprice = null;
         await cartSchema.deleteOne({ userId: orderDetails.userId });
       }
       else{
-         console.log('failed')
+         console.log('failed') 
       }
    
 
@@ -1456,66 +1568,123 @@ const paymentfailedpage = async(req,res)=>{
   }
 }
 
-const returnorder = async(req,res)=>{
+// const returnorder = async(req,res)=>{
+//   try {
+//     const user = req.session.User
+//     const{orderId,returnReason} = req.body
+//     console.log('sidheeq')
+//     const order = await orderSchema.findOne({_id:orderId})
+//     console.log(order,'orders')
+//     if(order.paymentMethod === "Online Payment"){
+//      const find = await walletSchema.findOne({userId:user._id})
+//      console.log(find,'find')
+//      if(find != null){
+//       const wallet = new walletSchema({
+//         userId: user._id,
+//         transaction: [{
+//           Total:(order.totalPrice+order.totalGST)-(order.discount?order.discount:0),
+//           Type:'Credit',
+//         }]
+//       })
+//       await wallet.calculateWalletTotal()
+//       await wallet.save()
+//       console.log(wallet)
+//      }
+//      else{
+//       console.log('ready')
+//       const wallet = await walletSchema.findOne({userId:user._id})
+//       wallet.transaction.push({
+//          Total:(order.totalPrice+order.totalGST)-(order.discount?order.discount:0),
+//          Type:'Credit',
+//      })
+//      await wallet.calculateWalletTotal()
+//      await wallet.save()
+//      console.log(wallet)
+//      order.ReturnReason =  returnReason
+//      order.status = "Return Request"
+//      await order.save()
+//      res.redirect('/user/order')
+//      }
+//     }
+//     else{
+//       order.ReturnReason =  returnReason
+//       order.status = "Return Request"
+//       await order.save()
+//       res.redirect('/user/order')
+//     }
+//   } catch (error) {
+//     console.error('error from homecontroller returnorder',error)
+//   }
+// }
+const returnorder = async (req, res) => {
   try {
-    const user = req.session.User
-    const{orderId,returnReason} = req.body
-    console.log('sidheeq')
-    const order = await orderSchema.findOne({_id:orderId})
-    console.log(order,'orders')
-    if(order.paymentMethod === "Online Payment"){
-     const find = await walletSchema.findOne({userId:user._id})
-     console.log(find,'find')
-     if(!find){
-      const wallet = new walletSchema({
-        userId: user._id,
-        transaction: [{
-          Total:(order.finalAmount+order.totalGST)-order.discount,
-          Type:'Credit'
-        }]
-      })
-      await wallet.calculateWalletTotal()
-      await wallet.save()
-      console.log(wallet)
-     }
-     const wallet = await walletSchema.findOne({userId:user._id})
-       wallet.transaction.push({
-          Total:(order.finalAmount+order.totalGST)-order.discount,
-          Type:'Credit',
-      })
-      await wallet.calculateWalletTotal()
-      await wallet.save()
-      console.log(wallet)
-      order.ReturnReason =  returnReason
-      order.status = "Return Request"
-      await order.save()
-      res.redirect('/user/order')
+    const user = req.session.User;
+    const { orderId, returnReason } = req.body;
+
+    console.log('Return process started');
+
+    const order = await orderSchema.findOne({ _id: orderId });
+    if (!order) {
+      console.log('Order not found');
+      return res.redirect('/user/order');
     }
-    else{
-      order.ReturnReason =  returnReason
-      order.status = "Return Request"
-      await order.save()
-      res.redirect('/user/order')
-    }
+
+    // if (order.paymentMethod === "Online Payment") {
+    //   let wallet = await walletSchema.findOne({ userId: user._id });
+
+    //   if (!wallet) {
+    //     console.log('Creating new wallet entry');
+    //     wallet = new walletSchema({
+    //       userId: user._id,
+    //       transaction: [{
+    //         Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+    //         Type: 'Credit',
+    //       }]
+    //     });
+    //   } else {
+    //     console.log('Updating existing wallet');
+    //     wallet.transaction.push({
+    //       Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+    //       Type: 'Credit',
+    //     });
+    //   }
+
+    //   await wallet.calculateWalletTotal(); 
+    //   await wallet.save();
+    //   console.log('Wallet updated:', wallet);
+    // }
+
+    order.ReturnReason = returnReason;
+    order.status = "Return Request";
+    await order.save();
+
+    console.log('Order updated:', order);
+    res.redirect('/user/order');
+
   } catch (error) {
-    console.error('error from homecontroller returnorder',error)
+    console.error('Error from homecontroller returnorder:', error);
+    res.status(500).send('Internal Server Error');
   }
-}
+};
+
 const getwallet= async(req,res)=>{
   const user = req.session.User
   try {
     const wallet = await walletSchema.findOne({userId:user._id})
-    const createdOn = wallet.createdOn
-    const expiryDate = new Date(createdOn);
-    expiryDate.setDate(expiryDate.getDate() + 30);
-    const currentDate = new Date()
-    const differenceInDays = Math.floor((currentDate - createdOn) / (1000 * 60 * 60 * 24));
-    if(differenceInDays <= 30){
-      console.log(wallet,'wallet')
-     return  res.render('wallet',{wallet,expiryDate})
+    if(wallet){
+      const createdOn = wallet.createdOn
+      const expiryDate = new Date(createdOn);
+      expiryDate.setDate(expiryDate.getDate() + 30);
+      const currentDate = new Date()
+      const differenceInDays = Math.floor((currentDate - createdOn) / (1000 * 60 * 60 * 24));
+      if(differenceInDays <= 30){
+        console.log(wallet,'wallet')
+        return res.render('wallet', { wallet, expiryDate: expiryDate ? expiryDate : '' });
+      }
     }
     else{
-     return  res.render('wallet',{wallet:0,expiryDate:0})
+      return res.render('wallet', { wallet: wallet || { transaction: [] }, expiryDate:'' });
+
     }
   } catch (error) {
     console.log('error from getwallet',error)

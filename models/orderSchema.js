@@ -63,7 +63,7 @@ const orderSchema = new Schema({
         ref:'Address', 
         required:true
     }, 
-    invoiceDate:{
+    invoiceDate:{ 
         type:Date
     }, 
     status:{

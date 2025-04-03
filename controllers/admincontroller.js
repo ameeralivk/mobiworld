@@ -4,7 +4,8 @@ const bcrypt = require('bcrypt')
 const user = require('../models/user')
 const { query } = require("express")
 const connectDB = require('../config/db')
-
+const orderschema = require('../models/orderSchema')
+const userschema = require('../models/user')
 connectDB()
 
 const loadlogin = async (req,res)=>{
@@ -163,7 +164,24 @@ async function getPaginatedData(page, limit) {
         
 }
 
-
+const SalesReport = async(req,res)=>{
+    try {
+        const users = await userschema.countDocuments()
+        const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+        const PendingOrders = await orderschema.find({status:"Pending"}).countDocuments()
+        let totalPurchasedItems = 0;
+        let totalSales = 0
+        orders.forEach(order => {
+            order.orderedItems.forEach(item => {
+                totalPurchasedItems += item.quantity;
+            });
+            totalSales += (order.totalPrice + order.totalGST) - (order.discount || 0)
+        });
+        res.render('salesReportPage',{orders,users,totalPurchasedItems,totalSales,PendingOrders})
+    } catch (error) {
+        console.error('error from salesReport admincontroller',error)
+    }
+}
 
 
 module.exports ={
@@ -175,4 +193,5 @@ module.exports ={
     searchuser,
     clear,  
     logout,
+    SalesReport,
 }

@@ -37,12 +37,13 @@ const walletSchema = new Schema({
         type:Date,
         default:Date.now,
         required:true
-    },
+    }, 
    
 })
 walletSchema.methods.calculateWalletTotal = function () {
     const total = this.transaction.reduce((acc, txn) => {
-        return txn.Type === 'Credit' ? acc + txn.Total : acc - txn.Total;
+            return txn.Type === 'Credit' ? acc + txn.Total : acc - txn.Total;
+       
     }, 0);
 
     this.WalletTotal = total;

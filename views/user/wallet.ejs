@@ -21,7 +21,7 @@
                 <div class="wallet-card">
                     <h5 class="card-title">MOBIWORLD</h5>
                     <p class="card-number">**** **** **** 1234</p>
-                    <div class="balance">$<%= wallet.WalletTotal %></div>
+                    <div class="balance">₹<%= wallet.WalletTotal.toLocaleString('en-IN') %></div>
                     <div class="valid-thru"><%= expiryDate %></div>
                 </div>
             </div>
@@ -46,16 +46,25 @@
                             <th scope="col">Amount</th>
                             <th scope="col">Type</th>
                             <th scope="col">Date</th>
+                            <th scope="col">Description</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% wallet.transaction.forEach(trans=> { %>
-                        <tr>
+                        <!-- <tr>
                             <td>1</td>
                             <td>$<%= trans.Total %></td>
                             <td><%= trans.Type %></td>
                             <td><%= new Date(trans.createdOn).toDateString() %></td>
+                        </tr> -->
+                        <tr class="<%= trans.Type === 'Credit' ? 'table-success' : 'table-danger' %>">
+                            <td>1</td>
+                            <td>₹<%= trans.Total.toLocaleString('en-IN') %></td>
+                            <td><%= trans.Type %></td>
+                            <td><%= new Date(trans.createdOn).toDateString() %></td>
+                            <td><%= trans.description %></td>
                         </tr>
+                        
                         <% }) %>
                     </tbody>
                 </table>

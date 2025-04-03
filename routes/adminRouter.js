@@ -75,3 +75,6 @@ router.post('/brand/clear',brandcontroller.brandclear)
 router.get('/offersPage',adminAuth,offerController.offersPage)
 router.post('/addOffer',offerController.addOffer)
 router.get('/addCoupon',adminAuth,offerController.getCoupons)
+
+//salesReport 
+router.get('/SalesReport',adminAuth,admincontroller.SalesReport)

@@ -1,0 +1,60 @@
+body {
+    background-color: #121212;
+    color: #fff;
+}
+.stat-card {
+    border-radius: 12px;
+    padding: 15px;
+    color: white;
+    margin-bottom: 20px;
+}
+.stat-card h2 {
+    font-size: 28px;
+    margin-bottom: 0;
+}
+.table {
+    color: #fff;
+}
+.table thead th {
+    border-color: #2d2d2d;
+    color: #999;
+    font-size: 14px;
+}
+.table tbody td {
+    border-color: #2d2d2d;
+    padding: 12px 8px;
+}
+.product-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+.pagination .page-item .page-link {
+    background-color: #2d2d2d;
+    color: #fff;
+    border-color: #121212;
+}
+.pagination .page-item.active .page-link {
+    background-color: #7952b3;
+    border-color: #7952b3;
+}
+.date-input {
+    background-color: #fff;
+    border-radius: 4px;
+    border: none;
+    padding: 8px 12px;
+}
+.download-btn {
+    background-color: #1e1e1e;
+    color: #fff;
+    border-radius: 4px;
+    border: none;
+    padding: 8px 15px;
+}
+.product-card {
+    background-color: #fff;
+    border-radius: 4px;
+    color: #333;
+    padding: 8px 15px;
+}
