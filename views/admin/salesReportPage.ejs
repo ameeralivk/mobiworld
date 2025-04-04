@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,57 +11,65 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="\css\admin css\salesReportPage.css">
 </head>
+
 <body>
     <%- include("../../views/partials/admin/layout") %>
-    <div class="container-fluid py-4">
-        <!-- Dashboard Stats -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stat-card" style="background-color: #7952b3;">
-                    <div class="d-flex align-items-center">
-                        <div>
-                            <h6 class="mb-0">Total users</h6>
-                            <h2><%= users %></h2>
+        <div class="container-fluid py-4">
+            <!-- Dashboard Stats -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #7952b3;">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Total users</h6>
+                                <h2>
+                                    <%= users %>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #fd7e14;">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Items sold</h6>
+                                <h2>
+                                    <%= totalPurchasedItems %>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #0d6efd;">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Total Sales</h6>
+                                <h2>₹<%= totalSales %>
+                                </h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #dc3545;">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h6 class="mb-0">Pending Orders</h6>
+                                <h2>
+                                    <%= PendingOrders %>
+                                </h2>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stat-card" style="background-color: #fd7e14;">
-                    <div class="d-flex align-items-center">
-                        <div>
-                            <h6 class="mb-0">Items sold</h6>
-                            <h2><%= totalPurchasedItems %></h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card" style="background-color: #0d6efd;">
-                    <div class="d-flex align-items-center">
-                        <div>
-                            <h6 class="mb-0">Total Sales</h6>
-                            <h2>₹<%= totalSales %></h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-card" style="background-color: #dc3545;">
-                    <div class="d-flex align-items-center">
-                        <div>
-                            <h6 class="mb-0">Pending Orders</h6>
-                            <h2><%= PendingOrders %></h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Products section -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- Products section -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <!-- <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5>sold Products</h5>
                     <div class="d-flex">
                         <input type="text" class="date-input me-2" placeholder="From">
@@ -71,68 +80,219 @@
                             <span class="badge bg-danger ms-2">PDF</span>
                         </button>
                     </div>
-                </div>
-                
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>PRODUCT IMAGE</th>
-                                <th>PRODUCT NAME</th>
-                                <th>BRAND</th>
-                                <th>AMOUNT</th>
-                                <th>TOTAL <i class="bi bi-caret-down-fill small"></i></th>
-                                <th>QTY SOLD <i class="bi bi-caret-down-fill small"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% orders.forEach(order => { %>
-                                <% order.orderedItems.forEach(item => { %>
-                            <tr>
-                                <td><%= order.orderId %></td>
-                                <td><img src="<%= item.product.productImage[0] %>" alt="Redmi A3x" class="product-image"></td>
-                                <td><%= item.product.productName %></td>
-                                <td><%= item.product.brand.brandName %></td>
-                                <td>₹<%= item.price %></td>
-                                <td>₹<%= (item.price * item.quantity) %></td>
-                                <td><%= item.quantity %></td>
-                            </tr>
-                            <% }) %>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <small class="text-muted">SHOWING 1 OF 10</small>
-                    <nav>
-                        <ul class="pagination">
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Previous">
-                                    <span aria-hidden="true">&lsaquo;</span>
-                                </a>
+                </div> -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5>Sold Products</h5>
+                        <div class="d-flex">
+                            <div class="dropdown me-3">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                    id="dateRangeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Quick Filter
+                                </button>
+                                <ul class="dropdown-menu bg-dark" aria-labelledby="dateRangeDropdown">
+                                    <li><a class="dropdown-item bg-dark text-white" href="#" onclick="fetchSalesData('today')">Today</a>
+                                    </li>
+                                    <li><a class="dropdown-item bg-dark text-white" href="#" onclick="fetchSalesData('7days')">Last 7
+                                            Days</a></li>
+                                    <li><a class="dropdown-item bg-dark text-white" href="#" onclick="fetchSalesData('1month')">Last 1
+                                            Month</a></li>
+                                </ul>
+                            </div>
+                            <input id="from" type="date" class="date-input me-2">
+                            <span class="me-2">To</span>
+                            <input id="to" type="date" class="date-input me-3">
+                            <button onclick="filter()" class="btn btn-danger">Submit</button>
+                            <button onclick="downloadPDF()" class="download-btn">
+                                <i class="bi bi-download"></i>
+                                <span class="badge bg-danger  ms-2">PDF</span>
+                            </button>
+                            <button onclick="excelldownload()" class="download-btn">
+                                <i class="bi bi-download"></i>
+                                <span class="badge bg-danger ms-2">Excell</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>PRODUCT IMAGE</th>
+                                    <th>PRODUCT NAME</th>
+                                    <th>BRAND</th>
+                                    <th>AMOUNT</th>
+                                    <th>TOTAL <i class="bi bi-caret-down-fill small"></i></th>
+                                    <th>QTY SOLD <i class="bi bi-caret-down-fill small"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablebody">
+                                <% orders.forEach(order=> { %>
+                                    <% order.orderedItems.forEach(item=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= order.orderId %>
+                                            </td>
+                                            <td><img src="<%= item.product.productImage[0] %>" alt="Redmi A3x"
+                                                    class="product-image"></td>
+                                            <td>
+                                                <%= item.product.productName %>
+                                            </td>
+                                            <td>
+                                                <%= item.product.brand.brandName %>
+                                            </td>
+                                            <td>₹<%= item.price %>
+                                            </td>
+                                            <td>₹<%= (item.price * item.quantity) %>
+                                            </td>
+                                            <td>
+                                                <%= item.quantity %>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                            <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <nav class="d-flex justify-content-center">
+                        <ul class="pagination align-items-center">
+                    
+                            <% if (page > 1) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= page - 1 %>" aria-label="Previous">
+                                        <span aria-hidden="true">&lsaquo;</span>
+                                    </a>
+                                </li>
+                            <% } else { %>
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&lsaquo;</span>
+                                </li>
+                            <% } %>
+                    
+                            <li class="page-item disabled">
+                                <span class="page-link bg-dark text-white ">
+                                    Page <%= page %> of <%= totalPages %>
+                                </span>
                             </li>
-                            <li class="page-item"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item active"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item"><a class="page-link" href="#">4</a></li>
-                            <li class="page-item"><a class="page-link" href="#">...</a></li>
-                            <li class="page-item"><a class="page-link" href="#">8</a></li>
-                            <li class="page-item"><a class="page-link" href="#">9</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#" aria-label="Next">
-                                    <span aria-hidden="true">&rsaquo;</span>
-                                </a>
-                            </li>
+                    
+                            <% if (page < totalPages) { %>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<%= page + 1 %>" aria-label="Next">
+                                        <span aria-hidden="true">&rsaquo;</span>
+                                    </a>
+                                </li>
+                            <% } else { %>
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&rsaquo;</span>
+                                </li>
+                            <% } %>
+                    
                         </ul>
                     </nav>
+                    
+                    
+
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            function excelldownload() {
+                window.location.href = "/admin/download-excel"
+            }
+            function downloadPDF() {
+                window.open("/admin/downloadSalesReport", "_blank");
+            }
+
+
+            function fetchSalesData(range) {
+                fetch('/admin/sales-report-filter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ range })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+
+                        console.log(data);
+                        const tbody = document.getElementById('tablebody');
+                        tbody.innerHTML = ''; // Clear old rows
+
+                        data.orders.forEach(order => {
+                            order.orderedItems.forEach(item => {
+                                const row = document.createElement('tr');
+                                row.innerHTML = `
+                    <td>${order.orderId}</td>
+                    <td><img src="${item.product.productImage[0]}" class="product-image" alt=""></td>
+                    <td>${item.product.productName}</td>
+                    <td>${item.product.brand.brandName}</td>
+                    <td>₹${item.price}</td>
+                    <td>₹${item.price * item.quantity}</td>
+                    <td>${item.quantity}</td>
+                `;
+                                tbody.appendChild(row);
+                            });
+                        });
+                    })
+
+                    .catch (error => {
+                console.error('Error fetching sales data:', error);
+            });
+            }
+
+            function filter() {
+                const from = document.getElementById('from').value
+                const to = document.getElementById('to').value
+                fetch('/admin/filterSalesReport', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from: from, to,
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log(data)
+                            renderOrders(data.orders);
+                        } else {
+                            console.error('No data returned');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+
+            function renderOrders(orders) {
+                console.log('hi')
+                const tbody = document.getElementById('tablebody');
+                tbody.innerHTML = ''; // Clear existing rows
+
+                orders.forEach(order => {
+                    order.orderedItems.forEach(item => {
+                        const row = document.createElement('tr');
+
+                        row.innerHTML = `
+                    <td>${order.orderId}</td>
+                    <td><img src="${item.product.productImage[0]}" alt="${item.product.productName}" class="product-image" /></td>
+                    <td>${item.product.productName}</td>
+                    <td>${item.product.brand.brandName}</td>
+                    <td>₹${item.price}</td>
+                    <td>₹${item.price * item.quantity}</td>
+                    <td>${item.quantity}</td>
+                `;
+
+                        tbody.appendChild(row);
+                    });
+                });
+            }
+        </script>
 </body>
+
 </html>

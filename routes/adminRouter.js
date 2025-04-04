@@ -78,3 +78,7 @@ router.get('/addCoupon',adminAuth,offerController.getCoupons)
 
 //salesReport 
 router.get('/SalesReport',adminAuth,admincontroller.SalesReport)
+router.post('/filterSalesReport',admincontroller.filterSalesReport)
+router.get('/downloadSalesReport',admincontroller.downloadSalesReport)
+router.get('/download-excel',admincontroller.downloadExcelReport);
+router.post('/sales-report-filter',admincontroller.salesReportFilter)

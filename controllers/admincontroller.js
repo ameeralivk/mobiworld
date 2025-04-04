@@ -6,6 +6,11 @@ const { query } = require("express")
 const connectDB = require('../config/db')
 const orderschema = require('../models/orderSchema')
 const userschema = require('../models/user')
+const puppeteer = require("puppeteer");
+const fs = require("fs");
+const ejs = require("ejs");
+const path = require("path");
+const ExcelJS = require('exceljs');
 connectDB()
 
 const loadlogin = async (req,res)=>{
@@ -166,8 +171,34 @@ async function getPaginatedData(page, limit) {
 
 const SalesReport = async(req,res)=>{
     try {
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        const filter = {
+            $or: [
+                { status: "Confirmed" },
+                { status: "Delivered" },
+                { status: "Return Request" }
+            ]
+        };
+
+        const totalOrders = await orderschema.countDocuments(filter);
+        const totalPages = Math.ceil(totalOrders / limit);
+
+        const orders = await orderschema.find(filter)
+            .skip(skip)
+            .limit(limit)
+            .populate("orderedItems.product")
+            .populate({
+                path: "orderedItems.product",
+                populate: { path: "brand" }
+            });
+
+
         const users = await userschema.countDocuments()
-        const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+        // const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
         const PendingOrders = await orderschema.find({status:"Pending"}).countDocuments()
         let totalPurchasedItems = 0;
         let totalSales = 0
@@ -177,13 +208,166 @@ const SalesReport = async(req,res)=>{
             });
             totalSales += (order.totalPrice + order.totalGST) - (order.discount || 0)
         });
-        res.render('salesReportPage',{orders,users,totalPurchasedItems,totalSales,PendingOrders})
+        res.render('salesReportPage',{orders,users,totalPurchasedItems,totalSales,PendingOrders,page,totalPages})
     } catch (error) {
         console.error('error from salesReport admincontroller',error)
     }
 }
+const filterSalesReport = async(req,res)=>{
+    const{from,to} = req.body
+    try {
+        const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+        const fromDate = new Date(from)
+        const ToDate = new Date(to)
+        console.log(fromDate,ToDate,'date ameer')
+        const filteredOrders = orders.filter(order => {
+            const orderDate = new Date(order.createdOn);
+            return orderDate >= fromDate && orderDate <= ToDate;
+        });
+          req.session.date = { from: fromDate, to: ToDate }
+          req.session.filterdata = filteredOrders
+        res.status(200).json({ success: true, orders: filteredOrders });
+    } catch (error) {
+        console.log('error from filtersalesReport',error)
+    }
+}
+const downloadSalesReport= async (req, res) => {
+    console.log('Generating PDF...');
+    const { id } = req.params;
+  
+    try {
+        const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+        console.log(orders,'orders')
+      const templatePath = path.join(__dirname, '../views', 'salesReport.ejs');
+      console.log(`Rendering template from: ${templatePath}`);
+      const filterdata = req.session.filterdata?req.session.filterdata:orders
+      const date = req.session.date?req.session.date:null
+      console.log(req.session.date,'daete')
+      ejs.renderFile(templatePath,{orders:filterdata,date}, async (err, htmlContent) => {
+        if (err) {
+          console.error('Error rendering EJS:', err);
+          return res.status(500).json({ message: 'Error rendering template' });
+        }
+        req.session.filterdata = null
+        req.session.date = null
+        console.log('EJS rendering successful, launching Puppeteer...');
+  
+       
+        const browser = await puppeteer.launch({ headless: 'new' });
+        const page = await browser.newPage();
+        await page.setContent(htmlContent, { waitUntil: 'domcontentloaded' });
+  
+  
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+        });
+  
+        await browser.close();
+        console.log('PDF generated successfully!');
+  
+      
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=invoice-${id}.pdf`);
+        res.setHeader('Content-Length', pdfBuffer.length);
+  
+        res.end(pdfBuffer); 
+  
+      });
+  
+    } catch (error) {
+      console.error('Error generating the PDF:', error);
+      res.status(500).send('An error occurred while generating the PDF');
+    }
+  };
 
+const downloadExcelReport = async(req,res)=>{
+    console.log('hi')
+    try {
+        const orders = await orderschema.find({
+            $or: [
+                { status: "Confirmed" },
+                { status: "Delivered" },
+                { status: "Return Request" }
+            ]
+        })
+        .populate("orderedItems.product")
+        .populate({ path: "orderedItems.product", populate: { path: "brand" } });
 
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sales Report');
+
+        // Define columns
+        worksheet.columns = [
+            { header: 'Order ID', key: 'orderId', width: 30 },
+            { header: 'Product', key: 'productName', width: 30 },
+            { header: 'Brand', key: 'brandName', width: 20 },
+            { header: 'Price', key: 'price', width: 15 },
+            { header: 'Quantity', key: 'quantity', width: 10 },
+            { header: 'Total', key: 'total', width: 15 }
+        ];
+
+        // Add rows
+        orders.forEach(order => {
+            order.orderedItems.forEach(item => {
+                worksheet.addRow({
+                    orderId: order.orderId,
+                    productName: item.product.productName,
+                    brandName: item.product.brand.brandName,
+                    price: item.price,
+                    quantity: item.quantity,
+                    total: item.price * item.quantity
+                });
+            });
+        });
+
+        // Set response headers
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=" + "SalesReport.xlsx"
+        );
+
+        // Write the workbook to the response
+        await workbook.xlsx.write(res);
+        res.end();
+    } catch (error) {
+        
+    }
+}
+
+const salesReportFilter = async(req,res)=>{
+    const{range} = req.body
+    const today = new Date();
+    let fromDate = new Date();
+    if (range === '7days') {
+        fromDate.setDate(today.getDate() - 7);
+    } else if (range === '1month') {
+        fromDate.setMonth(today.getMonth() - 1);
+    } else {
+        fromDate = new Date(today.toDateString());
+    }
+    try {
+        const orders = await orderschema.find({
+            createdOn: { $gte: fromDate, $lte: today },
+            $or: [
+                { status: "Confirmed" },
+                { status: "Delivered" },
+                { status: "Return Request" }
+            ]
+        })
+        .populate("orderedItems.product")
+        .populate({ path: "orderedItems.product", populate: { path: "brand" } });
+        req.session.filterdata = orders;
+        req.session.date = { from: fromDate, to: today };
+        res.json({ success: true, orders });
+    } catch (error) {
+        console.log("error from salesReportFilter",error)
+    }
+}
 module.exports ={
     loadlogin,
     loginverification,
@@ -194,4 +378,8 @@ module.exports ={
     clear,  
     logout,
     SalesReport,
+    filterSalesReport,
+    downloadSalesReport,
+    downloadExcelReport,
+    salesReportFilter,
 }

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h2 { text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h2>Sales Report</h2>
+    <% if (date && date.from && date.to) { %>
+        <p>
+          <strong>From:</strong> <%= new Date(date.from).toLocaleDateString() %> &nbsp;&nbsp;
+          <strong>To:</strong> <%= new Date(date.to).toLocaleDateString() %>
+        </p>
+      <% } %>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>Brand</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% orders.forEach(order => { %>
+                <% order.orderedItems.forEach(item => { %>
+                    <tr>
+                        <td><%= order.orderId %></td>
+                        <td><%= item.product.productName %></td>
+                        <td><%= item.product.brand.brandName %></td>
+                        <td>₹<%= item.price %></td>
+                        <td><%= item.quantity %></td>
+                        <td>₹<%= item.price * item.quantity %></td>
+                    </tr>
+                <% }) %>
+            <% }) %>
+        </tbody>
+    </table>
+</body>
+</html>
