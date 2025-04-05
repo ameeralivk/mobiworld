@@ -21,7 +21,7 @@
                 <div class="wallet-card">
                     <h5 class="card-title">MOBIWORLD</h5>
                     <p class="card-number">**** **** **** 1234</p>
-                    <div class="balance">₹<%= wallet.WalletTotal.toLocaleString('en-IN') %></div>
+                    <div class="balance">₹<%= wallet.WalletTotal ? wallet.WalletTotal.toLocaleString('en-IN') : '0' %></div>
                     <div class="valid-thru"><%= expiryDate %></div>
                 </div>
             </div>

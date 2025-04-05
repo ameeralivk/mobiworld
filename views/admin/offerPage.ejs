@@ -12,6 +12,12 @@
             /* Ensures white icon on supported browsers */
         }
     </style>
+    <!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 
 <body>
@@ -36,8 +42,8 @@
                             aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form onsubmit="return validateOfferForm(event)" action="/admin/addOffer" method="post">
-
+                        <form id="form" action="/admin/addOffer" method="post">
+                             <input type="hidden" id="offerid" name="offerid">
                             <!-- Offer Name -->
                             <div class="mb-3">
                                 <label for="name" class="form-label text-white">Offer Name:</label>
@@ -50,7 +56,7 @@
                                 <textarea class="form-control bg-dark text-white" name="description"
                                     id="description"></textarea>
                             </div>
-                            <div class="mb-3">
+                            <!-- <div class="mb-3">
                                 <label for="discountType" class="form-label text-white">User:</label>
                                 <select class="form-select bg-dark text-white" name="user" id="user">
                                     <option value="">Select Users</option>
@@ -60,7 +66,7 @@
                                         </option>
                                         <% }); %>
                                 </select>
-                            </div>
+                            </div> -->
 
                             <!-- Offer Type -->
                             <div class="mb-3">
@@ -156,6 +162,9 @@
         </div>
 
 
+
+      
+
         <div class="container-fluid p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2>Offers</h2>
@@ -174,7 +183,7 @@
                             <th>DISCOUNT TYPE</th>
                             <th>MAX DISCOUNT</th>
                             <th>DISCOUNT</th>
-                            <!-- <th>ACTIONS</th> -->
+                            <th>ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -192,13 +201,15 @@
                               <% } else { %>
                                 <td><%= offer.discountValue %></td>
                               <% } %>
-                              
-                            <!-- <td>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-sm btn-outline-light"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                </div>
-                            </td> -->
+                              <td>
+                            <button class="btn btn-sm btn-warning" 
+                            data-bs-toggle="modal" data-bs-target="#editOfferModal" data-id="<%= offer._id %>" 
+                                    onclick="openEditModal(this)">
+                                Edit
+                            </button>
+                            </td>
+                      
+                            
                         </tr>
                         <% }) %>
                     </tbody>
@@ -232,6 +243,59 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
 
+            
+                    async function openEditModal(button) {
+                            const offerId = button.getAttribute('data-id');
+
+                            try {
+                            const response = await fetch(`/admin/getOffer/${offerId}`);
+                            const offer = await response.json();
+                             console.log(offer.message,'offer')
+                            // Fill form fields
+                            const form = document.getElementById('form')
+                            document.getElementById('name').value = offer.name || '';
+                            document.getElementById('description').value = offer.description || '';
+                            document.getElementById('offerType').value = offer.offerType || '';
+                            document.getElementById('discountType').value = offer.discountType || '';
+                            document.getElementById('discountValue').value = offer.discountValue || '';
+                            document.getElementById('maxDiscount').value = offer.maxDiscount || '';
+                            document.getElementById('startDate').value = offer.startDate?.split('T')[0] || '';
+                            document.getElementById('expiredOn').value = offer.expiredOn?.split('T')[0] || '';
+                            document.getElementById('offerid').value = offerId
+
+                            // Show/hide related fields
+                            document.getElementById('categorySelect').style.display = 'none';
+                            document.getElementById('brandSelect').style.display = 'none';
+                            document.getElementById('productSelect').style.display = 'none';
+                            form.action = "/admin/editOffer"
+                            if (offer.offerType === 'category') {
+                                document.getElementById('categorySelect').style.display = 'block';
+                                document.getElementById('categoryId').value = offer.categoryId;
+                            } else if (offer.offerType === 'brand') {
+                                document.getElementById('brandSelect').style.display = 'block';
+                                document.getElementById('brandId').value = offer.brandId;
+                            } else if (offer.offerType === 'product') {
+                                document.getElementById('productSelect').style.display = 'block';
+
+                                // Uncheck all first
+                                const checkboxes = document.querySelectorAll('input[name="productId"]');
+                                checkboxes.forEach(cb => cb.checked = false);
+
+                                // Check selected products
+                                offer.productId?.forEach(id => {
+                                const checkbox = document.querySelector(`input[name="productId"][value="${id}"]`);
+                                if (checkbox) checkbox.checked = true;
+                                });
+                            }
+
+                            // Show modal
+                            const modal = new bootstrap.Modal(document.getElementById('editOffer'));
+                            modal.show();
+                            } catch (error) {
+                            console.error("Failed to fetch offer:", error);
+                            }
+                        }
+
             document.addEventListener("DOMContentLoaded", function () {
                 const offerForm = document.querySelector("form");
                 const offerType = document.getElementById("offerType");
@@ -250,10 +314,12 @@
                     if (offerType.value === "category") {
                         categorySelect.style.display = "block";
                         brandSelect.style.display = "none";
+                        productSelect.style.display = "none"
                         brandId.value = ""; // Clear brand selection
                     } else if (offerType.value === "brand") {
                         brandSelect.style.display = "block";
                         categorySelect.style.display = "none";
+                        productSelect.style.display = "none"
                         categoryId.value = ""; // Clear category selection
                     }
                     else if(offerType.value === "product") {
@@ -269,7 +335,7 @@
                         productSelect.style.display = "none"
                     }
                 });
-
+               
                 function validateOfferForm(event) {
                     let isValid = true;
                     let errorMessage = "";
@@ -333,6 +399,14 @@
 
                 offerForm.addEventListener("submit", validateOfferForm);
             });
+
+         const message = document.getElementById('message')
+         setTimeout(() => {
+            if(message){
+                message.style.display = 'none'
+            }
+         }, 3000);
+   
 
         </script>
 </body>

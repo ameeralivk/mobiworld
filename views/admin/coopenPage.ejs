@@ -1,253 +1,332 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coupon Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         body {
             background-color: #1a1a2e;
             color: #ffffff;
         }
+
         .card {
-            background-color: #16213e;
+            background-color: #000000;
             border: none;
         }
+
         .table {
             color: #ffffff;
         }
+
         .table thead {
             background-color: #0f3460;
         }
+
         .search-container {
             max-width: 300px;
         }
+
         .btn-action {
             background: none;
             border: none;
             color: #ffffff;
         }
+
         .btn-action:hover {
             color: #4ecdc4;
         }
+
+        .table td,
+        .table th {
+            color: #ffffff !important;
+        }
     </style>
 </head>
+
 <body>
     <%- include("../../views/partials/admin/layout") %>
-    <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark">
-                <div class="modal-header border-bottom-0">
-                    <h2 class="modal-title w-100 text-center text-white" id="couponModalLabel">Add Coupon</h2>
-                    <button type="button" class="btn-close bg-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form onsubmit="return validateCouponForm(event)" action="/admin/addCoupon" method="post">
-                        
-                        <!-- Coupon Name -->
-                        <div class="mb-3">
-                            <label for="name" class="form-label text-white">Coupon Name:</label>
-                            <input type="text" class="form-control bg-dark text-white" name="name" id="name" required>
-                        </div>
-    
-                        <!-- Created On (Auto-filled) -->
-                        <input type="hidden" name="createdOn" value="<%= new Date().toISOString().slice(0, 10) %>">
-    
-                        <!-- Usage -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Usage:</label>
-                            <select class="form-select bg-dark text-white" name="usage" id="usage" required>
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            </select>
-                        </div>
-    
-                        <!-- Discount Type -->
-                        <div class="mb-3">
-                            <label for="discountType" class="form-label text-white">Discount Type:</label>
-                            <select class="form-select bg-dark text-white" name="discountType" id="discountType" required>
-                                <option value="">Select Discount Type</option>
-                                <option value="percentage">Percentage</option>
-                                <option value="fixed">Fixed Amount</option>
-                            </select>
-                        </div>
-    
-                        <!-- Discount Value -->
-                        <div class="mb-3">
-                            <label for="discountValue" class="form-label text-white">Discount Value:</label>
-                            <input type="number" class="form-control bg-dark text-white" name="discountValue" id="discountValue" required>
-                        </div>
-    
-                        <!-- Status -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Status:</label>
-                            <select class="form-select bg-dark text-white" name="status" id="status" required>
-                                <option value="true">Active</option>
-                                <option value="false">Inactive</option>
-                            </select>
-                        </div>
-    
-                        <!-- Expiry Date -->
-                        <div class="mb-3">
-                            <label for="expiredOn" class="form-label text-white">Expiry Date:</label>
-                            <input type="date" class="form-control bg-dark text-white" name="expiredOn" id="expiredOn" required>
-                        </div>
-    
-                        <!-- Offer Price -->
-                        <div class="mb-3">
-                            <label for="offerPrice" class="form-label text-white">Offer Price:</label>
-                            <input type="number" class="form-control bg-dark text-white" name="offerPrice" id="offerPrice" required>
-                        </div>
-    
-                        <!-- Minimum Price -->
-                        <div class="mb-3">
-                            <label for="minimumPrice" class="form-label text-white">Minimum Price:</label>
-                            <input type="number" class="form-control bg-dark text-white" name="minimumPrice" id="minimumPrice" required>
-                        </div>
-    
-                        <!-- Max Discount -->
-                        <div class="mb-3">
-                            <label for="maxDiscount" class="form-label text-white">Max Discount:</label>
-                            <input type="number" class="form-control bg-dark text-white" name="maxDiscount" id="maxDiscount" required>
-                        </div>
-    
-                        <!-- Is Listed -->
-                        <div class="mb-3">
-                            <label class="form-label text-white">Is Listed:</label>
-                            <select class="form-select bg-dark text-white" name="isList" id="isList">
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            </select>
-                        </div>
-    
-                        <!-- Applies To -->
-                        <div class="mb-3">
-                            <label for="appliesTo" class="form-label text-white">Applies To:</label>
-                            <select class="form-select bg-dark text-white" name="appliesTo" id="appliesTo">
-                                <option value="all">All</option>
-                                <option value="category">Category</option>
-                                <option value="brand">Brand</option>
-                            </select>
-                        </div>
-    
-                        <!-- Category Selection -->
-                        <div class="mb-3" id="categorySelect" style="display: none;">
-                            <label for="categoryId" class="form-label text-white">Select Category:</label>
-                            <select class="form-select bg-dark text-white" name="categoryId" id="categoryId">
-                                <% categories.forEach(category => { %>
-                                    <option value="<%= category._id %>"><%= category.name %></option>
-                                <% }); %>
-                            </select>
-                        </div>
-    
-                        <!-- Brand Selection -->
-                        <div class="mb-3" id="brandSelect" style="display: none;">
-                            <label for="brandId" class="form-label text-white">Select Brand:</label>
-                            <select class="form-select bg-dark text-white" name="brandId" id="brandId">
-                                <% brands.forEach(brand => { %>
-                                    <option value="<%= brand._id %>"><%= brand.brandName %></option>
-                                <% }); %>
-                            </select>
-                        </div>
-    
-                        <div class="mt-4">
-                            <button type="submit" class="btn btn-submit w-100 text-primary">SUBMIT COUPON</button>
-                        </div>
-    
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="container-fluid px-4 py-4">
-        <div class="row mb-3 align-items-center">
-            <div class="col-md-6">
-                <div class="input-group search-container">
-                    <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search" style="background-color: white;">
-                </div>
-            </div>
-            <div class="col-md-6 text-end">
-                <div class="d-flex justify-content-end align-items-center">
-                    <div class="me-3 position-relative">
-                        <i class="bi bi-bell text-white" style="font-size: 1.5rem;"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            6
-                        </span>
+        <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-dark">
+                    <div class="modal-header border-bottom-0">
+                        <h2 class="modal-title w-100 text-center text-white" id="couponModalLabel">Add Coupon</h2>
+                        <button type="button" class="btn-close bg-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <img src="/api/placeholder/40/40" alt="Admin" class="rounded-circle me-2">
-                        <div>
-                            <div class="text-white">Abhishek vp</div>
-                            <small class="text-muted">Admin</small>
-                        </div>
+                    <div class="modal-body">
+                        <form id="form" onsubmit="return validateCouponForm(event)" action="/admin/addCoupon"
+                            method="post">
+
+                            <!-- Coupon Name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label text-white">Coupon Name:</label>
+                                <input type="text" class="form-control bg-dark text-white" name="name" id="name">
+                            </div>
+
+                            <!-- Created On (Auto-filled) -->
+                            <input type="hidden" name="createdOn" value="<%= new Date().toISOString().slice(0, 10) %>">
+
+                            <!-- Discount Type -->
+                            <div class="mb-3">
+                                <label for="discountType" class="form-label text-white">Discount Type:</label>
+                                <select class="form-select bg-dark text-white" name="discountType" id="discountType">
+                                    <option value="">Select Discount Type</option>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="fixed">Fixed Amount</option>
+                                </select>
+                            </div>
+
+                            <!-- Discount Value -->
+                            <div class="mb-3">
+                                <label for="discountValue" class="form-label text-white">Discount Value:</label>
+                                <input type="number" class="form-control bg-dark text-white" name="discountValue"
+                                    id="discountValue">
+                            </div>
+
+                            <!-- Expiry Date -->
+                            <div class="mb-3">
+                                <label for="expiredOn" class="form-label text-white">Expiry Date:</label>
+                                <input type="date" class="form-control bg-dark text-white" name="expiredOn"
+                                    id="expiredOn">
+                            </div>
+
+
+                            <!-- Minimum Price -->
+                            <div class="mb-3">
+                                <label for="minimumPrice" class="form-label text-white">Minimum Price:</label>
+                                <input type="number" class="form-control bg-dark text-white" name="minimumPrice"
+                                    id="minimumPrice">
+                            </div>
+
+                            <!-- Max Discount -->
+                            <div class="mb-3">
+                                <label for="maxDiscount" class="form-label text-white">Max Discount:</label>
+                                <input type="number" class="form-control bg-dark text-white" name="maxDiscount"
+                                    id="maxDiscount">
+                            </div>
+                            <!-- Applies To -->
+                            <div class="mb-3">
+                                <label for="appliesTo" class="form-label text-white">Applies To:</label>
+                                <select class="form-select bg-dark text-white" name="appliesTo" id="appliesTo">
+                                    <option value="all">All</option>
+                                    <option value="category">Category</option>
+                                    <option value="brand">Brand</option>
+                                    <option value="Product">Product</option>
+                                </select>
+                            </div>
+
+                            <!-- Category Selection -->
+                            <div class="mb-3" id="categorySelect" style="display: none;">
+                                <label for="categoryId" class="form-label text-white">Select Category:</label>
+                                <select class="form-select bg-dark text-white" name="categoryId" id="categoryId">
+                                    <% categories.forEach(category=> { %>
+                                        <option value="<%= category._id %>">
+                                            <%= category.name %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+
+                            <!-- Brand Selection -->
+                            <div class="mb-3" id="brandSelect" style="display: none;">
+                                <label for="brandId" class="form-label text-white">Select Brand:</label>
+                                <select class="form-select bg-dark text-white" name="brandId" id="brandId">
+                                    <% brands.forEach(brand=> { %>
+                                        <option value="<%= brand._id %>">
+                                            <%= brand.brandName %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="ProductSelect" style="display: none;">
+                                <label for="brandId" class="form-label text-white">Select Product:</label>
+                                <select class="form-select bg-dark text-white" name="productId" id="productId">
+                                    <% products.forEach(product=> { %>
+                                        <option value="<%= product._id %>">
+                                            <%= product.productName %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+                            </div>
+
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-submit w-100 text-primary">SUBMIT COUPON</button>
+                            </div>
+
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="m-0">Coupons</h5>
-                <button class="btn btn-primary">
-                    <i class="bi bi-plus-lg me-2"></i>Add Coupon
-                </button>
+        <div class="container-fluid px-4 py-4">
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-6">
+                    <div class="input-group search-container">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" placeholder="Search" style="background-color: white;">
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div class="me-3 position-relative">
+                            <i class="bi bi-bell text-white" style="font-size: 1.5rem;"></i>
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                6
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <img src="/api/placeholder/40/40" alt="Admin" class="rounded-circle me-2">
+                            <div>
+                                <div class="text-white">Abhishek vp</div>
+                                <small class="text-muted">Admin</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-borderless">
-                        <thead>
-                            <tr>
-                                <th>Sl.NO</th>
-                                <th>Coupon</th>
-                                <th>Redeem</th>
-                                <th>Man Cart Value</th>
-                                <th>Min Discount</th>
-                                <th>Max Discount</th>
-                                <th>Coupon Code</th>
-                                <th>Valid Till</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>₹100 off on a purchase</td>
-                                <td>₹100</td>
-                                <td>₹1000</td>
-                                <td>₹200</td>
-                                <td>₹1000</td>
-                                <td>#6365</td>
-                                <td>01-01-2025</td>
-                                <td>
-                                    <button class="btn btn-action me-2"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-action"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>₹250 off on ₹500 above</td>
-                                <td>₹250</td>
-                                <td>₹1000</td>
-                                <td>₹200</td>
-                                <td>₹1000</td>
-                                <td>#7565</td>
-                                <td>31-12-2024</td>
-                                <td>
-                                    <button class="btn btn-action me-2"><i class="bi bi-pencil"></i></button>
-                                    <button class="btn btn-action"><i class="bi bi-trash"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center bg-dark text-white">
+                    <h5 class="m-0">Coupons</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#couponModal">
+                        <i class="bi bi-plus-lg me-2"></i>Add Coupon
+                    </button>
+
+                </div>
+                <div class="card-body bg-dark">
+                    <div class="table-responsive">
+                        <table class="table table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>Sl.NO</th>
+                                    <th>Coupon</th>
+                                    <th>Redeem</th>
+                                    <th>Man Cart Value</th>
+                                    <th>Min Discount</th>
+                                    <th>Max Discount</th>
+                                    <th>Coupon Code</th>
+                                    <th>Valid Till</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>₹100 off on a purchase</td>
+                                    <td>₹100</td>
+                                    <td>₹1000</td>
+                                    <td>₹200</td>
+                                    <td>₹1000</td>
+                                    <td>#6365</td>
+                                    <td>01-01-2025</td>
+                                    <td>
+                                        <button class="btn btn-action me-2 text-white"><i
+                                                class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-action text-white"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>₹250 off on ₹500 above</td>
+                                    <td>₹250</td>
+                                    <td>₹1000</td>
+                                    <td>₹200</td>
+                                    <td>₹1000</td>
+                                    <td>#7565</td>
+                                    <td>31-12-2024</td>
+                                    <td>
+                                        <button class="btn btn-action me-2 text-white"><i
+                                                class="bi bi-pencil"></i></button>
+                                        <button class="btn btn-action text-white"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            function validateCouponForm(event) {
+                event.preventDefault();
+                const form = document.getElementById('form');
+
+                const name = document.getElementById("name").value.trim();
+                const discountType = document.getElementById("discountType").value;
+                const discountValue = document.getElementById("discountValue").value;
+                const expiredOn = document.getElementById("expiredOn").value;
+                const minimumPrice = document.getElementById("minimumPrice").value;
+                const maxDiscount = document.getElementById("maxDiscount").value;
+                const appliesTo = document.getElementById("appliesTo").value;
+
+                const categoryId = document.getElementById("categoryId");
+                const brandId = document.getElementById("brandId");
+                const productId = document.getElementById("productId");
+
+                const today = new Date().toISOString().split("T")[0];
+
+                function showError(message) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops!',
+                        text: message,
+                        confirmButtonColor: '#3085d6'
+                    });
+                }
+
+                // Validation checks
+                if (name === "") return showError("Coupon name is required.");
+                if (!discountType) return showError("Please select a discount type.");
+                if (discountValue <= 0) return showError("Discount value must be greater than 0.");
+                if (minimumPrice <= 0) return showError("Minimum price must be greater than 0.");
+                if (maxDiscount <= 0) return showError("Max discount must be greater than 0.");
+                if (expiredOn < today) return showError("Expiry date must be today or in the future.");
+
+                if (appliesTo === "category" && !categoryId.value) return showError("Please select a category.");
+                if (appliesTo === "brand" && !brandId.value) return showError("Please select a brand.");
+                if (appliesTo === "Product" && !productId.value) return showError("Please select a product.");
+
+                // Disable unused fields so they don't get submitted
+                if (appliesTo !== "category") categoryId.disabled = true;
+                if (appliesTo !== "brand") brandId.disabled = true;
+                if (appliesTo !== "Product") productId.disabled = true;
+
+                form.submit();
+            }
+
+
+            // Show/hide category/brand fields based on appliesTo selection
+            document.addEventListener("DOMContentLoaded", () => {
+                const appliesTo = document.getElementById("appliesTo");
+                const categorySelect = document.getElementById("categorySelect");
+                const brandSelect = document.getElementById("brandSelect");
+                const ProductSelect = document.getElementById("ProductSelect")
+
+                function toggleFields() {
+                    const value = appliesTo.value;
+                    categorySelect.style.display = value === "category" ? "block" : "none";
+                    brandSelect.style.display = value === "brand" ? "block" : "none";
+                    ProductSelect.style.display = value === "Product" ? "block" : "none";
+                }
+
+                appliesTo.addEventListener("change", toggleFields);
+
+                // Initial toggle
+                toggleFields();
+            });
+        </script>
+
+
 </body>
+
 </html>

@@ -191,10 +191,22 @@
                                 <div class="col-6">Discount</div>
                                 <div class="col-6 price">₹<%= offerPrice %></div>
                             </div>
+                            <% if (coupon) { %>
+                                <div class="row mt-2">
+                                    <div class="col-6">CouponDiscount</div>
+                                    <div class="col-6 price">₹<%= coupon.couponDiscount %></div>
+                                </div>
+                                <% } else { %>
+                                    <div class="row mt-2">
+                                        <div class="col-6">CouponDiscount</div>
+                                        <div class="col-6 price">₹0</div>
+                                    </div>
+                                <% } %>
 
                             <div class="row mt-3">
                                 <div class="col-6"><strong>TOTAL</strong></div>
-                                <div class="col-6 price"><strong>₹<%= ((total-offerPrice)+totalGST).toLocaleString('en-IN') %></strong></div>
+                                <div class="col-6 price"><strong>₹<%= ((total - (offerPrice || 0) - (coupon.couponDiscount || 0)) + (totalGST || 0)).toLocaleString('en-IN') %></strong></div>
+                                
                             </div>
                         </div>
                     </div>

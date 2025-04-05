@@ -21,7 +21,7 @@ const offersPage = async(req,res)=>{
         if(req.session.message){
             const message = req.session.message 
             req.session.message = null
-          return  res.render('offerPage',{categories,brands,users,products,message,offers,page,totalPages})
+          return  res.render('offerPage',{categories,brands,users,products,message,offers,page,totalPages,error:''})
         }
         else if(req.session.error){
             const message = req.session.error

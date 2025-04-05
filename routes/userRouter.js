@@ -72,3 +72,5 @@ router.get('/deleteaddress/:id',userAuth,homecontroller.deleteaddress)
 //wallet routes
 router.get('/getwallet',userAuth,homecontroller.getwallet)
 
+//add offer
+router.post('/addoffer',userAuth,homecontroller.addOffer)

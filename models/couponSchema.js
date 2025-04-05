@@ -15,6 +15,7 @@ const CouponSchema = new Schema({
     usage:{
         type:Boolean,
         required:true,
+        default:false,
     },
     discountType:{
         type:String,
@@ -28,14 +29,11 @@ const CouponSchema = new Schema({
     status:{
         type:Boolean,
         required:true,
+        default:true,
     },
     expiredOn :{
         type:Date,
         required:true
-    },
-    offerPrice:{
-       type:Number,
-       required:true,
     },
     minimumPrice:{
         type:Number,
@@ -74,6 +72,17 @@ const CouponSchema = new Schema({
         ref:'User',
     }],
 })
-
+CouponSchema.pre('validate', function (next) {
+    if (this.categoryId?.length) {
+        this.appliesTo = "category";
+    } else if (this.brandId?.length) {
+        this.appliesTo = "brand";
+    } else if (this.productId?.length) {
+        this.appliesTo = "product";
+    } else {
+        this.appliesTo = "all";
+    }
+    next();
+});
 const Coupon = mongoose.model("Coupon",CouponSchema)
 module.exports = Coupon;

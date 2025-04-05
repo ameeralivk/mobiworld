@@ -75,6 +75,8 @@ router.post('/brand/clear',brandcontroller.brandclear)
 router.get('/offersPage',adminAuth,offerController.offersPage)
 router.post('/addOffer',offerController.addOffer)
 router.get('/addCoupon',adminAuth,offerController.getCoupons)
+router.get('/getOffer/:id',admincontroller.getOffer) 
+router.post('/editOffer',admincontroller.editOffer)
 
 //salesReport 
 router.get('/SalesReport',adminAuth,admincontroller.SalesReport)
@@ -82,3 +84,8 @@ router.post('/filterSalesReport',admincontroller.filterSalesReport)
 router.get('/downloadSalesReport',admincontroller.downloadSalesReport)
 router.get('/download-excel',admincontroller.downloadExcelReport);
 router.post('/sales-report-filter',admincontroller.salesReportFilter)
+
+
+//coupon page
+router.get('/couponPage',admincontroller.couponPage)
+router.post('/addCoupon',admincontroller.addCoupon)

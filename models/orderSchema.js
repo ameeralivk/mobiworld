@@ -69,7 +69,7 @@ const orderSchema = new Schema({
     status:{
         type:String,
         required:true,
-        enum:['Pending','processing','Shipped','Delivered','Cancelled','Confirmed','Return Request','Returned']
+        enum:['Pending','processing','Shipped','Delivered','Cancelled','Confirmed','Return Request','Returned','ReturnCancelled']
     },
     createdOn:{
         type:Date,
@@ -79,6 +79,10 @@ const orderSchema = new Schema({
     couponApplied:{
         type:Boolean,
         default:false,
+    },
+    couponDiscount:{
+        type:Number,
+        default:0,
     },
     ReturnReason:{
         type:String,

@@ -89,10 +89,12 @@
                     <!-- Cart Totals and Checkout -->
                     <div class="row mt-4">
                         <div class="col-md-6">
+                            <form method="post" action="/user/addoffer">
                             <div class="input-group mb-3">
-                                <input type="text" class="form-control" placeholder="Coupon Code">
-                                <button class="apply-coupon-btn" type="button">Apply Coupon</button>
+                                <input name="coupon" type="text" class="form-control" placeholder="Coupon Code">
+                                <button  class="apply-coupon-btn" type="submit">Apply Coupon</button>
                             </div>
+                        </form>
                         </div>
                         <div class="col-md-6">
                             <div class="cart-totals">
@@ -117,9 +119,20 @@
                                     <div class="col-6 text-end">₹0</div>
                                     <% } %>
                                 </div>
+                                <div class="row mb-2">
+                                    <div class="col-6">CouponDiscount</div>
+                                    <% if (coupon) { %>
+                                    <div id="totalOffer" class="col-6 text-end">₹<%= coupon.couponDiscount %></div>
+                                    <% } else { %>
+                                    <div class="col-6 text-end">₹0</div>
+                                    <% } %>
+                                </div>
                                 <div class="row mb-4 pt-2 border-top mt-2">
                                     <div class="col-6 fw-bold">TOTAL(Including GST)</div>
-                                    <div id="totalamound" class="col-6 text-end fw-bold">₹<%=((totalPrice-offerPrice) + totalGST).toLocaleString('en-IN')%>
+                                    <div id="totalamound" class="col-6 text-end fw-bold">
+                                        ₹<%= ((totalPrice - (offerPrice || 0) - (coupon.couponDiscount || 0)) + (totalGST || 0)).toLocaleString('en-IN') %>
+                                      </div>
+
                                     </div>
                                 </div>
 

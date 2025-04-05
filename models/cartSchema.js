@@ -16,6 +16,14 @@ const cartSchema = new Schema({
         type:Number,
         default:0,
     },
+    couponDiscount: {
+      type: Number,
+      default: 0
+    },
+    couponName: {
+      type: String,
+      default: ''
+    },
     items:[{
         productId :{
             type:Schema.Types.ObjectId,
@@ -55,7 +63,6 @@ const cartSchema = new Schema({
         }
     }]
 })
-
 
 cartSchema.methods.calculateGST = function () {
 

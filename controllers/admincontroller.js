@@ -11,6 +11,11 @@ const fs = require("fs");
 const ejs = require("ejs");
 const path = require("path");
 const ExcelJS = require('exceljs');
+const categoryschema = require('../models/categorySchema')
+const brandschema = require('../models/brandSchema')
+const productschema = require('../models/productSchema')
+const CouponSchema = require('../models/couponSchema')
+const offerschema = require('../models/offerSchema')
 connectDB()
 
 const loadlogin = async (req,res)=>{
@@ -368,6 +373,84 @@ const salesReportFilter = async(req,res)=>{
         console.log("error from salesReportFilter",error)
     }
 }
+
+
+
+//coupon 
+const couponPage = async(req,res)=>{
+    try {
+        const categories = await categoryschema.find({})
+        const brands = await brandschema.find({})
+        const products = await productschema.find({})
+        res.render('coopenPage',{categories,brands,products})
+    } catch (error) {
+        console.log('error from couponPage',error)
+    }
+}
+
+const addCoupon = async(req,res)=>{
+    try {
+        console.log(req.body)
+        const newcoupon = new CouponSchema({
+            name:req.body.name,
+            createdOn:req.body.createdOn,
+            discountType:req.body.discountType,
+            discountValue:req.body.discountValue,
+            expiredOn:req.body.expiredOn,
+            minimumPrice:req.body.minimumPrice,
+            maxDiscount:req.body.maxDiscount,
+            categoryId:req.body.categoryId?req.body.categoryId:null,
+            brandId:req.body.brandId?req.body.brandId:null,
+            productId:req.body.productId?req.body.productId:null,
+        })
+        await newcoupon.save()
+
+    } catch (error) {
+        console.log("error from addCoupon",error)
+    }
+}
+
+const getOffer = async(req,res)=>{
+    try {
+        const offer = await offerschema.findById(req.params.id)
+        res.json(offer);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to load offer' });
+    }
+}
+const editOffer = async(req,res)=>{
+    const offerId = req.body.offerid;
+    try {
+        console.log(req.body)
+        const updatedData = {
+            _id:req.body.offerid,
+            name:req.body.name,
+            description:req.body.description,
+            offerType: req.body.offerType,
+            productId:req.body.productId?req.body.productId:[],
+            discountType:req.body.discountType,
+            discountValue:req.body.discountValue,
+            categoryId:req.body.offerType === 'category'?req.body.categoryId:null,
+            brandId:req.body.offerType === 'brand'?req.body.brandId:null,
+            maxDiscount: req.body.maxDiscount,
+            startDate: new Date(req.body.startDate),
+            expiredOn: new Date(req.body.expiredOn)
+          };
+          const find =await offerschema.findOne(updatedData)
+          if(find){
+            req.session.error = "item is same"
+           res.redirect('/admin/offersPage')
+          }
+          await offerschema.findByIdAndUpdate(offerId, updatedData);
+          req.session.message = "Offer updated successfully!";
+          res.redirect('/admin/offersPage');
+          console.log(find,'find')
+    } catch (error) {
+        console.log('error from editOffer',error)
+    }
+}
+
+
 module.exports ={
     loadlogin,
     loginverification,
@@ -382,4 +465,8 @@ module.exports ={
     downloadSalesReport,
     downloadExcelReport,
     salesReportFilter,
+    couponPage,
+    addCoupon,
+    getOffer,
+    editOffer,
 }

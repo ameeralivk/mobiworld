@@ -20,6 +20,7 @@ const crypto = require("crypto");
 const offerschema = require('../models/offerSchema')
 const mongoose = require('mongoose')
 const walletSchema = require('../models/walletSchem')
+const couponSchema = require('../models/couponSchema')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -660,10 +661,6 @@ const addtocart = async (req, res) => {
 
 
 
-const addtocartpage = async (product, quantity) => {
-  //  const product = await Product.findOne({_id:req.params.id})
-
-}
 const getcart = async (req, res) => {
   const user = req.session.User
   try {
@@ -671,12 +668,40 @@ const getcart = async (req, res) => {
       req.session.message = 'Please login'
       res.redirect('/user/login')
     }
-    if (req.session.message) {
+    if(req.session.appliedCoupon){
       const isexist = await cartSchema.findOne({ userId: user._id })
       if (isexist == null) {
       const message =  req.session.message 
       req.session.message = null
-        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0,totalGST:'' ,message,offerPrice:'' })
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0,totalGST:'' ,message,offerPrice:'',coupon })
+      }
+      const message = req.session.message;
+      req.session.message = null
+      const item = isexist.items.map(item => item.productId)
+      const quantity = isexist.items.map(item => item.quantity)
+      const products = await Product.find({ _id: { $in: item } });
+      const coupon = req.session.appliedCoupon
+      const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
+      const offerPrices = async (products) => {
+        const discounts = await Promise.all(products.map(getTotalOffers));
+        return discounts.reduce((acc, discount) => acc + discount, 0);
+      };
+      const offerPrice = await offerPrices(products);
+      console.log(offerPrice,'ameer offerprice')
+      req.session.offerprice = offerPrice
+      const combineddata = products.map((product, index) => ({
+        ...product._doc,
+        quantity: quantity[index]
+      }))
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: message,offerPrice,coupon })
+    }
+    if (req.session.message) {
+      const coupon = req.session.appliedCoupon
+      const isexist = await cartSchema.findOne({ userId: user._id })
+      if (isexist == null) {
+      const message =  req.session.message 
+      req.session.message = null
+        return res.render('addtocart', { combineddata: [], quantity: '', totalPrice: 0,totalGST:'' ,message,offerPrice:'',coupon: coupon || ''})
       }
       const message = req.session.message;
       req.session.message = null
@@ -695,13 +720,14 @@ const getcart = async (req, res) => {
         ...product._doc,
         quantity: quantity[index]
       }))
-      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: message,offerPrice })
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: message,offerPrice,coupon:coupon||'' })
     }
 
     else {
+      const coupon = req.session.appliedCoupon
       const isexist = await cartSchema.findOne({ userId: user._id })
       if (isexist == null) {
-        return res.render('addtocart', { combineddata: [], quantity: '',totalGST:'',totalPrice: 0,offerPrice:0 })
+        return res.render('addtocart', { combineddata: [], quantity: '',totalGST:'',totalPrice: 0,offerPrice:0,coupon:coupon||'' })
       }
       const item = isexist.items.map(item => item.productId)
       const quantity = isexist.items.map(item => item.quantity)
@@ -720,7 +746,7 @@ const getcart = async (req, res) => {
         ...product._doc,
         quantity: quantity[index]
       }))
-      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: '',offerPrice })
+      return res.render('addtocart', { combineddata: populatedCart.items, quantity, totalPrice: isexist?.totalPrice,totalGST:isexist?.totalGST, message: '',offerPrice,coupon:coupon || '' })
     }
 
 
@@ -791,6 +817,7 @@ const checkoutpage = async (req, res) => {
    }
    const cart = await cartSchema.findOne({userId:userid._id})
   try {
+    const coupon = req.session.appliedCoupon?req.session.appliedCoupon:0
      if(cart){
       const user = await userschema.find({ _id: userid._id, isBlocked: false });
       if (user.length === 0) {
@@ -840,7 +867,7 @@ const checkoutpage = async (req, res) => {
       const addresses = address.map(address=>address.address)
       const offerPrice = req.session.offerprice
       console.log(offerPrice,'offerameer')
-      return res.render('checkoutpage',{product,total,totalGST,address:addresses,message,offerPrice});
+      return res.render('checkoutpage',{product,total,totalGST,address:addresses,message,offerPrice,coupon});
       }
       const cart = await cartSchema.findOne({userId:userid._id}).populate('items.productId')
       const product = cart.items.map(item=>item.productId)
@@ -850,7 +877,7 @@ const checkoutpage = async (req, res) => {
       const addresses = address.map(address=>address.address)
       const offerPrice = req.session.offerprice
       console.log(offerPrice,'offerameer')
-      return res.render('checkoutpage',{product,total,totalGST,address:addresses,offerPrice});
+      return res.render('checkoutpage',{product,total,totalGST,address:addresses,offerPrice,coupon});
 
 
      }
@@ -1333,6 +1360,7 @@ const pagination = async(req,res)=>{
 // Add this to save the PDF
 const puppeteer = require('puppeteer');
 const Wishlist = require('../models/wishlistSchema')
+const { isNull } = require('util')
 
 
 
@@ -1455,6 +1483,7 @@ const razorpay = new Razorpay({
 });
 const createRazorpayOrder = async (req, res) => {
   try {
+    const coupon = req.session.appliedCoupon?req.session.appliedCoupon:0
     const user = req.session.User;
     if(!user){
       req.session.message = 'please login'
@@ -1466,8 +1495,9 @@ const createRazorpayOrder = async (req, res) => {
     if (!cart) {
       return res.status(400).json({ message: "Cart is empty" });
     }
-     
-    const totalAmount = ((cart.totalPrice+cart.totalGST-req.session.offerprice) * 100); // Convert to paise
+    const offer = req.session.offerprice || 0;
+    const coupon = req.session.appliedCoupon || { couponDiscount: 0 };
+    const totalAmount = ((cart.totalPrice + cart.totalGST - offer - coupon.couponDiscount) * 100);   
     const options = {
       amount: totalAmount,
       currency: "INR",
@@ -1497,6 +1527,7 @@ const createRazorpayOrder = async (req, res) => {
 };
 
 const verifypayment = async (req, res) => {
+  const user = req.session.User
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
     const secret = process.env.RAZORPAYX_KEY_SECRET;
@@ -1508,6 +1539,9 @@ const verifypayment = async (req, res) => {
         const orderDetails = req.session.orderdetails;
         req.session.orderDetails = null;
         req.session.razorpayid = orderDetails.orderId
+        const coupon = req.session.appliedCoupon || { couponDiscount: 0 };
+       const couponApplied = coupon.couponDiscount > 0;
+       const couponDiscountValue = coupon.couponDiscount || 0;
         if (!orderDetails) {
           return res.status(400).send("Session expired, please try again.");
         }
@@ -1522,9 +1556,10 @@ const verifypayment = async (req, res) => {
           totalPrice: orderDetails.amount,
           finalAmount:orderDetails.amount,
           address:req.session.address,
-          status:"Confirmed",
+          status:"Pending",
           invoiceDate: new Date(),
-          couponApplied:false,
+          couponApplied:couponApplied,
+          couponDiscount:couponDiscountValue,
           discount:req.session.offerprice
     
         });
@@ -1544,6 +1579,11 @@ const verifypayment = async (req, res) => {
           })
         ); 
         req.session.offerprice = null;
+        const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
+        req.session.appliedCoupon = null  
+        console.log(couponfind,'coupon ameer')
+        couponfind.userId.push(user._id)
+        await couponfind.save()
         await cartSchema.deleteOne({ userId: orderDetails.userId });
       }
       else{
@@ -1679,17 +1719,89 @@ const getwallet= async(req,res)=>{
       const differenceInDays = Math.floor((currentDate - createdOn) / (1000 * 60 * 60 * 24));
       if(differenceInDays <= 30){
         console.log(wallet,'wallet')
-        return res.render('wallet', { wallet, expiryDate: expiryDate ? expiryDate : '' });
+        return res.render('wallet', { wallet: wallet || { transaction: [] }, expiryDate:''});
       }
     }
     else{
-      return res.render('wallet', { wallet: wallet || { transaction: [] }, expiryDate:'' });
+      return res.render('wallet', { wallet: wallet || { transaction: [] }, expiryDate:''});
 
     }
   } catch (error) {
     console.log('error from getwallet',error)
   }
 }
+
+const addOffer = async(req,res)=>{
+  const user = req.session.User; 
+  const cart = await cartSchema.findOne({ userId:user._id }).populate('items.productId');
+  try {
+    const {coupon} = req.body
+    const find = await couponSchema.findOne({name:coupon})
+    if (!find) {
+      req.session.message = "No Coupon Found";
+      return res.redirect('/user/getcart');
+    }
+    if (new Date(find.expiredOn) < new Date()) {
+      req.session.message = "Coupon Expired";
+      return res.redirect('/user/getcart');
+    }
+    if (find.userId.includes(user._id)) {
+      req.session.message = "You have already used this coupon";
+      return res.redirect('/user/getcart');
+    }
+    console.log(cart,'cart')
+    const total = cart.items.reduce((sum, item) => {
+      return sum + item.productId.salePrice * item.quantity;
+    }, 0);
+    if (total < find.minimumPrice) {
+      req.session.message = `Minimum cart value should be ₹${find.minimumPrice}`;
+      return res.redirect('/user/getcart');
+    }
+    let couponDiscount = 0;
+    if (find.appliesTo === "category") {
+      cart.items.forEach(item => {
+        if (find.categoryId.includes(item.productId.category)) {
+          const productDiscount = find.discountType === "percentage"
+            ? (item.productId.salePrice * find.discountValue) / 100
+            : find.discountValue;
+
+            couponDiscount += productDiscount * item.quantity;
+        }
+      });
+    }
+    if (find.appliesTo === "brand") {
+      cart.items.forEach(item => {
+        if (find.brandId.includes(item.productId.brand)) {
+          const productDiscount = find.discountType === "percentage"
+            ? (item.productId.salePrice * find.discountValue) / 100
+            : find.discountValue;
+
+            couponDiscount += productDiscount * item.quantity;
+        }
+      });
+    }
+    if (couponDiscount > find.maxDiscount) {
+      couponDiscount = find.maxDiscount;
+    }
+    console.log(couponDiscount,'discount')
+    cart.couponDiscount = couponDiscount
+    console.log(req.session.offerprice,'1',couponDiscount,'coupon discount')
+    req.session.offerprice = (req.session.offerprice || 0) + (couponDiscount || 0);
+    console.log(req.session.offerprice,'2')
+    req.session.message = `Coupon applied! You saved ₹${couponDiscount}`;
+    req.session.appliedCoupon = {
+      code: find.name,
+      couponDiscount,
+      couponId: find._id
+    };
+    return res.redirect('/user/getcart');
+    console.log(find,'find')
+  } catch (error) {
+    console.log("error from addOffer",error)
+  }
+}
+
+
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -1723,4 +1835,5 @@ module.exports = {
   paymentfailedpage,
   returnorder,
   getwallet,
+  addOffer,
 }

@@ -182,7 +182,7 @@
                                  </a>
                                  `;
                                  }
-                                 if(order.status != "Delivered" && order.status != "Returned"){
+                                 if(order.status != "Delivered" && order.status != "Returned" && order.status != "ReturnCancelled" && order.status != "Shipped"){
                                     cancell =`<button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')"></button>`
                                  }                      
                                 orderRow.innerHTML = `

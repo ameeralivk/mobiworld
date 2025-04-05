@@ -98,31 +98,28 @@
                                 <%= order.invoiceDate.toLocaleDateString() %>
                             </td>
                             <td>
-                                <!-- <select class="form-select status-dropdown bg-dark text-white">
-                                    <option id="currentstatus" value="" selected disabled>
-                                        <%= order.status %>
-                                    </option>
-                                    <option value="<%= order.status == 'Shipped' ? 'Pending' : 'Shipped' %>">
-                                        <%= order.status=='Shipped' ? 'Pending' : 'Shipped' %>
-                                    </option>
-                                    <option value="<%= order.status == 'Delivered' ? 'Pending' : 'Delivered' %>">
-                                        <%= order.status=='Delivered' ? 'Pending' : 'Delivered' %>
-                                    </option>
-                                    <option value="<%= order.status == 'Cancelled' ? 'Pending' : 'Cancelled' %>">
-                                        <%= order.status=='Delivered' ? 'Pending' : 'Delivered' %>
-                                    </option>
-                                </select> -->
-                                <select class="form-select status-dropdown bg-dark text-white">
-                                    <option id="currentstatus" value="" selected disabled>
-                                        <%= order.status %>
-                                    </option>
-                                    <% statuses.forEach(status => { %>
-                                        <option value="<%= status %>" <%= order.status === status ? 'selected disabled' : '' %>>
-                                            <%= status %>
-                                        </option>
-                                    <% }); %>
-                                </select>
-
+                                <%
+                                var statusFlow = ["Pending", "Confirmed", "Shipped", "Delivered", "Returned"];
+                                var currentIndex = statusFlow.indexOf(order.status);
+                              %>
+                              <select class="form-select status-dropdown bg-dark text-white">
+                                <option selected disabled><%= order.status %></option>
+                        
+                                <% if (order.status === "Return Request") { %>
+                                  <option value="Returned">Returned</option>
+                                  <option value="ReturnCancelled">Return Cancelled</option>
+                                <% } else if (order.status === "Returned" || order.status === "ReturnCancelled") { %>
+                                  <option disabled>No further actions</option>
+                                <% } else { %>
+                                  <% for (var i = 0; i < statuses.length; i++) {
+                                      var status = statuses[i];
+                                      var statusIndex = statusFlow.indexOf(status);
+                                      if (statusIndex > currentIndex) {
+                                  %>
+                                    <option value="<%= status %>"><%= status %></option>
+                                  <% } } %>
+                                <% } %>
+                              </select>
                             </td>
                             <td><button id="Updatebutton" type="button"
                                     class="btn btn-primary updatebutton">Update</button></td>
@@ -296,7 +293,7 @@
                         document.getElementById('body').innerText = ''
                         data.data.forEach(order => {
                             const row = document.createElement('tr');
-                            const statuses = ["Pending", "Shipped", "Delivered", "Cancelled","Confirmed","Returned"];
+                            const statuses = ["Pending", "Shipped", "Delivered", "Cancelled","Confirmed","Returned","ReturnCancelled"];
                             // Creating the table cells dynamically
                             row.innerHTML = `
                     <td>

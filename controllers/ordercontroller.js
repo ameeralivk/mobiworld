@@ -22,7 +22,7 @@ const updatestatus = async (req, res) => {
         order.status = status
         const saved = order.save()
         if (saved) {
-            if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer") && order.status == "Returned" ){
+            if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer") || order.status == "Returned" ){
                 let wallet = await walletSchema.findOne({ userId: user._id });
                 const method = order.paymentMethod 
                 if (!wallet) {
