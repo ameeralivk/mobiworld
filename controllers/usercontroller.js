@@ -10,6 +10,7 @@ const productSchema = require('../models/productSchema')
 const categories = require('../models/categorySchema')
 const brandschema =require('../models/brandSchema')
 const wishlistSchema = require('../models/wishlistSchema')
+const walletSchema = require('../models/walletSchem')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
@@ -209,6 +210,15 @@ const loadhome = async (req,res)=>{
 
 
 const loadregisterpage = async(req,res)=>{
+    const referralCode = req.query.ref;
+
+    if (referralCode) {
+    const referrer = await userschema.findOne({ referalCode: referralCode });
+    if (referrer) {
+       
+    req.session.referrerId = referrer._id; 
+    }
+    }
     try {
         let message = '';
         if(req.session.message){
@@ -341,7 +351,14 @@ const resetOtp = async (req, res) => {
         res.status(500).json({ success: false, message: "An Error Occurred" });
     }
 }
-
+function generateReferralCode(length = 8) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < length; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
 
 const register = async(req,res)=>{
     const {name,email,password,phone} = req.body
@@ -405,6 +422,7 @@ const verifyOtp = async (req,res)=>{
      const {otp} = req.body;
     try {
         const user = req.session.userData 
+        const referralCode = generateReferralCode();
         if(user){
             if(otp===req.session.userOtp){
                 const hashedpass = await bcrypt.hash(user.password,salt)
@@ -413,10 +431,36 @@ const verifyOtp = async (req,res)=>{
                     email:user.email,
                     phone:user.phone,
                     password:hashedpass,
-       
+                    referalCode: referralCode,
                 })
-                console.log(newUser)
                await newUser.save()
+               if (req.session.referrerId) {
+                const referrer = await userschema.findById(req.session.referrerId);
+                if (referrer) {
+                    const wallet = await walletSchema.findOne({userId:referrer._id})
+                    if (wallet) {
+                        wallet.transaction.push({
+                            Total:500,
+                            Type:"Credit",
+                            description:"ReferalAmount"
+                        })
+                        wallet.calculateWalletTotal()
+                        console.log(wallet.WalletTotal,'wallettotal')
+                        await wallet.save();
+                    } 
+                    const newWallet = new walletSchema({
+                        userId: newUser._id,
+                        transaction:[{
+                            Total:250,
+                            Type:"Credit",
+                            description:"Referal CashPrize",
+                        }]
+                    });
+                    newWallet.calculateWalletTotal()
+                    await newWallet.save();
+                    req.session.referrerId = null
+                }
+            }
                req.session.user = newUser._id;
                console.log(req.session.user)
                req.session.userOtp = null;

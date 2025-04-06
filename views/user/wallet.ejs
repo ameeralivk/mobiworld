@@ -50,7 +50,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% wallet.transaction.forEach(trans=> { %>
+                        <% wallet.transaction.forEach((trans,index)=> { %>
                         <!-- <tr>
                             <td>1</td>
                             <td>$<%= trans.Total %></td>
@@ -58,7 +58,7 @@
                             <td><%= new Date(trans.createdOn).toDateString() %></td>
                         </tr> -->
                         <tr class="<%= trans.Type === 'Credit' ? 'table-success' : 'table-danger' %>">
-                            <td>1</td>
+                            <td><%= index+1 %></td>
                             <td>₹<%= trans.Total.toLocaleString('en-IN') %></td>
                             <td><%= trans.Type %></td>
                             <td><%= new Date(trans.createdOn).toDateString() %></td>

@@ -181,10 +181,11 @@
                                  <span class="bg-danger">Return</span>
                                  </a>
                                  `;
-                                 }
-                                 if(order.status != "Delivered" && order.status != "Returned" && order.status != "ReturnCancelled" && order.status != "Shipped"){
-                                    cancell =`<button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')"></button>`
-                                 }                      
+                                 } 
+                                let isDisabled = (order.status === "Delivered" || order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Shipped") ? 'disabled' : '';
+
+                                cancell = `<button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')" ${isDisabled}></button>`;
+                
                                 orderRow.innerHTML = `
                                 <!-- Close Button -->
                                 ${cancell}
@@ -334,10 +335,14 @@
                                         <span class="text-white">Discount:</span>
                                         <span class="text-white">₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
                                     </div>
+                                     <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-white">CouponDiscount:</span>
+                                        <span class="text-white">₹${orderDetails.order.couponDiscount.toLocaleString('en-IN')}</span>
+                                    </div>
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span class="text-white">Total:</span>
-                                        <span class="text-white">₹${((orderDetails.order.totalPrice-orderDetails.order.discount) + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                        <span class="text-white">₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount)) + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>

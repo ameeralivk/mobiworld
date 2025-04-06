@@ -194,7 +194,7 @@
                             <% if (coupon) { %>
                                 <div class="row mt-2">
                                     <div class="col-6">CouponDiscount</div>
-                                    <div class="col-6 price">₹<%= coupon.couponDiscount %></div>
+                                    <div class="col-6 price">₹<%= coupon %></div>
                                 </div>
                                 <% } else { %>
                                     <div class="row mt-2">
@@ -205,7 +205,7 @@
 
                             <div class="row mt-3">
                                 <div class="col-6"><strong>TOTAL</strong></div>
-                                <div class="col-6 price"><strong>₹<%= ((total - (offerPrice || 0) - (coupon.couponDiscount || 0)) + (totalGST || 0)).toLocaleString('en-IN') %></strong></div>
+                                <div class="col-6 price"><strong>₹<%= ((total - (offerPrice || 0) - (coupon || 0)) + (totalGST || 0)).toLocaleString('en-IN') %></strong></div>
                                 
                             </div>
                         </div>

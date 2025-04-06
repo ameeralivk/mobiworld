@@ -187,9 +187,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <% offers.forEach(offer => { %>
+                        <% offers.forEach((offer,index) => { %>
                         <tr>
-                            <td>1</td>
+                            <td><%= index + 1 %></td>
                             <td><%= offer.name %></td>
                             <td><%= offer.offerType %></td>
                             <td><%= offer.startDate.toLocaleDateString('en-GB') %> </td>
@@ -206,6 +206,11 @@
                             data-bs-toggle="modal" data-bs-target="#editOfferModal" data-id="<%= offer._id %>" 
                                     onclick="openEditModal(this)">
                                 Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" 
+                            data-id="<%= offer._id %>" 
+                            onclick="deleteOffer(this)">
+                            Delete
                             </button>
                             </td>
                       
@@ -242,7 +247,46 @@
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+              async function deleteOffer(button) {
+                  const offerId = button.getAttribute("data-id");
 
+                        const confirm = await Swal.fire({
+                        title: "Are you sure?",
+                        text: "This offer will be deleted!",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#d33",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Yes, delete it!"
+                        });
+
+                        if (confirm.isConfirmed) {
+                        try {
+                            const res = await fetch(`/admin/deleteOffer/${offerId}`, {
+                            method: "DELETE"
+                            });
+
+                            const result = await res.json();
+
+                            if (result.success) {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Deleted!",
+                                text: result.message || "Offer has been deleted.",
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
+                                window.location.reload(); // or manually remove row from table
+                            });
+                            } else {
+                            Swal.fire("Error", result.message || "Failed to delete the offer.", "error");
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            Swal.fire("Error", "Something went wrong.", "error");
+                        }
+                        }
+                    }
             
                     async function openEditModal(button) {
                             const offerId = button.getAttribute('data-id');

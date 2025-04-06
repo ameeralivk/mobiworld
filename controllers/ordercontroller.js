@@ -22,31 +22,33 @@ const updatestatus = async (req, res) => {
         order.status = status
         const saved = order.save()
         if (saved) {
-            if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer") || order.status == "Returned" ){
-                let wallet = await walletSchema.findOne({ userId: user._id });
-                const method = order.paymentMethod 
-                if (!wallet) {
-                  console.log('Creating new wallet entry');
-                  wallet = new walletSchema({
-                    userId: user._id,
-                    transaction: [{
-                      Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
-                      Type: 'Credit',
-                      description:`${method} Returned Amount`
-                    }]
-                  });
-                } else {
-                  console.log('Updating existing wallet');
-                  wallet.transaction.push({
-                    Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
-                    Type: 'Credit',
-                  });
+            if(order.status == "Returned" ){
+                if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer") ){
+                    let wallet = await walletSchema.findOne({ userId: user._id });
+                    const method = order.paymentMethod 
+                    if (!wallet) {
+                      console.log('Creating new wallet entry');
+                      wallet = new walletSchema({
+                        userId: user._id,
+                        transaction: [{
+                          Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+                          Type: 'Credit',
+                          description:`${method} Returned Amount`
+                        }]
+                      });
+                    } else {
+                      console.log('Updating existing wallet');
+                      wallet.transaction.push({
+                        Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+                        Type: 'Credit',
+                      });
+                    }
+              
+                    await wallet.calculateWalletTotal(); 
+                    await wallet.save();
+                    console.log('Wallet updated:', wallet);
                 }
-          
-                await wallet.calculateWalletTotal(); 
-                await wallet.save();
-                console.log('Wallet updated:', wallet);
-            }
+                }
             return res.status(200).json({ message: 'status updated successfully', order: order })
         }
 

@@ -10,17 +10,26 @@
     <link rel="stylesheet" href="\css\shoppage_header.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.all.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="\css\shoppage_footer.css">
 </head>
 
 <body>
     <%- include("../../views/partials/user/shoppage_header") %>
-        <% if (typeof message !=='undefined' && message) { %>
-            <p id="mess" class="error-message">
-                <%= message %>
-            </p>
-            <% } %>
+    <% if (typeof message !== 'undefined' && message) { %>
+        <script>
+          const msg = `<%= message %>`;
+      
+          Swal.fire({
+            icon: msg.startsWith('Coupon applied') ? 'success' : 'error',
+            title: msg.startsWith('Coupon applied') ? 'Success!' : 'Oops!',
+            text: msg,
+            confirmButtonColor: msg.startsWith('Coupon applied') ? '#28a745' : '#d33',
+          });
+        </script>
+      <% } %>
+      
 
                 <!-- Cart Header -->
                 <div class="cart-header">
@@ -122,9 +131,9 @@
                                 <div class="row mb-2">
                                     <div class="col-6">CouponDiscount</div>
                                     <% if (coupon) { %>
-                                    <div id="totalOffer" class="col-6 text-end">₹<%= coupon.couponDiscount %></div>
+                                    <div id="coupon" class="col-6 text-end">₹<%= coupon.couponDiscount %></div>
                                     <% } else { %>
-                                    <div class="col-6 text-end">₹0</div>
+                                    <div id="coupon" class="col-6 text-end">₹0</div>
                                     <% } %>
                                 </div>
                                 <div class="row mb-4 pt-2 border-top mt-2">
@@ -248,12 +257,16 @@
                                     headers: { 'Content-Type': 'application/json' },
                                 })
                                 const result = await response.json()
+                                console.log(result.maxvalue,'maxvalue')
                                 if (result.success) {
-                                    console.log(result)
-                                    document.getElementById('totalamound').innerText = `₹${((result.cartTotal-result.offerPrice)  + result.carttotalGST).toLocaleString('en-IN')}`
+                                    if(result.cartTotal === 0){
+                                        result.coupon = 0
+                                    }
+                                    document.getElementById('totalamound').innerText = `₹${((result.cartTotal-(result.offerPrice+result.coupon?result.coupon:0))  + result.carttotalGST).toLocaleString('en-IN')}`
                                     document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
                                      document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`
                                      document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`
+                                     document.getElementById('coupon').innerText = `₹${(result.coupon || 0).toLocaleString('en-IN')}`;
                                     const productrow = button.closest('tr')
                                     productrow.remove()
                                 }

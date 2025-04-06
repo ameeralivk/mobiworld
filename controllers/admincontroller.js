@@ -201,7 +201,7 @@ const SalesReport = async(req,res)=>{
                 populate: { path: "brand" }
             });
 
-
+         console.log(orders,'orders')
         const users = await userschema.countDocuments()
         // const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
         const PendingOrders = await orderschema.find({status:"Pending"}).countDocuments()
@@ -377,16 +377,63 @@ const salesReportFilter = async(req,res)=>{
 
 
 //coupon 
-const couponPage = async(req,res)=>{
+// const couponPage = async(req,res)=>{
+//     try {
+//         if(req.session.message){
+//             const message = req.session.message 
+//             req.session.message = null
+//         const coupon = await CouponSchema.find({isList:true})
+//         const categories = await categoryschema.find({})
+//         const brands = await brandschema.find({})
+//         const products = await productschema.find({})
+//        return res.render('coopenPage',{categories,brands,products,coupon,message})
+//         }
+//         const coupon = await CouponSchema.find({isList:true})
+//         const categories = await categoryschema.find({})
+//         const brands = await brandschema.find({})
+//         const products = await productschema.find({})
+//        return res.render('coopenPage',{categories,brands,products,coupon,message:''})
+//     } catch (error) {
+//         console.log('error from couponPage',error)
+//     }
+// }
+
+const couponPage = async (req, res) => {
     try {
-        const categories = await categoryschema.find({})
-        const brands = await brandschema.find({})
-        const products = await productschema.find({})
-        res.render('coopenPage',{categories,brands,products})
+        const page = parseInt(req.query.page) || 1;
+        const limit = 10;
+        const skip = (page - 1) * limit;
+
+        const totalCoupons = await CouponSchema.countDocuments({ isList: true });
+        const totalPages = Math.ceil(totalCoupons / limit);
+
+        const coupon = await CouponSchema.find({ isList: true })
+            .skip(skip)
+            .limit(limit)
+            .sort({ expiryDate: 1 }); // optional sort
+
+        const categories = await categoryschema.find({});
+        const brands = await brandschema.find({});
+        const products = await productschema.find({});
+
+        const message = req.session.message || '';
+        req.session.message = null;
+
+        return res.render('coopenPage', {
+            categories,
+            brands,
+            products,
+            coupon,
+            message,
+            page,
+            totalPages
+        });
     } catch (error) {
-        console.log('error from couponPage',error)
+        console.log('Error from couponPage:', error);
+        res.status(500).send("Internal Server Error");
     }
-}
+};
+
 
 const addCoupon = async(req,res)=>{
     try {
@@ -404,7 +451,11 @@ const addCoupon = async(req,res)=>{
             productId:req.body.productId?req.body.productId:null,
         })
         await newcoupon.save()
-
+        req.session.message = {
+            type: 'success',
+            text: 'Coupon Created Successfully!'
+          };
+        res.redirect('/admin/couponPage')
     } catch (error) {
         console.log("error from addCoupon",error)
     }
@@ -451,6 +502,96 @@ const editOffer = async(req,res)=>{
 }
 
 
+const couponEditDetails = async(req,res)=>{
+    console.log("Hi")
+    try {
+        const coupon = await CouponSchema.findById(req.params.id);
+        res.json(coupon);
+      } catch (err) {
+        res.status(500).json({ error: 'Coupon not found' });
+      }
+}
+
+
+const editCoupon = async(req,res)=>{
+    const id = req.params.id
+    try {
+        const {
+            name,
+            discountType,
+            discountValue,
+            expiredOn,
+            minimumPrice,
+            maxDiscount,
+            appliesTo,
+            categoryId,
+            brandId,
+            productId
+        } = req.body;
+
+        const updateData = {
+            name,
+            discountType,
+            discountValue,
+            expiredOn,
+            minimumPrice,
+            maxDiscount,
+            appliesTo
+        };
+        if (appliesTo === 'category') {
+            updateData.categoryId = categoryId;
+            updateData.brandId = null;
+            updateData.productId = null;
+        } else if (appliesTo === 'brand') {
+            updateData.brandId = brandId;
+            updateData.categoryId = null;
+            updateData.productId = null;
+        } else if (appliesTo === 'Product') {
+            updateData.productId = productId;
+            updateData.categoryId = null;
+            updateData.brandId = null;
+        } else {
+            updateData.categoryId = null;
+            updateData.brandId = null;
+            updateData.productId = null;
+        }
+
+        await CouponSchema.findByIdAndUpdate(id, updateData);
+        req.session.message = {
+            type: 'success',
+            text: 'Coupon updated successfully!'
+          };
+        res.redirect('/admin/couponPage');
+    } catch (error) {
+        console.log('error from editCoupon',error)
+    }
+}
+
+const deleteCoupon = async(req,res)=>{
+    const id = req.params.id
+    try {
+        await CouponSchema.findByIdAndDelete(id);
+        res.json({ success: true, message: 'Coupon deleted successfully' });
+      } catch (err) {
+        res.status(500).json({ success: false, message: 'Error deleting coupon' });
+      }
+}
+
+const deleteOffer = async(req,res)=>{
+    try {
+        try {
+            const id = req.params.id;
+            await offerschema.findByIdAndDelete(id);
+            res.json({ success: true, message: 'Offer deleted successfully.' });
+          } catch (error) {
+            console.error(error);
+            res.json({ success: false, message: 'Failed to delete offer.' });
+          }
+    } catch (error) {
+        console.log('error from deleteOffer',error)
+    }
+}
+
 module.exports ={
     loadlogin,
     loginverification,
@@ -469,4 +610,8 @@ module.exports ={
     addCoupon,
     getOffer,
     editOffer,
+    couponEditDetails,
+    editCoupon,
+    deleteCoupon,
+    deleteOffer,
 }

@@ -52,7 +52,6 @@ router.post('/verify-payment',homecontroller.verifypayment)
 router.get('/paymentfailedpage',userAuth,homecontroller.paymentfailedpage)
 
 
-
 //order
 router.get('/order',userAuth,homecontroller.orderpage)
 router.get('/pagination/:id',homecontroller.pagination)

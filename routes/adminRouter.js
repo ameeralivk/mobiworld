@@ -77,6 +77,7 @@ router.post('/addOffer',offerController.addOffer)
 router.get('/addCoupon',adminAuth,offerController.getCoupons)
 router.get('/getOffer/:id',admincontroller.getOffer) 
 router.post('/editOffer',admincontroller.editOffer)
+router.delete('/deleteOffer/:id',admincontroller.deleteOffer)
 
 //salesReport 
 router.get('/SalesReport',adminAuth,admincontroller.SalesReport)
@@ -87,5 +88,8 @@ router.post('/sales-report-filter',admincontroller.salesReportFilter)
 
 
 //coupon page
-router.get('/couponPage',admincontroller.couponPage)
+router.get('/couponPage',adminAuth,admincontroller.couponPage)
 router.post('/addCoupon',admincontroller.addCoupon)
+router.get('/getCoupon/:id',admincontroller.couponEditDetails)
+router.post('/editCoupon/:id',admincontroller.editCoupon)
+router.delete('/deleteCoupon/:id',admincontroller.deleteCoupon)
