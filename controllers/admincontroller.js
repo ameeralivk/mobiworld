@@ -183,6 +183,7 @@ const SalesReport = async(req,res)=>{
 
         const filter = {
             $or: [
+                {status:"Pending"},
                 { status: "Confirmed" },
                 { status: "Delivered" },
                 { status: "Return Request" }
@@ -211,7 +212,7 @@ const SalesReport = async(req,res)=>{
             order.orderedItems.forEach(item => {
                 totalPurchasedItems += item.quantity;
             });
-            totalSales += (order.totalPrice + order.totalGST) - (order.discount || 0)
+            totalSales += (order.totalPrice + order.totalGST) - (order.discount || 0)-(order.couponDiscount||0)
         });
         res.render('salesReportPage',{orders,users,totalPurchasedItems,totalSales,PendingOrders,page,totalPages})
     } catch (error) {
@@ -221,7 +222,7 @@ const SalesReport = async(req,res)=>{
 const filterSalesReport = async(req,res)=>{
     const{from,to} = req.body
     try {
-        const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+        const orders = await orderschema.find({$or: [{status:"Pending"},{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
         const fromDate = new Date(from)
         const ToDate = new Date(to)
         console.log(fromDate,ToDate,'date ameer')
@@ -241,7 +242,7 @@ const downloadSalesReport= async (req, res) => {
     const { id } = req.params;
   
     try {
-        const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+        const orders = await orderschema.find({$or: [{status:"Pending"},{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
         console.log(orders,'orders')
       const templatePath = path.join(__dirname, '../views', 'salesReport.ejs');
       console.log(`Rendering template from: ${templatePath}`);
@@ -291,6 +292,7 @@ const downloadExcelReport = async(req,res)=>{
     try {
         const orders = await orderschema.find({
             $or: [
+                {status:"Pending"},
                 { status: "Confirmed" },
                 { status: "Delivered" },
                 { status: "Return Request" }
@@ -307,9 +309,12 @@ const downloadExcelReport = async(req,res)=>{
             { header: 'Order ID', key: 'orderId', width: 30 },
             { header: 'Product', key: 'productName', width: 30 },
             { header: 'Brand', key: 'brandName', width: 20 },
-            { header: 'Price', key: 'price', width: 15 },
             { header: 'Quantity', key: 'quantity', width: 10 },
-            { header: 'Total', key: 'total', width: 15 }
+            { header: 'Price', key: 'price', width: 15 },
+            { header: 'Total', key: 'total', width: 15 },
+            { header: 'Discount', key: 'discount', width: 15 },
+            { header: 'Payment Method', key: 'paymentMethod', width: 20 },
+            { header: 'Final Price', key: 'finalPrice', width: 20 },
         ];
 
         // Add rows
@@ -319,9 +324,12 @@ const downloadExcelReport = async(req,res)=>{
                     orderId: order.orderId,
                     productName: item.product.productName,
                     brandName: item.product.brand.brandName,
-                    price: item.price,
                     quantity: item.quantity,
-                    total: item.price * item.quantity
+                    price: item.price,
+                    total: item.price * item.quantity,
+                    discount: order.discount,
+                    paymentMethod: order.paymentMethod || 'N/A',
+                    finalPrice:(order.finalAmount - order.discount), 
                 });
             });
         });
@@ -359,6 +367,7 @@ const salesReportFilter = async(req,res)=>{
         const orders = await orderschema.find({
             createdOn: { $gte: fromDate, $lte: today },
             $or: [
+                {status:"Pending"},
                 { status: "Confirmed" },
                 { status: "Delivered" },
                 { status: "Return Request" }

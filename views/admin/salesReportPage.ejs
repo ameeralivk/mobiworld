@@ -143,7 +143,7 @@
                                             </td>
                                             <td>₹<%= item.price %>
                                             </td>
-                                            <td>₹<%= (item.price * item.quantity) %>
+                                            <td>₹<%= (item.price * item.quantity-(order.discount+order.couponDiscount)+order.totalGST) %>
                                             </td>
                                             <td>
                                                 <%= item.quantity %>

@@ -21,7 +21,7 @@
         <script>
           const msg = `<%= message %>`;
       
-          Swal.fire({
+          Swal.fire({  
             icon: msg.startsWith('Coupon applied') ? 'success' : 'error',
             title: msg.startsWith('Coupon applied') ? 'Success!' : 'Oops!',
             text: msg,
@@ -96,6 +96,41 @@
                     </div>
 
                     <!-- Cart Totals and Checkout -->
+                    <div class="coupon-section" style="border: 1px solid #ddd; padding: 10px; margin-top: 20px;">
+                        <h4>Available Coupons for Your Cart:</h4>
+                      
+                        <% if (coupons.length > 0) { %>
+                          <ul>
+                            <% coupons.forEach(c => { %>
+                              <li style="margin-bottom: 10px;">
+                                <strong><%= c.name %></strong> - 
+                                <%= c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF` %>
+                                <br>
+                      
+                                <% if (c.appliesTo === "category") { %>
+                                  <small>(Category-based Coupon)</small>
+                                <% } else if (c.appliesTo === "brand") { %>
+                                  <small>(Brand-based Coupon)</small>
+                                <% } else if (c.appliesTo === "product") { %>
+                                  <small>(Product-specific Coupon)</small>
+                                <% } else if (c.appliesTo === "all") { %>
+                                  <small>(Site-wide Coupon)</small>
+                                <% } %>
+                      
+                                <br>
+                                <small>Min Purchase: ₹<%= c.minimumPrice %></small>
+                                <% if (c.maxDiscount) { %>
+                                  | <small>Max Discount: ₹<%= c.maxDiscount %></small>
+                                <% } %>
+                                | <small>Expires on: <%= c.expiredOn.toDateString() %></small>
+                              </li>
+                            <% }) %>
+                          </ul>
+                        <% } else { %>
+                          <p>No coupons available for the current items in your cart.</p>
+                        <% } %>
+                      </div>
+                      
                     <div class="row mt-4">
                         <div class="col-md-6">
                             <form method="post" action="/user/addoffer">
@@ -105,6 +140,7 @@
                             </div>
                         </form>
                         </div>
+                          
                         <div class="col-md-6">
                             <div class="cart-totals">
                                 <h4 class="mb-4">CART TOTALS</h4>

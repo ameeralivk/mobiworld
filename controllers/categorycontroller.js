@@ -1,7 +1,6 @@
 const { trusted } = require("mongoose");
 const Category = require("../models/categorySchema");
 const { deserializeUser } = require("passport");
-
 const categoryInfo = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;

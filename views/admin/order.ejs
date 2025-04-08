@@ -53,6 +53,7 @@
                         <option value="Confirmed">Confirmed</option>
                         <option value="Returned">Returned</option>
                         <option value="Return Request">Return Request</option>
+                        <option value="ReturnCancelled">ReturnCancelled</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -130,16 +131,25 @@
             </table>
 
 
-            <div class="d-flex justify-content-between align-items-center">
-                <span>SHOWING 1 OF 10</span>
+            <div class="d-flex justify-content-center align-items-center mt-4">
+                <span class="me-4">SHOWING <%= currentPage %> OF <%= totalPages %></span>
                 <nav>
-                    <ul class="pagination">
-                        <li id="previous" class="page-item me-4"><a class="page-link" href="#">«</a></li>
-                        <li id="pagenumber" class="page-item active"><a  class="page-link" href="#">1</a></li>
-                        <li id="next" class="page-item ms-4"><a class="page-link" href="#">»</a></li>
-                    </ul>
+                  <ul class="pagination mb-0">
+                    <li id="previous" class="page-item <%= currentPage === 1 ? 'disabled' : '' %> me-4">
+                      <a class="page-link" href="?page=<%= currentPage - 1 %>">«</a>
+                    </li>
+              
+                    <li id="pagenumber" class="page-item active">
+                      <a class="page-link" href="#"> <%= currentPage %> </a>
+                    </li>
+              
+                    <li id="next" class="page-item <%= currentPage === totalPages ? 'disabled' : '' %> ms-4">
+                      <a class="page-link" href="?page=<%= currentPage + 1 %>">»</a>
+                    </li>
+                  </ul>
                 </nav>
-            </div>
+              </div>
+              
         </div>
 
         <!-- Bootstrap JS and jQuery -->
@@ -209,7 +219,7 @@
                             // Append the row to the table body
                             document.getElementById('body').appendChild(row);
                         });
-
+                        
 
                         const updatebutton = document.querySelectorAll('.updatebutton')
                         updatebutton.forEach((button, index) => {
@@ -278,6 +288,7 @@
             })
 
             document.getElementById('statusFilter').addEventListener('change', function () {
+               
                 const val = document.getElementById('statusFilter').value
                 console.log(val)
                 fetch('/admin/statusfilter', {
@@ -322,6 +333,137 @@
                             document.getElementById('body').appendChild(row);
                         });
 
+                        document.querySelectorAll('.order-link').forEach(link => {
+                                link.addEventListener('click', function () {
+                                    const orderId = this.getAttribute('data-order-id');
+                                    fetch(`/admin/orderdetails/${orderId}`)
+                                                .then(response => response.json())
+                                                .then(orderDetails => {
+                                                    console.log(orderDetails.order, orderDetails.address)
+                                                    // Check if we got the correct data
+                                                    if (orderDetails) {
+                                                        // Get the modal body element by ID
+                                                        const modalBody = document.getElementById('modalBodyContent');
+
+                                                        // Build the HTML content for the modal
+                                                        let modalContent = `
+                                                <!-- Order Header -->
+                                                <div class="row mb-3">
+                                                    <div class="col-8">
+                                                        <h5 class="mb-1">Order #ORD-${orderDetails.order.orderId}</h5>
+                                                        <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+                                                    </div>
+                                                    <div class="col-4 text-end">
+                                                        <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Order Items -->
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <h6 class="mb-2">Order Items</h6>
+                                                        
+                                            ${orderDetails.order.orderedItems.map(item => `
+                                            <div class="card mb-2">
+                                                <div class="card-body py-2 bg-dark">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-2">
+                                                            <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                                                        </div>
+                                                        <div class="col-7">
+                                                            <p class="mb-0 fw-bold">${item.product.productName}</p>
+                                                            <small >${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                                                        </div>
+                                                        <div class="col-3 text-end">
+                                                            <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    
+                                                    </div>
+                                                </div>
+
+                                                <!-- Order Summary -->
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <div class="card">
+                                                            <div class="card-body bg-dark">
+                                                                <h6 class="mb-2">Order Summary</h6>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Subtotal:</span>
+                                                                    <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Shipping:</span>
+                                                                    <span>₹0</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Tax:</span>
+                                                                    <span>₹${(orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Discount:</span>
+                                                                    <span>₹${(orderDetails.order.discount).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>CouponDiscount:</span>
+                                                                    <span>₹${(orderDetails.order.couponDiscount).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <hr class="my-2">
+                                                                <div class="d-flex justify-content-between fw-bold">
+                                                                    <span>Total:</span>
+                                                                    <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))+orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Shipping Information -->
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-2 mb-md-0">
+                                                        <div class="card h-100"> 
+                                                            <div class="card-body bg-dark">
+                                                                <h6 class="card-title">Shipping Address</h6>
+                                                                <p class="card-text mb-0">
+                                                                    ${orderDetails.address.address[0].name}<br>
+                                                                    ${orderDetails.address.address[0].addressType}<br>
+                                                                    ${orderDetails.address.address[0].city}, ${orderDetails.address.address[0].state} ${orderDetails.address.address[0].pincode}<br>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card h-100">
+                                                            <div class="card-body bg-dark">
+                                                                <h6 class="card-title">Payment Method</h6>
+                                                                <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    ${orderDetails.order.ReturnReason ? `
+                                                                <hr class="text-light">
+                                                                <h6 class="card-title">Return Reason</h6>
+                                                                <p class="card-text text-warning mb-0">${orderDetails.order.ReturnReason}</p>
+                                                                ` : ''}
+                                                </div>
+                                            `;
+
+                                                        // Insert the modal content into the modal body
+                                                        modalBody.innerHTML = modalContent;
+
+                                                        // Show the modal
+                                                        var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                                                        myModal.show();
+                                                    } else {
+                                                        // Handle error, if no order details are found
+                                                        alert('Order not found');
+                                                    }
+                                                })
+                                });
+                            });
 
                         const updatebutton = document.querySelectorAll('.updatebutton')
                         updatebutton.forEach((button, index) => {
@@ -437,6 +579,137 @@
                                 // Append the row to the table body
                                 document.getElementById('body').appendChild(row);
                             });
+                            document.querySelectorAll('.order-link').forEach(link => {
+                                link.addEventListener('click', function () {
+                                    const orderId = this.getAttribute('data-order-id');
+                                    fetch(`/admin/orderdetails/${orderId}`)
+                                                .then(response => response.json())
+                                                .then(orderDetails => {
+                                                    console.log(orderDetails.order, orderDetails.address)
+                                                    // Check if we got the correct data
+                                                    if (orderDetails) {
+                                                        // Get the modal body element by ID
+                                                        const modalBody = document.getElementById('modalBodyContent');
+
+                                                        // Build the HTML content for the modal
+                                                        let modalContent = `
+                                                <!-- Order Header -->
+                                                <div class="row mb-3">
+                                                    <div class="col-8">
+                                                        <h5 class="mb-1">Order #ORD-${orderDetails.order.orderId}</h5>
+                                                        <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+                                                    </div>
+                                                    <div class="col-4 text-end">
+                                                        <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Order Items -->
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <h6 class="mb-2">Order Items</h6>
+                                                        
+                                            ${orderDetails.order.orderedItems.map(item => `
+                                            <div class="card mb-2">
+                                                <div class="card-body py-2 bg-dark">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-2">
+                                                            <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                                                        </div>
+                                                        <div class="col-7">
+                                                            <p class="mb-0 fw-bold">${item.product.productName}</p>
+                                                            <small >${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                                                        </div>
+                                                        <div class="col-3 text-end">
+                                                            <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    
+                                                    </div>
+                                                </div>
+
+                                                <!-- Order Summary -->
+                                                <div class="row mb-3">
+                                                    <div class="col-12">
+                                                        <div class="card">
+                                                            <div class="card-body bg-dark">
+                                                                <h6 class="mb-2">Order Summary</h6>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Subtotal:</span>
+                                                                    <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Shipping:</span>
+                                                                    <span>₹0</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Tax:</span>
+                                                                    <span>₹${(orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>Discount:</span>
+                                                                    <span>₹${(orderDetails.order.discount).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between mb-1">
+                                                                    <span>CouponDiscount:</span>
+                                                                    <span>₹${(orderDetails.order.couponDiscount).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                                <hr class="my-2">
+                                                                <div class="d-flex justify-content-between fw-bold">
+                                                                    <span>Total:</span>
+                                                                    <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))+orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Shipping Information -->
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-2 mb-md-0">
+                                                        <div class="card h-100"> 
+                                                            <div class="card-body bg-dark">
+                                                                <h6 class="card-title">Shipping Address</h6>
+                                                                <p class="card-text mb-0">
+                                                                    ${orderDetails.address.address[0].name}<br>
+                                                                    ${orderDetails.address.address[0].addressType}<br>
+                                                                    ${orderDetails.address.address[0].city}, ${orderDetails.address.address[0].state} ${orderDetails.address.address[0].pincode}<br>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="card h-100">
+                                                            <div class="card-body bg-dark">
+                                                                <h6 class="card-title">Payment Method</h6>
+                                                                <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    ${orderDetails.order.ReturnReason ? `
+                                                                <hr class="text-light">
+                                                                <h6 class="card-title">Return Reason</h6>
+                                                                <p class="card-text text-warning mb-0">${orderDetails.order.ReturnReason}</p>
+                                                                ` : ''}
+                                                </div>
+                                            `;
+
+                                                        // Insert the modal content into the modal body
+                                                        modalBody.innerHTML = modalContent;
+
+                                                        // Show the modal
+                                                        var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                                                        myModal.show();
+                                                    } else {
+                                                        // Handle error, if no order details are found
+                                                        alert('Order not found');
+                                                    }
+                                                })
+                                });
+                            });
 
                             const updatebutton = document.querySelectorAll('.updatebutton')
                             updatebutton.forEach((button, index) => {
@@ -454,6 +727,7 @@
 
                                     }
                                     else {
+                                        
                                         Swal.fire({
                                             title: 'Are you sure?',
                                             text: `Do you want to change the status to ${currentvalue}?`,

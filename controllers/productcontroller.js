@@ -91,6 +91,7 @@ const editproduct = async(req,res)=>{
    const fullproduct = await Product.find({})
    try {
      upload(req, res,async(err) => {
+      console.log(req.body,'req.body')
       const brand = await brandschema.findOne({brandName:req.body.brand})
       const category = await Category.findOne({name:req.body.category}) 
          if (err) {

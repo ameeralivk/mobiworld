@@ -184,12 +184,16 @@
                                  } 
                                 let isDisabled = (order.status === "Delivered" || order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Shipped") ? 'disabled' : '';
 
-                                cancell = `<button type="button" class="btn-close" aria-label="Close" onclick="cancelorder('${order.orderId}','${item.product._id}')" ${isDisabled}></button>`;
+                                cancell = `<button type="button"
+                                class="btn btn-danger btn-sm "
+                                 onclick="cancelorder('${order.orderId}','${item.product._id}')"
+                               ${isDisabled}>
+                                 Cancel Order
+                                </button>`;
                 
                                 orderRow.innerHTML = `
                                 <!-- Close Button -->
-                                ${cancell}
-                                <div class="col-3a"><a class='text-decoration-none text-dark order-link' onclick="modalopen('${order.orderId}')" href='#'>#ORD-${order.orderId}</a></div> 
+                                <div class="col-3a"><a class='text-decoration-none text-dark order-link' href='#'>#ORD-${order.orderId}</a></div> 
                                 <div class="col-3">${item.quantity}</div>
                                 <div class="col-3">${new Date(order.createdOn).toLocaleString('en-IN')}</div>
                                 <div class="col-2">
@@ -201,7 +205,14 @@
                                 <div class="col-1 ms-3">
                                    ${downloadBtnHTML}
                                 </div>  
-                                 
+                                <div class= "d-flex gap-2">
+                                  <button type="button"
+                                class="btn btn-outline-primary btn-sm"
+                                 onclick="modalopen('${order.orderId}')">
+                                <i class="bi bi-chevron-down"></i> Show More
+                                 </button>
+                                  ${cancell}
+                                  </div>
                             `;
                                 orderList.appendChild(orderRow);
                             });

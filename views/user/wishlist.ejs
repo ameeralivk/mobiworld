@@ -21,20 +21,68 @@
             <p id="mess" class="error-message">
                 <%= message %>
             </p>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4 text-center py-5">
+                        <!-- Empty wishlist illustration -->
+                        <div class="mb-4 position-relative">
+                            <!-- List icon with heart -->
+                            <div class="bg-light rounded p-4 mx-auto" style="width: 180px; height: 200px;">
+                                <div class="d-flex justify-content-center">
+                                    <i class="bi bi-list-check text-secondary fs-1"></i>
+                                </div>
+                                
+                                <!-- Checklist items represented with Bootstrap -->
+                                <div class="text-start mx-auto mt-3" style="width: 80%;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="border border-secondary rounded me-2" style="width: 16px; height: 16px;"></div>
+                                        <div class="bg-secondary bg-opacity-25 rounded" style="height: 10px; width: 100%;"></div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="border border-secondary rounded me-2" style="width: 16px; height: 16px;"></div>
+                                        <div class="bg-secondary bg-opacity-25 rounded" style="height: 10px; width: 100%;"></div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="border border-secondary rounded me-2" style="width: 16px; height: 16px;"></div>
+                                        <div class="bg-secondary bg-opacity-25 rounded" style="height: 10px; width: 100%;"></div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="border border-secondary rounded me-2" style="width: 16px; height: 16px;"></div>
+                                        <div class="bg-secondary bg-opacity-25 rounded" style="height: 10px; width: 100%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Heart icon -->
+                                <div class="position-absolute bottom-0 end-0 mb-4 me-4">
+                                    <i class="bi bi-heart-fill text-danger fs-3"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Empty wishlist text -->
+                        <h2 class="fw-bold mb-2">Your wishlist is empty</h2>
+                    </div>
+                </div>
+            </div>
             <% } %>
+            <%
+
+            const allItems = theProducts.map(p => p.Products).flat();
+              %>
                 <!-- Cart Header -->
-                <div class="cart-header">
+                <% if (allItems.length > 0) { %>
+                <div id="cart-header" class="cart-header">
                     <div class="container">
                         <h1>wishlist</h1>
                     </div>
                 </div>
-
                 <!-- Cart Content -->
                 <div class="container mb-5">
                     <!-- Cart Items Table -->
                     <div class="row">
                         <div class="col-12">
                             <table class="table">
+                                
                                 <thead>
                                     <tr class="table-header">
                                         <th style="width: 5%"></th>
@@ -44,6 +92,7 @@
                                         <th style="width: 15%" class="text-center">Price</th>
                                     </tr>
                                 </thead>
+                                <% } %>
                                 <tbody>
                                     <% theProducts.forEach(product=> { %>
                                         <% product.Products.forEach(item=> { %>

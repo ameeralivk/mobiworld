@@ -216,18 +216,20 @@ function cropImage() {
                                                     <div class="mb-3">
                                                         <select id="cat" name="category" class="form-select">
                                                             <% if (product) { %>
-                                                                <option value="<%= product.category.name %>">
+                                                                <option value="<%= product.category.name %>" selected>
                                                                     <%= product.category.name %>
                                                                 </option>
+                                                            <% } else { %>
+                                                                <option disabled selected>Select a category</option>
+                                                            <% } %>
+                                                        
+                                                            <% fullcategory.forEach(prod => { %>
+                                                                <% if (!product || prod.name !== product.category.name) { %>
+                                                                    <option value="<%= prod.name %>"><%= prod.name %></option>
                                                                 <% } %>
-                                                                    <% fullcategory.forEach(prod=> {%>
-                                                                        <% if (prod.name !=product.name) { %>
-                                                                            <option>
-                                                                                <%= prod.name %>
-                                                                            </option>
-                                                                            <% } %>
-                                                                                <% }); %>
+                                                            <% }); %>
                                                         </select>
+                                                        
                                                         <p id="categoryerror" class="text-danger"></p>
                                                     </div>
                                                     <p>PRODUCT GST</p>

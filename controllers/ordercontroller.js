@@ -5,10 +5,27 @@ const productschema = require('../models/productSchema')
 const walletSchema = require('../models/walletSchem')
 const Product = require('../models/productSchema')
 const getorders = async (req, res) => {
-    const orders = await orderSchema.find().populate('userId').populate('orderedItems.product')
-    console.log(orders)
+    const ITEMS_PER_PAGE = 10; 
     try {
-        res.render('order', { orders })
+        const page = parseInt(req.query.page) || 1;
+
+        const totalOrders = await orderSchema.countDocuments();
+    
+        const totalPages = Math.ceil(totalOrders / ITEMS_PER_PAGE);
+    
+        const orders = await orderSchema
+          .find()
+          .skip((page - 1) * ITEMS_PER_PAGE)
+          .limit(ITEMS_PER_PAGE)
+          .populate('userId')
+          .populate('orderedItems.product');
+    
+        res.render('order', {
+          orders,
+          currentPage: page,
+          totalPages
+        });
+    
     } catch (error) {
         console.error('error from admin order page ', error)
     }

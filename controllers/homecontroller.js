@@ -28,11 +28,28 @@ const getproductmainpage = async (req, res) => {
   req.session.code = id
   const product = await Product.findOne({ _id: id, isDeleted: false });
   const allOffers = await offerschema.find({
+    // $or: [
+    //   { categoryId: product.category ? new mongoose.Types.ObjectId(product.category) : null },
+    //   { brandId: product.brand ? new mongoose.Types.ObjectId(product.brand) : null },
+    //   { productId: { $in: [new mongoose.Types.ObjectId(product._id)] } }
+    // ],
     $or: [
-      { categoryId: product.category ? new mongoose.Types.ObjectId(product.category) : null },
-      { brandId: product.brand ? new mongoose.Types.ObjectId(product.brand) : null },
-      { productId: { $in: [new mongoose.Types.ObjectId(product._id)] } }
-    ],
+  {
+    categoryId: product?.category
+      ? new mongoose.Types.ObjectId(product.category)
+      : null
+  },
+  {
+    brandId: product?.brand
+      ? new mongoose.Types.ObjectId(product.brand)
+      : null
+  },
+  {
+    productId: product?._id
+      ? { $in: [new mongoose.Types.ObjectId(product._id)] }
+      : null
+  }
+],
     status: true,
     startDate: { $lte: new Date() },
     expiredOn: { $gte: new Date() },
@@ -48,7 +65,7 @@ const getproductmainpage = async (req, res) => {
     if (product) {
       const priceless = product.salePrice - 15000
       const pricemore = product.salePrice + 15000
-      const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
+      const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id },isDeleted:false }).limit(4)
       console.log(bestOffer, 'bestOffer')
       return res.render('productmainpage', { product: product, recomended: recomended, bestOffer, allOffers })
     }
@@ -116,7 +133,8 @@ const getTotalOffers = async (product) => {
 
 
 const getBestOfferForProduct = async (product) => {
-  if (!product.category && !product.brand) return null;
+  // if (!product.category && !product.brand) return null;
+  if (!product || (!product.category && !product.brand)) return null;
   const filterConditions = [];
 
   if (product.category != null) {
@@ -757,6 +775,73 @@ const addtocart = async (req, res) => {
 // }
 
 
+// const getcart = async (req, res) => {
+//   const user = req.session.User;
+
+//   try {
+//     if (!user) {
+//       req.session.message = 'Please login';
+//       return res.redirect('/user/login');
+//     }
+//     if (req.session.couponUsed) {
+//       req.session.appliedCoupon = null;
+//       req.session.couponUsed = null;
+//     }
+
+//     const coupon = req.session.appliedCoupon || '';
+//     const message = req.session.message || '';
+//     req.session.message = null;
+
+//     if (req.session.appliedCoupon) {
+//       req.session.couponUsed = true;
+//     }
+
+//     const isexist = await cartSchema.findOne({ userId: user._id });
+//     const coupons = await couponSchema.find({})
+//     console.log(coupons,'coupons')
+//     if (!isexist) {
+//       return res.render('addtocart', {
+//         combineddata: [],
+//         quantity: '',
+//         totalPrice: 0,
+//         totalGST: '',
+//         message,
+//         offerPrice: 0,
+//         coupon,
+//         coupons,
+//       });
+//     }
+
+//     const items = isexist.items.map(item => item.productId);
+//     const quantity = isexist.items.map(item => item.quantity);
+//     const products = await Product.find({ _id: { $in: items } });
+
+//     const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
+
+//     const offerPrices = async (products) => {
+//       const discounts = await Promise.all(products.map(getTotalOffers));
+//       return discounts.reduce((acc, discount, index) => acc + discount * quantity[index], 0);
+//     };
+
+//     const offerPrice = await offerPrices(products);
+//     req.session.offerprice = offerPrice;
+
+//     return res.render('addtocart', {
+//       combineddata: populatedCart.items,
+//       quantity,
+//       totalPrice: isexist?.totalPrice,
+//       totalGST: isexist?.totalGST,
+//       message,
+//       offerPrice,
+//       coupon,
+//       coupons,
+//     });
+
+//   } catch (error) {
+//     console.error('error from homecontroller', error);
+//   }
+// };
+
 const getcart = async (req, res) => {
   const user = req.session.User;
 
@@ -788,40 +873,60 @@ const getcart = async (req, res) => {
         totalGST: '',
         message,
         offerPrice: 0,
-        coupon
+        coupon,
+        coupons: [],
       });
     }
 
     const items = isexist.items.map(item => item.productId);
     const quantity = isexist.items.map(item => item.quantity);
+
     const products = await Product.find({ _id: { $in: items } });
-
     const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
-
     const offerPrices = async (products) => {
-      const discounts = await Promise.all(products.map(getTotalOffers));
+      const discounts = await Promise.all(products.map(getTotalOffers)); // Assume you have getTotalOffers()
       return discounts.reduce((acc, discount, index) => acc + discount * quantity[index], 0);
     };
 
     const offerPrice = await offerPrices(products);
     req.session.offerprice = offerPrice;
 
+    const now = new Date();
+    const categoryIds = products.map(p => p.category?.toString());
+    const brandIds = products.map(p => p.brand?.toString());
+    const productIds = products.map(p => p._id.toString());
+
+    const matchingCoupons = await couponSchema.find({
+      status: true,
+      expiredOn: { $gte: now },
+      userId: { $ne: user._id },
+      $or: [
+        { appliesTo: "all" },
+        { appliesTo: "category", categoryId: { $in: categoryIds } },
+        { appliesTo: "brand", brandId: { $in: brandIds } },
+        { appliesTo: "product", productId: { $in: productIds } }
+      ]
+    });
+    const validCoupons = matchingCoupons.filter(coupon => {
+      return isexist.totalPrice >= coupon.minimumPrice;
+    });
+
     return res.render('addtocart', {
       combineddata: populatedCart.items,
       quantity,
-      totalPrice: isexist?.totalPrice,
-      totalGST: isexist?.totalGST,
+      totalPrice: isexist.totalPrice,
+      totalGST: isexist.totalGST,
       message,
       offerPrice,
-      coupon
+      coupon,
+      coupons: validCoupons,
     });
 
   } catch (error) {
-    console.error('error from homecontroller', error);
+    console.error('Error in getcart controller:', error);
+    res.status(500).send("Server error");
   }
 };
-
-
 
 const updatequantity = async (req, res) => {
   const quantity = parseInt(req.body.quantity);
@@ -1519,6 +1624,7 @@ const pdfdownload = async (req, res) => {
       totalGST: cart.totalGST,
       totalPriceWithGST: totalPriceWithGST,
       offer: cart.discount ? cart.discount : 0,
+      couponDiscount:cart.couponDiscount,
     };
 
     console.log(invoiceData, 'invoice data')

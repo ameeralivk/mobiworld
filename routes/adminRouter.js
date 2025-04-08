@@ -56,7 +56,7 @@ router.post('/searchorder',orderscontroller.searchorder)
 router.post('/statusfilter',orderscontroller.statusfilter)
 router.post('/Datefilter',orderscontroller.Datefilter)
 router.post('/cancelorder',orderscontroller.cancelorder)
-module.exports = router;  
+ 
 
 
 //brand routes 
@@ -93,3 +93,5 @@ router.post('/addCoupon',admincontroller.addCoupon)
 router.get('/getCoupon/:id',admincontroller.couponEditDetails)
 router.post('/editCoupon/:id',admincontroller.editCoupon)
 router.delete('/deleteCoupon/:id',admincontroller.deleteCoupon)
+
+module.exports = router; 
