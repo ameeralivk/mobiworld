@@ -94,4 +94,8 @@ router.get('/getCoupon/:id',admincontroller.couponEditDetails)
 router.post('/editCoupon/:id',admincontroller.editCoupon)
 router.delete('/deleteCoupon/:id',admincontroller.deleteCoupon)
 
+
+//dashboard chart 
+router.get('/dashboard/data/:filter',admincontroller.getChartData);
+
 module.exports = router; 

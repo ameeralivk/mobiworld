@@ -501,18 +501,38 @@ const logout = async (req,res)=>{
         res.redirect('/pageNotFound')
     }
 }
-const shoppage = async(req,res)=>{
-    const user = req.session.User
+
+const shoppage = async (req, res) => {
+    const user = req.session.User;
     try {
-     const product = await productSchema.find({isDeleted:false,isBlocked:false})
-    const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
-    const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
-    const category = await brandschema.find({})
-        res.render('shoppage',{product,category:category,count:product.length,wishlistProductIds})
+        const category = await brandschema.find({});
+        const product = await productSchema.find({ isDeleted: false, isBlocked: false });
+
+        let wishlistProductIds = [];
+
+        if (user) {
+            const wishlist = await wishlistSchema
+                .findOne({ userId: user._id })
+                .populate("Products.productId");
+
+            wishlistProductIds = wishlist
+                ? wishlist.Products.map(item => item.productId._id.toString())
+                : [];
+        }
+
+        return res.render('shoppage', {
+            product,
+            category,
+            count: product.length,
+            wishlistProductIds
+        });
+
     } catch (error) {
-        console.error('error from usercontroller',error)
+        console.error('error from usercontroller', error);
+        res.status(500).send("Something went wrong");
     }
 }
+
 module.exports = { 
     loadregisterpage,
     Loadlogin,
