@@ -86,7 +86,8 @@
                                                         class="quantity-btn rounded-end">+</button>
                                                 </div>
                                             </td>
-                                            <input type="hidden" id="currentstock" value="<%= product.productId.quantity %>">
+                                            <input type="hidden" id="currentstock-<%= product._id %>" value="<%= product.productId.quantity %>">
+
                                             <td id="Total" class="text-center"> </td>
                                         </tr>
                                         <% }); %>
@@ -264,19 +265,38 @@
                             // Plus button event
                             plusBtn.forEach(button => {
                                 button.addEventListener('click', function () {
-                                    const stock = document.getElementById('currentstock').value
-                                    const productId = this.dataset.productId
-                                    const quantityInputField = document.getElementById(`quantityInput-${productId}`)
+                                    const productId = this.dataset.productId;
+                                    const stock = parseInt(document.getElementById(`currentstock-${productId}`).value);
+                                    const quantityInputField = document.getElementById(`quantityInput-${productId}`);
                                     let currentQuantity = parseInt(quantityInputField.value);
-                                    console.log(currentQuantity)
-                                    let newQuantity = currentQuantity + 1
-                                    if(newQuantity<= stock){
-                                        quantityInputField.value = newQuantity;  
+                                    let newQuantity = currentQuantity + 1;
+
+                                    const maxLimit = 5;
+
+                                    if (newQuantity > stock) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Stock Limit Reached',
+                                            text: `Only ${stock} item(s) available in stock.`,
+                                            timer: 2000,
+                                            showConfirmButton: false
+                                        });
+                                    } else if (newQuantity > maxLimit) {
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Limit Exceeded',
+                                            text: `Only ${maxLimit} item(s) allowed at a time.`,
+                                            timer: 2000,
+                                            showConfirmButton: false
+                                        });
+                                    } else {
+                                        quantityInputField.value = newQuantity;
+                                        updateTotal();
+                                        updatequantity(productId, newQuantity);
                                     }
-                                    updateTotal();
-                                    updatequantity(productId, newQuantity)
                                 });
-                            })
+                            });
+
 
                             async function deletebutton(id, button) {
                                 const confirmation = await Swal.fire({

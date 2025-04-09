@@ -673,7 +673,7 @@ const getChartData = async (req, res) => {
           }
         console.log(productMap,'map')
         const productIds = Object.keys(productMap);
-        const productDocs = await productschema.find({ _id: { $in: productIds } });
+        const productDocs = await productschema.find({ _id: { $in: productIds } }).limit(10);
         const productLabels = productDocs.map(p => p.productName);
         const productData = productDocs.map(p => productMap[p._id]);
         console.log(productData,'data')
@@ -688,8 +688,13 @@ const getChartData = async (req, res) => {
             });
           });
          console.log(categoryMap,'categorymap')
-        const categoryLabels = Object.keys(categoryMap);
-        const categoryData = Object.values(categoryMap);
+         const sortedCategories = Object.entries(categoryMap)
+         .sort((a, b) => b[1] - a[1]) // Sort by count descending
+         .slice(0, 10); // Top 10
+       
+       const categoryLabels = sortedCategories.map(([label]) => label);
+       const categoryData = sortedCategories.map(([_, value]) => value);
+       
 
         // Brands
         const brandMap = {};
@@ -702,8 +707,13 @@ const getChartData = async (req, res) => {
             });
           });
          console.log(brandMap,'brandmap')
-        const brandLabels = Object.keys(brandMap);
-        const brandData = Object.values(brandMap);
+         const sortedBrands = Object.entries(brandMap)
+  .sort((a, b) => b[1] - a[1]) // Sort by count descending
+  .slice(0, 10); // Top 10
+
+const brandLabels = sortedBrands.map(([label]) => label);
+const brandData = sortedBrands.map(([_, value]) => value);
+
         console.log(brandLabels,brandData)
 
         // Order Status
@@ -724,6 +734,7 @@ const getChartData = async (req, res) => {
             ]
           }).limit(10);
         const recentOrders = lastorders.map(order => ({
+            order:order.orderId,
             orderId: order._id,
             customerName: order.userId?.name || 'Unknown',
             email: order.userId?.email || '',

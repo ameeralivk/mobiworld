@@ -40,7 +40,7 @@ const updatestatus = async (req, res) => {
         const saved = order.save()
         if (saved) {
             if(order.status == "Returned" ){
-                if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer") ){
+                if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer"||order.paymentMethod =="Cash ON Delivery") ){
                     let wallet = await walletSchema.findOne({ userId: user._id });
                     const method = order.paymentMethod 
                     if (!wallet) {
@@ -50,14 +50,17 @@ const updatestatus = async (req, res) => {
                         transaction: [{
                           Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
                           Type: 'Credit',
-                          description:`${method} Returned Amount`
+                          description:`${method} Returned Amount`,
+                          orderId:order._id,
                         }]
                       });
                     } else {
                       console.log('Updating existing wallet');
                       wallet.transaction.push({
+                        description:`${method} Returned Amount`,
                         Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
                         Type: 'Credit',
+                        orderId:order._id,
                       });
                     }
               
@@ -77,6 +80,7 @@ const orderdetails = async (req, res) => {
     const orderid = req.params
     console.log(orderid,'orderid')
     const order = await orderSchema.findOne({ orderId: orderid.id }).populate('orderedItems.product')
+    console.log(order,'order')
     const addressIdFromOrder = order.address
     const address = await addressschema.Address.findOne({
         "address._id": addressIdFromOrder
@@ -160,7 +164,8 @@ const cancelorder = async (req, res) => {
                     transaction:[{
                         Total:(order.totalPrice+order.totalGST)-(order.discount?order.discount:0),
                         Type:"Credit",
-                        description:"Amount On Cancelling"
+                        description:"Amount On Cancelling",
+                        orderId:order._id,
                     }]
                 })
                 await orderSchema.deleteOne({ _id: order._id });
@@ -172,6 +177,7 @@ const cancelorder = async (req, res) => {
                 Total:(order.totalPrice+order.totalGST)-(order.discount?order.discount:0),
                 Type:"Credit",
                 description:"Amount On Cancelling",
+                orderId:order._id
             })
             await orderSchema.deleteOne({ _id: order._id });
             await find.calculateWalletTotal()
@@ -188,7 +194,10 @@ const cancelorder = async (req, res) => {
                 { $inc: { quantity: item.quantity } } 
             );
         }));
-        await orderSchema.deleteOne({ _id: order._id });
+        await orderSchema.updateOne(
+            { _id: order._id },
+            { $set: { status: 'Cancelled'} }
+          );
         const orders = await orderSchema.find({}).populate('userId').populate('orderedItems.product');
         res.status(200).json({ message: "Order cancelled successfully", data: orders });
 

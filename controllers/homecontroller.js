@@ -930,10 +930,12 @@ const getcart = async (req, res) => {
 
 const updatequantity = async (req, res) => {
   const quantity = parseInt(req.body.quantity);
+  console.log(quantity,'quantity')
   const id = req.body.productId;
   const user = req.session.User;
 
   try {
+    
     let cart = await cartSchema.findOne({ userId: user._id });
 
     if (!cart) {
@@ -941,7 +943,7 @@ const updatequantity = async (req, res) => {
     }
 
     const item = cart.items.find(item => item._id == id);
-
+     
     if (!item) {
       return res.status(404).json({ success: false, message: "Item not found in cart" });
     }
@@ -1378,58 +1380,61 @@ const orderplacedpage = async (req, res) => {
           const totalGST = orderededuser.totalGST
           const address = req.session.address
           req.session.address = null
-          const totalAmount = (totalPrice + totalGST) - (req.session.offerprice ? req.session.offerprice : 0)
-          const findwallet = await walletSchema.findOne({ userId: user._id })
-          if (findwallet && findwallet.WalletTotal >= totalAmount) {
-            findwallet.transaction.push({
-              Total: totalAmount,
-              Type: 'Debit',
-              description: 'amount debited from wallet',
-            })
-            await findwallet.calculateWalletTotal()
-            await findwallet.save()
-          }
-          else {
-            req.session.message = "wallet is empty or Insufficient Amount"
-            return res.redirect('/user/getcart')
-          }
           const orderedItems = orderededuser.items.map(item => ({
             product: item.productId,
             quantity: item.quantity,
             price: item.price,
           }))
-          const newOrder = new orderSchema({
-            userId: user._id,
-            paymentMethod: 'Wallet Transfer',
-            totalGST: totalGST,
-            orderedItems: orderedItems,
-            totalPrice: totalPrice,
-            finalAmount: totalPrice,
-            address: address,
-            status: "Confirmed", // Default status is 'Pending' if not provided
-            invoiceDate: new Date(),
-            couponApplied:!!req.session.appliedCoupon,
-            discount: req.session.offerprice,
-            couponDiscount:req.session.appliedCoupon.couponDiscount || 0,
-          });
-          const saved = await newOrder.save();
-          if (saved) {
-            req.session.offerprice = null
-            const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
-            console.log(couponfind, 'coupon ameer')
-            couponfind.userId.push(user._id)
-            await couponfind.save()
-            const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
-            updateQuantities(orderededuser.items)
-            if (items) {
-              req.session.order = saved.orderId
-              const remove = await cartSchema.deleteOne({ userId: user._id })
-              return res.redirect('/user/paymentsuccesspage')
+          const totalAmount = (totalPrice + totalGST) - (req.session.offerprice ? req.session.offerprice : 0)
+          const findwallet = await walletSchema.findOne({ userId: user._id })
+          if (findwallet && findwallet.WalletTotal >= totalAmount) {
+            const newOrder = new orderSchema({
+              userId: user._id,
+              paymentMethod: 'Wallet Transfer',
+              totalGST: totalGST,
+              orderedItems: orderedItems,
+              totalPrice: totalPrice,
+              finalAmount: totalPrice,
+              address: address,
+              status: "Pending", // Default status is 'Pending' if not provided
+              invoiceDate: new Date(),
+              couponApplied:!!req.session.appliedCoupon,
+              discount: req.session.offerprice,
+              couponDiscount:req.session.appliedCoupon?.couponDiscount || 0,
+            });
+            const saved = await newOrder.save();
+            findwallet.transaction.push({
+              Total: totalAmount,
+              Type: 'Debit',
+              description: 'amount debited from wallet',
+              orderId:saved._id,
+            })
+            await findwallet.calculateWalletTotal()
+            await findwallet.save()
+            if (saved) {
+              req.session.offerprice = null
+              const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+              console.log(couponfind, 'coupon ameer')
+              if(couponfind){
+                couponfind.userId.push(user._id)
+                await couponfind.save()
+              }
+              const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+              updateQuantities(orderededuser.items)
+              if (items) {
+                req.session.order = saved.orderId
+                const remove = await cartSchema.deleteOne({ userId: user._id })
+                return res.redirect('/user/paymentsuccesspage')
+              }
+              else {
+                return res.redirect('/user/getcart')
+              }
+  
             }
-            else {
-              return res.redirect('/user/getcart')
-            }
-
+          }
+          else {
+            req.session.message = "wallet is empty or Insufficient Amount"
+            return res.redirect('/user/getcart')
           }
 
         }
@@ -1554,7 +1559,7 @@ const orderpage = async (req, res) => {
 
 const pagination = async (req, res) => {
   const user = req.session.User
-  const items = await orderSchema.find({ userId: user._id }).populate('orderedItems.product')
+  const items = await orderSchema.find({ userId: user._id }).populate('orderedItems.product').sort({ createdOn: -1 })
   const product = items.map(item => item.orderedItems)
   console.log(product.flat(1), 'product')
   const count = product.flat(1)
@@ -1967,7 +1972,7 @@ const returnorder = async (req, res) => {
 const getwallet = async (req, res) => {
   const user = req.session.User
   try {
-    const wallet = await walletSchema.findOne({ userId: user._id })
+    const wallet = await walletSchema.findOne({ userId: user._id }).populate("transaction.orderId")
     if (wallet) {
       const createdOn = wallet.createdOn
       const expiryDate = new Date(createdOn);

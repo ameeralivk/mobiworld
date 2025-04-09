@@ -6,9 +6,27 @@
   <title>Admin Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
   <link rel="stylesheet" href="\css\admin css\dash.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
   <%- include("../../views/partials/admin/layout") %>
+  
+  <div class="modal" id="myModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-dark">
+            <div class="modal-header">
+                <h5 class="modal-title text-dark">Modal title</h5>
+            </div>
+            <div class="modal-body" id="modalBodyContent"></div>
+            <div class="modal-footer">
+                <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
   <div class="dashboard-container">
     <div class="top-bar">
@@ -52,7 +70,7 @@
         <div class="chart-header">
           <div>
             <h2 class="chart-title">Best Selling Products</h2>
-            <p class="chart-subtitle">Top 5 products by units sold</p>
+            <p class="chart-subtitle">Top 10 products by units sold</p>
           </div>
         </div>
         <div class="chart-container">
@@ -131,7 +149,7 @@
             <td>#ORD-5543</td>
             <td>John Smith</td>
             <td>04 Apr 2025</td>
-            <td class="amount">$329.95</td>
+            <td class="amount">₹329.95</td>
             <td><span class="status-badge status-delivered">Delivered</span></td>
             <td>
               <i class="fas fa-eye action-btn" title="View Details"></i>
@@ -144,6 +162,7 @@
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let salesChart, productsChart, categoriesChart, brandsChart, statusChart;
 
@@ -153,13 +172,13 @@
     ];
 
     // Format currency
-    const formatCurrency = (value) => {
-      return new Intl.NumberFormat('en-US', {
+        function formatCurrency(amount) {
+      return new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0
-      }).format(value);
-    };
+        currency: 'INR',
+        maximumFractionDigits: 2,
+      }).format(amount);
+    }
 
     // Format number with commas
     const formatNumber = (value) => {
@@ -195,18 +214,145 @@
         <td>#${order.orderId}</td>
         <td>${order.customerName}</td>
         <td>${order.createdOn}</td>
-        <td class="amount">$${order.amount.toFixed(2)}</td>
+        <td class="amount">₹${order.amount.toFixed(2)}</td>
         <td><span class="status-badge ${statusClass}">${order.status}</span></td>
         <td>
-          <i class="fas fa-eye action-btn" title="View Details"></i>
-          <i class="fas fa-print action-btn" title="Print Invoice"></i>
+          <i class="fas fa-eye action-btn" title="View Details"onclick="showOrderDetailsModal('${order.order}')"></i>
         </td>
       </tr>
     `;
     tbody.insertAdjacentHTML('beforeend', row);
   });
 }
+ function showOrderDetailsModal(orderid){
+  console.log(orderid)
+  fetch(`/admin/orderdetails/${orderid}`)
+        .then(response => response.json())
+        .then(orderDetails => {
+            console.log(orderDetails.order, orderDetails.address)
+            // Check if we got the correct data
+            if (orderDetails) {
+                // Get the modal body element by ID
+                const modalBody = document.getElementById('modalBodyContent');
 
+                // Build the HTML content for the modal
+                let modalContent = `
+        <!-- Order Header -->
+        <div class="row mb-3">
+            <div class="col-8">
+                <h5 class="mb-1">Order #ORD-${orderDetails.order.orderId}</h5>
+                <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+            </div>
+            <div class="col-4 text-end">
+                <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <h6 class="mb-2">Order Items</h6>
+                
+    ${orderDetails.order.orderedItems.map(item => `
+    <div class="card mb-2">
+        <div class="card-body py-2 bg-dark">
+            <div class="row align-items-center">
+                <div class="col-2">
+                    <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                </div>
+                <div class="col-7">
+                    <p class="mb-0 fw-bold">${item.product.productName}</p>
+                    <small >${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                </div>
+                <div class="col-3 text-end">
+                    <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+`).join('')}
+
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body bg-dark">
+                        <h6 class="mb-2">Order Summary</h6>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Subtotal:</span>
+                            <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Shipping:</span>
+                            <span>₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Tax:</span>
+                            <span>₹${(orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Discount:</span>
+                            <span>₹${(orderDetails.order.discount).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>CouponDiscount:</span>
+                            <span>₹${(orderDetails.order.couponDiscount).toLocaleString('en-IN')}</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))+orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="row">
+            <div class="col-md-6 mb-2 mb-md-0">
+                <div class="card h-100"> 
+                    <div class="card-body bg-dark">
+                        <h6 class="card-title">Shipping Address</h6>
+                        <p class="card-text mb-0">
+                            ${orderDetails.address.address[0].name}<br>
+                            ${orderDetails.address.address[0].addressType}<br>
+                            ${orderDetails.address.address[0].city}, ${orderDetails.address.address[0].state} ${orderDetails.address.address[0].pincode}<br>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body bg-dark">
+                        <h6 class="card-title">Payment Method</h6>
+                        <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
+                    </div>
+                </div>
+            </div>
+            ${orderDetails.order.ReturnReason ? `
+                        <hr class="text-light">
+                        <h6 class="card-title">Return Reason</h6>
+                        <p class="card-text text-warning mb-0">${orderDetails.order.ReturnReason}</p>
+                        ` : ''}
+        </div>
+    `;
+
+                // Insert the modal content into the modal body
+                modalBody.innerHTML = modalContent;
+
+                // Show the modal
+                var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                myModal.show();
+            } else {
+                // Handle error, if no order details are found
+                alert('Order not found');
+            }
+        })
+ }
 
     function generateLegend(chartId, labels, colors) {
       const legendEl = document.getElementById(`${chartId}-legend`);

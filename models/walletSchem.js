@@ -31,7 +31,12 @@ const walletSchema = new Schema({
         description:{
             type:String,
             required:false,
-        }
+        },
+        orderId:{
+            type:Schema.Types.ObjectId,
+            ref : "Order",
+            required: false,
+        },
     }],
     createdOn:{
         type:Date,

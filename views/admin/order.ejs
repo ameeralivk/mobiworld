@@ -2,6 +2,8 @@
     <link rel="stylesheet" href="\css\admin css\orders.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Font Awesome CDN -->
+<link
 
     <body>
         <div class="modal" id="myModal" tabindex="-1" role="dialog">
@@ -124,6 +126,9 @@
                             </td>
                             <td><button id="Updatebutton" type="button"
                                     class="btn btn-primary updatebutton">Update</button></td>
+                                    <td>
+                                        <i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="<%= order.orderId %>"></i>
+                                   </td>
 
                         </tr>
                         <% }) %>
