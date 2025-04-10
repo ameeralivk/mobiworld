@@ -1,7 +1,13 @@
 const { MongoServerClosedError } = require("mongodb");
 const mongoose = require("mongoose")
 const {Schema} = mongoose
-const {v4:uuidv4} = require('uuid');
+// const {v4:uuidv4} = require('uuid');
+const generateOrderId = () => {
+    const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const randomPart = Math.floor(1000 + Math.random() * 9000);
+    return `ORD-${datePart}-${randomPart}`;
+  };
+  
 
 
 const orderSchema = new Schema({
@@ -11,11 +17,11 @@ const orderSchema = new Schema({
         required: true,
 
     },
-    orderId : {
-        type:String,
-        default:()=>uuidv4(),
-        unique:true
-    },
+    orderId: {
+        type: String,
+        default: generateOrderId,
+        unique: true,
+      },
     razorpayOrderId: {
         type: String,
         required:function() {

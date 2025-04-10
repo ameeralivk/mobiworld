@@ -352,7 +352,18 @@
                 .then(response => response.json())
                 .then(data => {
                     console.log('Server Response:', data);
-                    window.location.href = '/user/getcart';
+                    if(data.errormessage){
+                        Swal.fire({
+                        title: 'Alert!',
+                        text:data.errormessage ,
+                        icon: 'info', // or 'success', 'error', 'warning'
+                        confirmButtonText: 'OK'
+                    });
+                    }
+                    else{
+                        window.location.href = '/user/getcart';
+                    }
+                   
                 })
                 .catch(error => {
                     console.error('Error:', error); // Handle errors

@@ -1,0 +1,293 @@
+:root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --secondary: #10b981;
+    --dark: #1e293b;
+    --light: #f8fafc;
+    --danger: #ef4444;
+    --success: #10b981;
+    --card-gradient: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f1f5f9;
+    color: var(--dark);
+}
+
+.navbar {
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.wallet-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.page-title {
+    color: var(--dark);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 1.75rem;
+}
+
+.wallet-card-container {
+    perspective: 1000px;
+    margin-bottom: 2rem;
+}
+
+.wallet-card {
+    background: var(--card-gradient);
+    color: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: relative;
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+    min-height: 200px;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+}
+
+.wallet-card:hover {
+    transform: rotateY(5deg);
+}
+
+.card-title {
+    font-weight: 600;
+    letter-spacing: 2px;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-number {
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+}
+
+.balance {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.valid-thru {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.card-chip {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    font-size: 1.5rem;
+    color: rgba(255,255,255,0.8);
+}
+
+.quick-action-container {
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+    height: 100%;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-color: var(--primary);
+}
+
+.action-icon {
+    font-size: 1.8rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+.action-title {
+    font-weight: 600;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+.add-funds-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--dark);
+}
+
+.add-btn {
+    background: var(--primary);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.add-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.amount-input {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+.transaction-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.transaction-table {
+    color: var(--dark);
+}
+
+.transaction-table th {
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.transaction-row {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.2s;
+}
+
+.transaction-row:hover {
+    background-color: #f8fafc;
+}
+
+.transaction-row td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+}
+
+.badge-credit {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+}
+
+.badge-debit {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+}
+
+.action-btn {
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1.1rem;
+}
+
+.action-btn:hover {
+    color: var(--primary-dark);
+    transform: scale(1.1);
+}
+
+/* Modal Styling */
+.modal-content {
+    border-radius: 12px;
+    border: none;
+}
+
+.modal-header {
+    border-bottom: 1px solid #f1f5f9;
+    padding: 1.25rem 1.5rem;
+}
+
+.modal-title {
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-top: 1px solid #f1f5f9;
+    padding: 1.25rem 1.5rem;
+}
+
+.btn-primary {
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: #e2e8f0;
+    border: none;
+    color: #475569;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+}
+
+.btn-secondary:hover {
+    background: #cbd5e1;
+    color: #334155;
+}
+
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+@media (max-width: 767px) {
+    .wallet-card {
+        padding: 1.25rem;
+    }
+    
+    .balance {
+        font-size: 2rem;
+    }
+    
+    .action-card {
+        margin-bottom: 1rem;
+    }
+    
+    .transaction-table th, .transaction-table td {
+        font-size: 0.85rem;
+    }
+}

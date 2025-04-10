@@ -3,26 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wallet Interface</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="\css\css\wallet.css">
-    <link rel="stylesheet" href="\css\shoppage.css">
+    <title>MOBIWORLD Wallet</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="\css\shoppage_header.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="\css\wallet.css">
 </head>
 <body>
+    <!-- Header Section -->
     <%- include("../../views/partials/user/shoppage_header") %>
+    
+    <!-- Transaction Details Modal -->
     <div class="modal" id="myModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content bg-dark">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title text-dark">Modal title</h5>
+                    <h5 class="modal-title">Transaction Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="modalBodyContent"></div>
+                <div class="modal-body" id="modalBodyContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
                 <div class="modal-footer">
                     <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -30,31 +32,91 @@
             </div>
         </div>
     </div>
-    <div class="container">
+    
+    <div class="wallet-container">
         <h2 class="page-title">Welcome To Your Wallet</h2>
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="wallet-card">
-                    <h5 class="card-title">MOBIWORLD</h5>
-                    <p class="card-number">**** **** **** 1234</p>
-                    <div class="balance">₹<%= wallet.WalletTotal ? wallet.WalletTotal.toLocaleString('en-IN') : '0' %></div>
-                    <div class="valid-thru"><%= expiryDate %></div>
+        
+        <!-- Wallet Card -->
+        <div class="wallet-card-container">
+            <div class="wallet-card">
+                <div class="card-chip">
+                    <i class="fas fa-microchip"></i>
+                </div>
+                <h5 class="card-title">MOBIWORLD</h5>
+                <p class="card-number">**** **** **** 1234</p>
+                <div class="balance">₹<%= wallet.WalletTotal ? wallet.WalletTotal.toLocaleString('en-IN') : '0' %></div>
+                <div class="valid-thru"><%= expiryDate %></div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="quick-action-container">
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <p class="action-title">Add Money</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <p class="action-title">Transfer</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <p class="action-title">Pay Bills</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <p class="action-title">History</p>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="row mb-3">
-            <div class="col-12">
-                <p class="mb-2">Add Amount</p>
-                <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Enter amount">
-                    <button class="add-btn btn px-3 py-2" type="button" style="margin-left: 10px;">Add</button>
+        <!-- Add Funds Section -->
+        <div class="add-funds-container">
+            <h5 class="section-title">Add Amount</h5>
+            <div class="row align-items-center">
+                <div class="col-md-8 mb-3 mb-md-0">
+                    <input type="text" class="form-control amount-input" placeholder="Enter amount">
+                </div>
+                <div class="col-md-4">
+                    <button class="btn add-btn w-100 py-2">Add</button>
                 </div>
             </div>
         </div>
         
-        <div class="row">
-            <div class="col-12">
+        <!-- Transaction History -->
+        <div class="transaction-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="section-title mb-0">Transaction History</h5>
+                <div class="dropdown mb-3">
+                    <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                      <i class="fas fa-filter me-1"></i> Filter
+                    </button>
+                    <ul class="dropdown-menu" id="filter-options">
+                      <li><a class="dropdown-item" href="#" data-type="all">All</a></li>
+                      <li><a class="dropdown-item" href="#" data-type="credit">Credit</a></li>
+                      <li><a class="dropdown-item" href="#" data-type="debit">Debit</a></li>
+                    </ul>
+                  </div>
+            </div>
+            
+            <div class="table-responsive">
                 <table class="table transaction-table">
                     <thead>
                         <tr>
@@ -62,68 +124,137 @@
                             <th scope="col">Amount</th>
                             <th scope="col">Type</th>
                             <th scope="col">Date</th>
+                            <th scope="col">Transaction Id</th>
+                            <th scope="col">Payment Method</th>
                             <th scope="col">Description</th>
+                            <th scope="col">Details</th>
+                            <th scope="col">Balance</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <% wallet.transaction.forEach((trans,index)=> { %>
-                        <!-- <tr>
-                            <td>1</td>
-                            <td>$<%= trans.Total %></td>
-                            <td><%= trans.Type %></td>
+                    <% let balance = 0; %>
+                    <tbody id="transaction-list">
+                        <% wallet.transaction.forEach((trans, index) => {
+                            const amount = trans.Total;
+                            if (trans.Type === 'Credit') {
+                                balance += amount;
+                            } else {
+                                balance -= amount;
+                            }
+                        %>
+                        <tr class="transaction-row <%= trans.Type === 'Credit' ? 'table-success' : 'table-danger' %>">
+                            <td><%= index + 1 %></td>
+                            <td class="fw-semibold">₹<%= amount.toLocaleString('en-IN') %></td>
+                            <td>
+                                <span class="<%= trans.Type === 'Credit' ? 'badge-credit' : 'badge-debit' %>">
+                                    <%= trans.Type %>
+                                </span>
+                            </td>
                             <td><%= new Date(trans.createdOn).toDateString() %></td>
-                        </tr> -->
-                        <tr class="<%= trans.Type === 'Credit' ? 'table-success' : 'table-danger' %>">
-                            <td><%= index+1 %></td>
-                            <td>₹<%= trans.Total.toLocaleString('en-IN') %></td>
-                            <td><%= trans.Type %></td>
-                            <td><%= new Date(trans.createdOn).toDateString() %></td>
+                            <td><%= trans.orderId?.orderId || '-' %></td>
+                            <td><%= trans.orderId?.paymentMethod || '-' %></td>
                             <td><%= trans.description %></td>
-                            <td >
-                                <% if (trans.Type === "Credit" ) { %>
-                                    <td>
-                                        <i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="<%= trans.orderId.orderId %>"></i>
-                                   </td>
+                            <td>
+                                <% if (trans.Type === 'Credit') { %>
+                                    <i class="fas fa-eye action-btn order-link"
+                                       title="View Details"
+                                       data-order-id="<%= trans.orderId?.orderId || '' %>">
+                                    </i>
                                 <% } %>
-                              </td>
-                              
+                            </td>
+                            <td class="fw-semibold text-primary">
+                                ₹<%= balance.toLocaleString('en-IN') %>
+                            </td>
                         </tr>
-                        
                         <% }) %>
                     </tbody>
+                    
                 </table>
             </div>
         </div>
     </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-         document.querySelectorAll('.order-link').forEach(link => {
-                link.addEventListener('click', function () {
-                    const orderId = this.getAttribute('data-order-id');
-                    showOrderModal(orderId);
-                });
-            });
-         function showOrderModal(orderId) {
-                // Fetch the order details from the server
-                fetch(`/admin/orderdetails/${orderId}`)
-                    .then(response => response.json())
-                    .then(orderDetails => {
-                        console.log(orderDetails.order, orderDetails.address)
-                        // Check if we got the correct data
-                        if (orderDetails) {
-                            // Get the modal body element by ID
-                            const modalBody = document.getElementById('modalBodyContent');
+         document.querySelectorAll('#filter-options .dropdown-item').forEach(item => {
+    item.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const type = item.dataset.type;
 
-                            // Build the HTML content for the modal
-                            let modalContent = `
+        try {
+            const res = await fetch(`/wallet/filter?type=${type}`);
+            const data = await res.json(); 
+
+            const transactions = data.transactions; 
+            let runningBalance = data.balance;      
+            const tbody = document.getElementById("transaction-list");
+            tbody.innerHTML = ''; 
+
+            transactions.forEach((trans, index) => {
+                const row = document.createElement("tr");
+                row.className = `transaction-row ${trans.Type === 'Credit' ? 'table-success' : 'table-danger'}`;
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td class="fw-semibold">₹${trans.Total.toLocaleString('en-IN')}</td>
+                    <td>
+                        <span class="${trans.Type === 'Credit' ? 'badge-credit' : 'badge-debit'}">${trans.Type}</span>
+                    </td>
+                    <td>${new Date(trans.createdOn).toDateString()}</td>
+                    <td>${trans.orderId?.orderId || '-'}</td>
+                    <td>${trans.orderId?.paymentMethod || '-'}</td>
+                    <td>${trans.description || '-'}</td>
+                    <td>
+                        ${trans.Type === 'Credit'
+                            ? `<i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="${trans.orderId?.orderId || ''}"></i>`
+                            : ''}
+                    </td>
+                    <td>₹${runningBalance.toLocaleString('en-IN')}</td>
+                `;
+
+                
+                if (trans.Type === 'Credit') {
+                    runningBalance -= trans.Total;
+                } else {
+                    runningBalance += trans.Total;
+                }
+
+                tbody.appendChild(row);
+            });
+
+        } catch (err) {
+            console.error('Failed to fetch filtered data:', err);
+        }
+    });
+});
+
+       
+            document.getElementById('transaction-list').addEventListener('click', function (e) {
+                if (e.target.classList.contains('order-link')) {
+                    const orderId = e.target.getAttribute('data-order-id');
+                    console.log('Clicked Order ID:', orderId);
+                    showOrderModal(orderId);
+                }
+                });
+
+        
+        function showOrderModal(orderId) {
+            // Fetch the order details from the server
+            fetch(`/admin/orderdetails/${orderId}`)
+                .then(response => response.json())
+                .then(orderDetails => {
+                    console.log(orderDetails.order, orderDetails.address)
+                    // Check if we got the correct data
+                    if (orderDetails) {
+                        // Get the modal body element by ID
+                        const modalBody = document.getElementById('modalBodyContent');
+
+                        // Build the HTML content for the modal
+                        let modalContent = `
                     <!-- Order Header -->
                     <div class="row mb-3">
                         <div class="col-8">
-                            <h5 class="mb-1 text-white">Order #ORD-${orderDetails.order.orderId}</h5>
-                            <p class="text-white mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+                            <h5 class="mb-1">Order #ORD-${orderDetails.order.orderId}</h5>
+                            <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
                         </div>
                         <div class="col-4 text-end">
                             <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
@@ -133,21 +264,21 @@
                     <!-- Order Items -->
                     <div class="row mb-3">
                         <div class="col-12">
-                            <h6 class="mb-2 text-white">Order Items</h6>
+                            <h6 class="mb-2">Order Items</h6>
                             
                  ${orderDetails.order.orderedItems.map(item => `
                 <div class="card mb-2">
-                    <div class="card-body py-2 bg-dark">
+                    <div class="card-body py-2">
                         <div class="row align-items-center">
                             <div class="col-2">
                                 <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
                             </div>
                             <div class="col-7">
-                                <p class="mb-0 fw-bold text-white">${item.product.productName}</p>
-                                <small class="text-white">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                                <p class="mb-0 fw-bold">${item.product.productName}</p>
+                                <small class="text-muted">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
                             </div>
                             <div class="col-3 text-end">
-                                <p class="mb-0 fw-bold text-white d-flex">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                                <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
                             </div>
                         </div>
                     </div>
@@ -161,32 +292,32 @@
                     <div class="row mb-3">
                         <div class="col-12">
                             <div class="card">
-                                <div class="card-body bg-dark">
+                                <div class="card-body">
                                     <h6 class="mb-2">Order Summary</h6>
                                     <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-white">Subtotal:</span>
-                                        <span class="text-white">₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                        <span>Subtotal:</span>
+                                        <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-white">Shipping:</span>
-                                        <span class="text-white">₹0</span>
+                                        <span>Shipping:</span>
+                                        <span>₹0</span>
                                     </div>
                                      <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-white">Tax:</span>
-                                        <span class="text-white">₹${orderDetails.order.totalGST.toLocaleString('en-IN')}</span>
+                                        <span>Tax:</span>
+                                        <span>₹${orderDetails.order.totalGST.toLocaleString('en-IN')}</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-white">Discount:</span>
-                                        <span class="text-white">₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
+                                        <span>Discount:</span>
+                                        <span>₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
                                     </div>
                                      <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-white">CouponDiscount:</span>
-                                        <span class="text-white">₹${orderDetails.order.couponDiscount.toLocaleString('en-IN')}</span>
+                                        <span>Coupon Discount:</span>
+                                        <span>₹${orderDetails.order.couponDiscount.toLocaleString('en-IN')}</span>
                                     </div>
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
-                                        <span class="text-white">Total:</span>
-                                        <span class="text-white">₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount)) + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                        <span>Total:</span>
+                                        <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount)) + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -197,9 +328,9 @@
                     <div class="row">
                         <div class="col-md-6 mb-2 mb-md-0">
                             <div class="card h-100"> 
-                                <div class="card-body bg-dark">
-                                    <h6 class="card-title text-white">Shipping Address</h6>
-                                    <p class="card-text mb-0 text-white">
+                                <div class="card-body">
+                                    <h6 class="card-title">Shipping Address</h6>
+                                    <p class="card-text mb-0">
                                         ${orderDetails.address.address[0].name}<br>
                                         ${orderDetails.address.address[0].addressType}<br>
                                         ${orderDetails.address.address[0].city}, ${orderDetails.address.address[0].state} ${orderDetails.address.address[0].pincode}<br>
@@ -209,31 +340,31 @@
                         </div>
                         <div class="col-md-6">
                             <div class="card h-100">
-                                <div class="card-body bg-dark">
-                                    <h6 class="card-title text-white">Payment Method</h6>
-                                    <p class="card-text mb-1 text-white">${orderDetails.order.paymentMethod}</p>
+                                <div class="card-body">
+                                    <h6 class="card-title">Payment Method</h6>
+                                    <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
 
-                            // Insert the modal content into the modal body
-                            modalBody.innerHTML = modalContent;
+                        // Insert the modal content into the modal body
+                        modalBody.innerHTML = modalContent;
 
-                            // Show the modal
-                            var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                            myModal.show();
-                        } else {
-                            // Handle error, if no order details are found
-                            alert('Order not found');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching order details:', error);
-                        alert('Something went wrong!');
-                    });
-            }
+                        // Show the modal
+                        var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                        myModal.show();
+                    } else {
+                        // Handle error, if no order details are found
+                        alert('Order not found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching order details:', error);
+                    alert('Something went wrong!');
+                });
+        }
     </script>
 </body>
 </html>

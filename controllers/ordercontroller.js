@@ -168,7 +168,10 @@ const cancelorder = async (req, res) => {
                         orderId:order._id,
                     }]
                 })
-                await orderSchema.deleteOne({ _id: order._id });
+                await orderSchema.updateOne(
+                    { _id: order._id },
+                    { $set: { status: 'Cancelled'} }
+                  );
                 await newWallet.calculateWalletTotal()
                await newWallet.save()
             }
@@ -179,7 +182,10 @@ const cancelorder = async (req, res) => {
                 description:"Amount On Cancelling",
                 orderId:order._id
             })
-            await orderSchema.deleteOne({ _id: order._id });
+            await orderSchema.updateOne(
+                { _id: order._id },
+                { $set: { status: 'Cancelled'} }
+              );
             await find.calculateWalletTotal()
            await find.save()
         }
