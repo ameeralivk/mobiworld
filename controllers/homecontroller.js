@@ -1328,14 +1328,16 @@ const orderplacedpage = async (req, res) => {
                 if (couponfind) {
                   couponfind.userId.push(user._id);
                   await couponfind.save();
+                  const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+                  updateQuantities(orderededuser.items)
+                  await cartSchema.deleteOne({ userId: user._id });
+                  req.session.order = saved.orderId
                   return res.redirect('/user/paymentsuccesspage')
                 }
               } catch (err) {
                 console.error('Error fetching or saving coupon:', err);
               }
             }
-            const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
-            updateQuantities(orderededuser.items)
             if (items) {
               req.session.order = saved.orderId
               const remove = await cartSchema.deleteOne({ userId: user._id })
@@ -1379,8 +1381,10 @@ const orderplacedpage = async (req, res) => {
             couponDiscount:req.session.appliedCoupon?.couponDiscount || 0,
           });
           await newOrder.save();
+          updateQuantities(orderededuser.items)
           req.session.offerprice = null
           const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+          await cartSchema.deleteOne({ userId: user._id });
           return res.redirect('/user/paymentsuccesspage')
           if(couponfind){
             console.log(couponfind, 'coupon ameer')
@@ -1426,7 +1430,9 @@ const orderplacedpage = async (req, res) => {
               discount: req.session.offerprice,
               couponDiscount:req.session.appliedCoupon?.couponDiscount || 0,
             });
-            const saved = await newOrder.save();
+            const saved = await newOrder.save()
+            const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+            updateQuantities(orderededuser.items)
             findwallet.transaction.push({
               Total: totalAmount,
               Type: 'Debit',
@@ -1494,6 +1500,7 @@ const orderplacedpage = async (req, res) => {
             discount: req.session.offerprice,
           });
           await newOrder.save();
+          updateQuantities(orderededuser.items)
           req.session.offerprice = null
           const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
           console.log(couponfind, 'coupon ameer')
@@ -1531,35 +1538,89 @@ async function updateQuantities(items) {
   }
 }
 const getpaymentsuccesspage = async (req, res) => {
+  console.log('1 hi')
   const user = req.session.User
   const orderid = req.session.order
   console.log(orderid, 'orderid1')
   console.log(req.session.appliedCoupon)
   const coupon = req.session.appliedCoupon?.couponDiscount || 0
-
-    req.session.appliedCoupon = null
+  
 
   try {
     if (orderid) {
+      console.log('2 hi')
       req.session.orderId = null
       const orderdetails = await orderSchema.findOne({ orderId: orderid})
+      console.log(orderdetails,'orderdetals')
       const offer = orderdetails.discount
+      console.log(offer,"offer",coupon,"coupon")
       res.render('paymentsuccesspage', { orderdetails, offer,coupon  })
     }
     else {
+      console.log('3 hi')
       const razorpayid = req.session.razorpayid
       const orderdetails = await orderSchema.findOne({ razorpayOrderId: razorpayid })
       console.log(orderdetails,'detals')
       const offer = orderdetails.discount
       console.log(orderdetails, 'orderdetails')
+      console.log(offer,"offer",coupon,"coupon")
       res.render('paymentsuccesspage', { orderdetails, offer,coupon })
     }
 
-
+   req.session.appliedCoupon = null
   } catch (error) {
     console.error('error from getpaymentsuccesspage', error)
   }
 }
+
+// const getpaymentsuccesspage = async (req, res) => {
+//   try {
+//     console.log('🟢 Entered getpaymentsuccesspage');
+
+//     const user = req.session.User;
+//     const orderId = req.session.order;
+//     const razorpayId = req.session.razorpayid;
+//     const couponDiscount = req.session.appliedCoupon?.couponDiscount || 0;
+
+//     let orderdetails;
+
+//     if (orderId) {
+//       console.log('🟡 Fetching order by orderId:', orderId);
+//       orderdetails = await orderSchema.findById(orderId);
+//       req.session.order = null;
+//     } else if (razorpayId) {
+//       console.log('🟡 Fetching order by razorpayOrderId:', razorpayId);
+//       orderdetails = await orderSchema.findOne({ razorpayOrderId: razorpayId });
+//     }
+
+//     if (!orderdetails) {
+//       console.warn('⚠️ No order details found');
+//       req.session.appliedCoupon = null;
+//       return res.redirect('/user/getcart'); // Fallback if no order found
+//     }
+
+//     const offer = orderdetails.discount || 0;
+
+//     console.log('✅ Rendering success page with:', {
+//       offer,
+//       couponDiscount,
+//       orderId: orderdetails._id
+//     });
+
+//     // Clear applied coupon after rendering
+
+//     res.render('paymentsuccesspage', {
+//       orderdetails,
+//       offer,
+//       coupon: couponDiscount
+//     });
+//     req.session.appliedCoupon = null;
+//   } catch (error) {
+//     console.error('❌ Error in getpaymentsuccesspage:', error);
+//     req.session.appliedCoupon = null;
+//     res.redirect('/user/getcart');
+//   }
+// };
 
 
 //order
@@ -1873,7 +1934,6 @@ const verifypayment = async (req, res) => {
         couponfind.userId.push(user._id)
         await couponfind.save()
         await cartSchema.deleteOne({ userId: orderDetails.userId });
-        req.session.appliedCoupon = null
       }
       else {
         console.log('failed')
@@ -1916,6 +1976,7 @@ const verifypayment = async (req, res) => {
   
         });
         await newOrder.save();
+        req.session.order = newOrder.orderId
         console.log(orderDetails, 'orderd details')
         await Promise.all(
           orderDetails.orderedItems.map(async (item) => {
@@ -1931,12 +1992,14 @@ const verifypayment = async (req, res) => {
           })
         );
         req.session.offerprice = null;
-        const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
-        console.log(couponfind, 'coupon ameer')
-        couponfind.userId.push(user._id)
-        await couponfind.save()
-        await cartSchema.deleteOne({ userId: orderDetails.userId });
-        req.session.appliedCoupon = null
+        const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+        if(couponfind){
+          console.log(couponfind, 'coupon ameer')
+          couponfind.userId.push(user._id)
+          await couponfind.save()
+        }
+       const delet = await cartSchema.deleteOne({ userId: orderDetails.userId });
+      console.log(delet,'del')
       }
       else {
         console.log('failed')
