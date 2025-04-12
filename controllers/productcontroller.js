@@ -64,18 +64,28 @@ const addproduct = async (req,res)=>{
             const imagePaths = req.files.map(file=>`/cardimages/${file.filename}`)
             const categ = await category.findOne({name:req.body.category})
             const brand = await brandschema.findOne({brandName:req.body.brand})
-            const newProduct = new product({
-               productName: req.body.productName,
-               description: req.body.productDescription,
-               productImage:imagePaths,
-               brand:brand._id,
-               salePrice:req.body.price,
-               quantity:req.body.count,
-               Tax:parseInt(req.body.tax),
-               category:categ._id,
-             });
-             newProduct.save()
-             res.redirect('product')
+            const findProduct = await product.findOne({productName:req.body.productName.trim()})
+            if(findProduct){
+               const prod = await Product.find({})
+               const brand = await brandschema.find({})
+               const Category = await category.find({})
+               res.render('addproduct', { product:prod,brand,Category,
+                  msg: 'No Duplicate Product is Allowed!' });
+            }
+            else{
+               const newProduct = new product({
+                  productName: req.body.productName,
+                  description: req.body.productDescription,
+                  productImage:imagePaths,
+                  brand:brand._id,
+                  salePrice:req.body.price,
+                  quantity:req.body.count,
+                  Tax:parseInt(req.body.tax),
+                  category:categ._id,
+                });
+                newProduct.save()
+                res.redirect('product')
+            }
            }
          }
        });   

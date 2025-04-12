@@ -1288,65 +1288,93 @@ const orderplacedpage = async (req, res) => {
       if (isexit.length > 0) {
         if (req.session.address) {
           console.log('hi')
-          const orderededuser = await cartSchema.findOne({ userId: user._id })
-
-          const totalPrice = orderededuser.totalPrice
-          const totalGST = orderededuser.totalGST
-          const address = req.session.address
-          req.session.address = null
-          const orderedItems = orderededuser.items.map(item => ({
-            product: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          }))
-          const newOrder = new orderSchema({
-            userId: user._id,
-            paymentMethod: 'Cash ON Delivery',
-            totalGST: totalGST,
-            orderedItems: orderedItems,
-            totalPrice: totalPrice,
-            finalAmount: totalPrice,
-            address: address,
-            status: "Pending", // Default status is 'Pending' if not provided
-            invoiceDate: new Date(),
-            couponApplied:!!req.session.appliedCoupon ,
-            discount: req.session.offerprice,
-            couponDiscount: req.session.appliedCoupon?.couponDiscount || 0|| 0,
-          });
-          const saved = await newOrder.save();
-          if (saved) {
-            req.session.offerprice = null
-            // const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
-            // console.log(couponfind, 'coupon ameer')
-            // couponfind.userId.push(user._id)
-            // await couponfind.save()
-            if (req.session.appliedCoupon && req.session.appliedCoupon.couponId) {
-              try {
-                const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId);
-                console.log(couponfind, 'coupon ameer');
-          
-                if (couponfind) {
-                  couponfind.userId.push(user._id);
-                  await couponfind.save();
-                  const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
-                  updateQuantities(orderededuser.items)
-                  await cartSchema.deleteOne({ userId: user._id });
-                  req.session.order = saved.orderId
-                  return res.redirect('/user/paymentsuccesspage')
-                }
-              } catch (err) {
-                console.error('Error fetching or saving coupon:', err);
+          if (req.session.appliedCoupon && req.session.appliedCoupon.couponId) {
+            try {
+              const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId);
+              console.log(couponfind, 'coupon ameer');
+        
+              if (couponfind) {
+              
+                const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+                const totalPrice = orderededuser.totalPrice
+                const totalGST = orderededuser.totalGST
+                const address = req.session.address
+                req.session.address = null
+                const orderedItems = orderededuser.items.map(item => ({
+                  product: item.productId,
+                  quantity: item.quantity,
+                  price: item.price,
+                }))
+                const newOrder = new orderSchema({
+                  userId: user._id,
+                  paymentMethod: 'Cash ON Delivery',
+                  totalGST: totalGST,
+                  orderedItems: orderedItems,
+                  totalPrice: totalPrice,
+                  finalAmount: totalPrice,
+                  address: address,
+                  status: "Pending", // Default status is 'Pending' if not provided
+                  invoiceDate: new Date(),
+                  couponApplied:!!req.session.appliedCoupon ,
+                  discount: req.session.offerprice,
+                  couponDiscount: req.session.appliedCoupon?.couponDiscount || 0|| 0,
+                });
+                updateQuantities(orderededuser.items)
+                const saved = await newOrder.save();
+                couponfind.userId.push(user._id);
+                await couponfind.save();
+                await cartSchema.deleteOne({ userId: user._id });
+                req.session.order = saved.orderId
+                return res.redirect('/user/paymentsuccesspage')
               }
+            } catch (err) {
+              console.error('Error fetching or saving coupon:', err);
             }
-            if (items) {
-              req.session.order = saved.orderId
-              const remove = await cartSchema.deleteOne({ userId: user._id })
-              return res.redirect('/user/paymentsuccesspage')
-            }
-            else {
-              return res.redirect('/user/getcart')
-            }
+          }
+          else{
+            const orderededuser = await cartSchema.findOne({ userId: user._id })
 
+            const totalPrice = orderededuser.totalPrice
+            const totalGST = orderededuser.totalGST
+            const address = req.session.address
+            req.session.address = null
+            const orderedItems = orderededuser.items.map(item => ({
+              product: item.productId,
+              quantity: item.quantity,
+              price: item.price,
+            }))
+            const newOrder = new orderSchema({
+              userId: user._id,
+              paymentMethod: 'Cash ON Delivery',
+              totalGST: totalGST,
+              orderedItems: orderedItems,
+              totalPrice: totalPrice,
+              finalAmount: totalPrice,
+              address: address,
+              status: "Pending", // Default status is 'Pending' if not provided
+              invoiceDate: new Date(),
+              couponApplied:!!req.session.appliedCoupon ,
+              discount: req.session.offerprice,
+              couponDiscount: req.session.appliedCoupon?.couponDiscount || 0|| 0,
+            });
+            updateQuantities(orderededuser.items)
+            const saved = await newOrder.save();
+            if (saved) {
+              req.session.offerprice = null
+              // const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
+              // console.log(couponfind, 'coupon ameer')
+              // couponfind.userId.push(user._id)
+              // await couponfind.save()
+              if (items) {
+                req.session.order = saved.orderId
+                const remove = await cartSchema.deleteOne({ userId: user._id })
+                return res.redirect('/user/paymentsuccesspage')
+              }
+              else {
+                return res.redirect('/user/getcart')
+              }
+  
+            }
           }
 
         }
@@ -1403,6 +1431,7 @@ const orderplacedpage = async (req, res) => {
     else if (payment === 'wallet') {
       if (isexit.length > 0) {
         if (req.session.address) {
+          console.log('121')
           const orderededuser = await cartSchema.findOne({ userId: user._id })
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
@@ -1439,28 +1468,18 @@ const orderplacedpage = async (req, res) => {
               description: 'amount debited from wallet',
               orderId:saved._id,
             })
+            req.session.order = saved.orderId
+            if(req.session.appliedCoupon){
+              const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
+              console.log(couponfind, 'coupon ameer')
+              couponfind.userId.push(user._id)
+              await couponfind.save()
+            }
+            await cartSchema.findOneAndDelete({userId:user._id})
+            res.redirect('/user/paymentsuccesspage')
             await findwallet.calculateWalletTotal()
             await findwallet.save()
-            if (saved) {
-              req.session.offerprice = null
-              const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
-              console.log(couponfind, 'coupon ameer')
-              if(couponfind){
-                couponfind.userId.push(user._id)
-                await couponfind.save()
-              }
-              const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
-              updateQuantities(orderededuser.items)
-              if (items) {
-                req.session.order = saved.orderId
-                const remove = await cartSchema.deleteOne({ userId: user._id })
-                return res.redirect('/user/paymentsuccesspage')
-              }
-              else {
-                return res.redirect('/user/getcart')
-              }
-  
-            }
+            
           }
           else {
             req.session.message = "wallet is empty or Insufficient Amount"
@@ -1469,6 +1488,7 @@ const orderplacedpage = async (req, res) => {
 
         }
         else {
+          console.log('12,33')
           const orderededuser = await cartSchema.findOne({ userId: user._id })
           if (orderededuser) {
             const totalPrice = orderededuser.totalPrice
@@ -1494,26 +1514,31 @@ const orderplacedpage = async (req, res) => {
             totalPrice: totalPrice,
             finalAmount: totalPrice,
             address: address,
-            status: "Confirmed",
+            status: "Pending",
             invoiceDate: new Date(),
             couponApplied: false,
             discount: req.session.offerprice,
           });
-          await newOrder.save();
+         const saved = await newOrder.save();
           updateQuantities(orderededuser.items)
           req.session.offerprice = null
-          const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
-          console.log(couponfind, 'coupon ameer')
-          couponfind.userId.push(user._id)
-          await couponfind.save()
+          if(req.session.appliedCoupon){
+            const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+            console.log(couponfind, 'coupon ameer')
+            couponfind.userId.push(user._id)
+            await couponfind.save()
+          }
+          await cartSchema.findOneAndDelete({userId:user._id})
+          req.session.order = saved.orderId
+          res.redirect('/user/paymentsuccesspage')
         }
       }
       else {
         req.session.message = 'user Not found'
         return res.redirect('/user/login')
       }
+    
     }
-
 
   } catch (error) {
     console.error('error from homecontroller', error)

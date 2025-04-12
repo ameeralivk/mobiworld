@@ -339,78 +339,90 @@
     // const colorerror = document.getElementById('colorerror');
 
     form.addEventListener('submit', function(event) {
-        event.preventDefault()
-        console.log('hidsa')
-        console.log('hi')
-        const name = document.getElementById('productName').value;
-        const description = document.getElementById('productDescription').value;
-        const brand = document.getElementById('brand').value;
-        const rate = document.getElementById('productAmount').value;
-        const stock = document.getElementById('stockCount').value;
-        const category = document.getElementById('cat').value;
-        // const color = document.getElementsByName('color')[0].value;
+    event.preventDefault();
 
+    const name = document.getElementById('productName').value.trim();
+    const description = document.getElementById('productDescription').value.trim();
+    const brand = document.getElementById('brand').value.trim();
+    const rate = document.getElementById('productAmount').value.trim();
+    const stock = document.getElementById('stockCount').value.trim();
+    const category = document.getElementById('cat').value.trim();
 
     const nameerror = document.getElementById('nameerror');
     const descriptionerror = document.getElementById('descriptionerror');
     const branderror = document.getElementById('branderror');
     const rateerror = document.getElementById('rateerror');
     const stockerror = document.getElementById('stockerror');
-    const categoryerror = document.getElementById('categoryerror')
-    // const colorerror = document.getElementById('colorerror');
-        console.log(category)
-        if (name.trim() === '' || description.trim() === '' || brand.trim() === '' || rate.trim() === '' || stock.trim() === '' || category.trim()=== '' ) {
-            if (name.trim() === '') {
-                event.preventDefault();
-                nameerror.innerText = "Name field is empty";
-                nameerror.style.display = "block";
-            }
-            if (description.trim() === '') {
-                event.preventDefault();
-                descriptionerror.innerText = "Description field is empty";
-                descriptionerror.style.display = "block";
-            }
-            if (brand.trim() === '') {
-                event.preventDefault();
-                branderror.innerText = "Brand field is empty";
-                branderror.style.display = "block";
-            }
-            if (rate.trim() === '') {
-                event.preventDefault();
-                rateerror.innerText = "Rate field is empty";
-                rateerror.style.display = "block";
-            }
-            if (stock.trim() === '') {
-                event.preventDefault();
-                stockerror.innerText = "Stock field is empty";
-                stockerror.style.display = "block";
-            }
-            if (category.trim() === '') {
-                event.preventDefault();
-                categoryerror.innerText = "Category field is empty";
-                categoryerror.style.display = "block";
-            }
-        }
-        
-        setTimeout(() => {
-            if (nameerror.style.display === 'block') {
-                nameerror.style.display = 'none';
-            }
-            if (descriptionerror.style.display === 'block') {
-                descriptionerror.style.display = 'none';
-            }
-            if (branderror.style.display === 'block') {
-                branderror.style.display = 'none';
-            }
-            if (rateerror.style.display === 'block') {
-                rateerror.style.display = 'none';
-            }
-            if (stockerror.style.display === 'block') {
-                stockerror.style.display = 'none';
-            }
-        }, 3000);
-        form.submit()
-    });
+    const categoryerror = document.getElementById('categoryerror');
+
+    // Clear previous errors
+    nameerror.style.display = "none";
+    descriptionerror.style.display = "none";
+    branderror.style.display = "none";
+    rateerror.style.display = "none";
+    stockerror.style.display = "none";
+    categoryerror.style.display = "none";
+
+    let isValid = true;
+
+    if (name === '') {
+        nameerror.innerText = "Name field is empty";
+        nameerror.style.display = "block";
+        isValid = false;
+    }
+
+    if (description === '') {
+        descriptionerror.innerText = "Description field is empty";
+        descriptionerror.style.display = "block";
+        isValid = false;
+    }
+
+    if (brand === '') {
+        branderror.innerText = "Brand field is empty";
+        branderror.style.display = "block";
+        isValid = false;
+    }
+
+    if (rate === '') {
+        rateerror.innerText = "Rate field is empty";
+        rateerror.style.display = "block";
+        isValid = false;
+    } else if (parseFloat(rate) <= 0) {
+        rateerror.innerText = "Rate should be greater than 0";
+        rateerror.style.display = "block";
+        isValid = false;
+    }
+
+    if (stock === '') {
+        stockerror.innerText = "Stock field is empty";
+        stockerror.style.display = "block";
+        isValid = false;
+    } else if (parseInt(stock) <= 0) {
+        stockerror.innerText = "Stock should be above 0";
+        stockerror.style.display = "block";
+        isValid = false;
+    }
+
+    if (category === '') {
+        categoryerror.innerText = "Category field is empty";
+        categoryerror.style.display = "block";
+        isValid = false;
+    }
+
+    setTimeout(() => {
+        nameerror.style.display = "none";
+        descriptionerror.style.display = "none";
+        branderror.style.display = "none";
+        rateerror.style.display = "none";
+        stockerror.style.display = "none";
+        categoryerror.style.display = "none";
+    }, 3000);
+
+    if (isValid) {
+        form.submit();
+    }
+});
+
 
 
  

@@ -44,7 +44,7 @@ const addcategory = async(req,res)=>{
    try {
      const duplicate = await Category.findOne({name:category})
         if(duplicate){
-            req.session.msg = 'No duplicate brandname is allowed'
+            req.session.msg = 'No duplicate Category is allowed'
             res.redirect("/admin/Category")
         }
         else{

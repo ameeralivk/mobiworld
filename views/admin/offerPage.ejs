@@ -352,6 +352,7 @@
                 const discountValue = document.getElementById("discountValue");
                 const maxDiscount = document.getElementById("maxDiscount");
                 const expiredOn = document.getElementById("expiredOn");
+                const discountType = document.getElementById('discountType')
 
                 // Show/hide category or brand dropdown based on offerType
                 offerType.addEventListener("change", function () {
@@ -398,7 +399,10 @@
                         errorMessage += "<li>Please select a Brand.</li>";
                         isValid = false;
                     }
-
+                    if(discountType.value === "percentage" && parseFloat(discountValue.value.trim()) >= 50){
+                        errorMessage += "<li>Discount percentage must be below 50%.</li>";
+                        isValid = false;
+                    }
                     // Validate Discount Value
                     if (discountValue.value.trim() === "" || discountValue.value <= 0) {
                         errorMessage += "<li>Discount Value must be a positive number.</li>";

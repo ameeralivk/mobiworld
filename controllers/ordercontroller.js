@@ -40,6 +40,11 @@ const updatestatus = async (req, res) => {
         const saved = order.save()
         if (saved) {
             if(order.status == "Returned" ){
+                for (const item of order.orderedItems) {
+                    await Product.findByIdAndUpdate(item.product, {
+                        $inc: { quantity: item.quantity }
+                    });
+                }
                 if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer"||order.paymentMethod =="Cash ON Delivery") ){
                     let wallet = await walletSchema.findOne({ userId: user._id });
                     const method = order.paymentMethod 

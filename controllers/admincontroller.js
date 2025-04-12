@@ -449,6 +449,14 @@ const couponPage = async (req, res) => {
 
 const addCoupon = async (req, res) => {
     try {
+        const findCoupon = await CouponSchema.findOne({name:req.body.name.trim()})
+        if(findCoupon){
+            req.session.message = {
+                type: 'error',
+                text: 'Coupon already exists!'
+            };
+            return res.redirect('/admin/couponPage');
+        }
         console.log(req.body)
         const newcoupon = new CouponSchema({
             name: req.body.name,
