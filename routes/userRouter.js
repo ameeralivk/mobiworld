@@ -5,6 +5,8 @@ const passport =  require('passport')
 const userschema = require('../models/user')
 const {userAuth,login} = require('../middlewares/auth')
 const homecontroller = require('../controllers/homecontroller')
+const { rotate } = require('pdfkit')
+const  {fetchAuth} = require('../middlewares/auth')
 router.get('/register',usercontroller.loadregisterpage)
 router.get('/verify-otp',usercontroller.loadverify)
 router.post('/register',usercontroller.register)
@@ -73,3 +75,6 @@ router.get('/getwallet',userAuth,homecontroller.getwallet)
 router.get('/wallet/filter',homecontroller.walletfilter)
 //add offer
 router.post('/addoffer',userAuth,homecontroller.addOffer)
+
+router.post('/toggle-wishlist',fetchAuth,homecontroller.toggleWishlist)
+router.delete('/remove-from-wishlist', userAuth, homecontroller.removeFromWishlist);

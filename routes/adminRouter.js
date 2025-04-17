@@ -98,4 +98,10 @@ router.delete('/deleteCoupon/:id',admincontroller.deleteCoupon)
 //dashboard chart 
 router.get('/dashboard/data/:filter',admincontroller.getChartData);
 
+
+//return order admin 
+router.get('/orders/:id/returns',admincontroller.returnProduct)
+router.patch('/orders/:orderId/returns/:itemId',admincontroller.updateReturnStatus);
+
+
 module.exports = router; 

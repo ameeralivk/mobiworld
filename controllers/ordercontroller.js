@@ -5,6 +5,7 @@ const productschema = require('../models/productSchema')
 const walletSchema = require('../models/walletSchem')
 const Product = require('../models/productSchema')
 const getorders = async (req, res) => {
+    console.log("hi")
     const ITEMS_PER_PAGE = 10; 
     try {
         const page = parseInt(req.query.page) || 1;
@@ -14,11 +15,14 @@ const getorders = async (req, res) => {
         const totalPages = Math.ceil(totalOrders / ITEMS_PER_PAGE);
     
         const orders = await orderSchema
-          .find()
-          .skip((page - 1) * ITEMS_PER_PAGE)
-          .limit(ITEMS_PER_PAGE)
-          .populate('userId')
-          .populate('orderedItems.product');
+        .find()
+        .sort({ createdOn: -1 }) // Sort by latest createdOn date
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+        .populate('userId')
+        .populate('orderedItems.product');
+      
+        console.log(orders,'order')
     
         res.render('order', {
           orders,
@@ -39,42 +43,84 @@ const updatestatus = async (req, res) => {
         order.status = status
         const saved = order.save()
         if (saved) {
-            if(order.status == "Returned" ){
+            // if(order.status == "Returned" ){
+            //     for (const item of order.orderedItems) {
+            //         await Product.findByIdAndUpdate(item.product, {
+            //             $inc: { quantity: item.quantity }
+            //         });
+            //     }
+            //     if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer"||order.paymentMethod =="Cash ON Delivery") ){
+            //         let wallet = await walletSchema.findOne({ userId: user._id });
+            //         const method = order.paymentMethod 
+            //         if (!wallet) {
+            //           console.log('Creating new wallet entry');
+            //           wallet = new walletSchema({
+            //             userId: user._id,
+            //             transaction: [{
+            //               Total: (order.totalPrice) - (order.discount || 0),
+            //               Type: 'Credit',
+            //               description:`${method} Returned Amount`,
+            //               orderId:order._id,
+            //             }]
+            //           });
+            //         } else {
+            //           console.log('Updating existing wallet');
+            //           wallet.transaction.push({
+            //             description:`${method} Returned Amount`,
+            //             Total: (order.totalPrice ) - (order.discount || 0),
+            //             Type: 'Credit',
+            //             orderId:order._id,
+            //           });
+            //         }
+              
+            //         await wallet.calculateWalletTotal(); 
+            //         await wallet.save();
+            //         console.log('Wallet updated:', wallet);
+            //     }
+            //     }
+            // return res.status(200).json({ message: 'status updated successfully', order: order })
+            if (order.status === "Returned") {
+                let totalReturnAmount = 0;
+
                 for (const item of order.orderedItems) {
+                    if (item.returnStatus === "Approved" || item.returnStatus === "Rejected") continue;
                     await Product.findByIdAndUpdate(item.product, {
                         $inc: { quantity: item.quantity }
                     });
+                    totalReturnAmount += item.quantity * item.price;
                 }
-                if((order.paymentMethod == "Online Payment"||order.paymentMethod=="Wallet Transfer"||order.paymentMethod =="Cash ON Delivery") ){
+                if (
+                    (order.paymentMethod === "Online Payment" ||
+                    order.paymentMethod === "Wallet Transfer" ||
+                    order.paymentMethod === "Cash ON Delivery") &&
+                    totalReturnAmount > 0
+                ) {
                     let wallet = await walletSchema.findOne({ userId: user._id });
-                    const method = order.paymentMethod 
-                    if (!wallet) {
-                      console.log('Creating new wallet entry');
-                      wallet = new walletSchema({
-                        userId: user._id,
-                        transaction: [{
-                          Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
-                          Type: 'Credit',
-                          description:`${method} Returned Amount`,
-                          orderId:order._id,
-                        }]
-                      });
-                    } else {
-                      console.log('Updating existing wallet');
-                      wallet.transaction.push({
-                        description:`${method} Returned Amount`,
-                        Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+                    const method = order.paymentMethod;
+
+                    const transaction = {
+                        Total: totalReturnAmount - (order.discount || 0),
                         Type: 'Credit',
-                        orderId:order._id,
-                      });
+                        description: `${method} Returned Amount`,
+                        orderId: order._id,
+                    };
+
+                    if (!wallet) {
+                        wallet = new walletSchema({
+                            userId: user._id,
+                            transaction: [transaction]
+                        });
+                    } else {
+                        wallet.transaction.push(transaction);
                     }
-              
-                    await wallet.calculateWalletTotal(); 
+
+                    await wallet.calculateWalletTotal();
                     await wallet.save();
                     console.log('Wallet updated:', wallet);
                 }
-                }
-            return res.status(200).json({ message: 'status updated successfully', order: order })
+            }
+
+            return res.status(200).json({ message: 'Status updated successfully', order });
         }
 
     } catch (error) {
@@ -118,23 +164,82 @@ const searchorder = async (req, res) => {
          console.error(error)
     }
 }
-const statusfilter = async(req,res)=>{
-   const {status} = req.body
+// const statusfilter = async(req,res)=>{
+//    const {status} = req.body
+//     try {
+//         if(status == "All"){
+//             const order = await orderSchema.find({}).populate('userId')
+//             if(order){
+//               return  res.status(200).json({data:order})
+//             }
+//         }
+//         const order = await orderSchema.find({status:status}).populate('userId')
+//         if(order){
+//           return  res.status(200).json({data:order})
+//         }
+//     } catch (error) {
+//         console.error('error from statusfilter',error)
+//     }
+// }
+
+const statusfilter = async (req, res) => {
+    const { status } = req.body;
+  
     try {
-        if(status == "All"){
-            const order = await orderSchema.find({}).populate('userId')
-            if(order){
-              return  res.status(200).json({data:order})
-            }
+      let orders = [];
+  
+      if (status === "All") {
+        orders = await orderSchema.find({}).populate('userId').populate('orderedItems.product');
+      } 
+      else if (status === "return-requested") {
+        orders = await orderSchema.find({ 'orderedItems.returnStatus': 'Requested' })
+          .populate('userId')
+          .populate('orderedItems.product');
+          console.log(orders,'1')
+      } 
+      else if (status === "return-rejected") {
+        orders = await orderSchema.find({ 'orderedItems.returnStatus': 'Rejected' })
+          .populate('userId')
+          .populate('orderedItems.product');
+          console.log(orders,'2')
+      } 
+      else if (status === "return-mixed") {
+        const allOrders = await orderSchema.find({})
+          .populate('userId')
+          .populate('orderedItems.product');
+          console.log(orders,'3')
+  
+        orders = allOrders.filter(order => {
+          const returnStatuses = new Set();
+          order.orderedItems.forEach(item => {
+            if (item.returnStatus) returnStatuses.add(item.returnStatus);
+          });
+          return returnStatuses.size > 1; // Mixed if more than one unique status
+        });
+      } 
+      else {
+        let baseOrders = await orderSchema.find({ status: status })
+          .populate('userId')
+          .populate('orderedItems.product');
+      
+        // Optional: exclude orders that have return statuses
+        if (status === "Delivered" || status === "Pending" || status === "Cancelled") {
+          baseOrders = baseOrders.filter(order =>
+            order.orderedItems.every(item => !item.returnStatus)
+          );
         }
-        const order = await orderSchema.find({status:status}).populate('userId')
-        if(order){
-          return  res.status(200).json({data:order})
-        }
+      
+        return res.status(200).json({ data: baseOrders });
+      }
+  
+      return res.status(200).json({ data: orders });
+  
     } catch (error) {
-        console.error('error from statusfilter',error)
+      console.error('Error from statusfilter:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
-}
+  };
+  
 
 const Datefilter = async(req,res)=>{
     const {DateFilter} = req.body
@@ -167,7 +272,7 @@ const cancelorder = async (req, res) => {
                 const newWallet = new walletSchema({
                     userId:user._id,
                     transaction:[{
-                        Total:(order.totalPrice+order.totalGST)-(order.discount?order.discount:0),
+                        Total:(order.totalPrice)-(order.discount?order.discount:0),
                         Type:"Credit",
                         description:"Amount On Cancelling",
                         orderId:order._id,
@@ -182,7 +287,7 @@ const cancelorder = async (req, res) => {
             }
             console.log('ready')
             find.transaction.push({
-                Total:(order.totalPrice+order.totalGST)-(order.discount?order.discount:0),
+                Total:(order.totalPrice)-(order.discount?order.discount:0),
                 Type:"Credit",
                 description:"Amount On Cancelling",
                 orderId:order._id

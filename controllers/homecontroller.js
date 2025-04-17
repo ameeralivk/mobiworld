@@ -21,6 +21,7 @@ const offerschema = require('../models/offerSchema')
 const mongoose = require('mongoose')
 const walletSchema = require('../models/walletSchem')
 const couponSchema = require('../models/couponSchema')
+const { ObjectId } = require('mongoose').Types;
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -55,19 +56,31 @@ const getproductmainpage = async (req, res) => {
     expiredOn: { $gte: new Date() },
   })
   const bestOffer = await getBestOfferForProduct(product)
+  let isWishlisted = false;
+  if (req.session.User) {
+    const userId = req.session.User._id;
+    const wishlist = await Wishlist.findOne({ userId });
+
+    if (wishlist) {
+      isWishlisted = wishlist.Products.some(
+        (item) => item.productId.toString() === product._id.toString()
+      );
+    }
+  }
   try {
+    
     if (req.session.message) {
       const message = req.session.message
       req.session.message = null
       const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id } })
-      return res.render('productmainpage', { product: product, recomended: recomended, message: message, bestOffer, allOffers })
+      return res.render('productmainpage', { product: product, recomended: recomended, message: message, bestOffer, allOffers,isWishlisted })
     }
     if (product) {
       const priceless = product.salePrice - 15000
       const pricemore = product.salePrice + 15000
       const recomended = await Product.find({ salePrice: { $gte: priceless, $lte: pricemore }, _id: { $ne: product._id },isDeleted:false }).limit(4)
       console.log(bestOffer, 'bestOffer')
-      return res.render('productmainpage', { product: product, recomended: recomended, bestOffer, allOffers })
+      return res.render('productmainpage', { product: product, recomended: recomended, bestOffer, allOffers,isWishlisted })
     }
     else {
       console.log('pos')
@@ -179,60 +192,122 @@ const getBestOfferForProduct = async (product) => {
 
 
 
+// const getfilterpage = async (req, res) => {
+//   const cat = await brandschema.find({})
+//   const user = req.session.User
+//   try {
+//     console.log('hi')
+//     const { sort, category, priceFrom, priceTo } = req.query;
+//     const cat = await brandschema.find({ brandName: category })
+//     const categories = await brandschema.find({})
+//     let filter = {}
+//     console.log('hello')
+//     if (cat && cat.length > 0) {
+//       filter.brand = cat[0]._id
+//     }
+//     if (priceFrom || priceTo) {
+//       filter.salePrice = {};
+//       if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
+//       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
+//     }
+//     if (sort === 'A to Z') {
+//       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+//       const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+//       const products = await Product.find(filter).sort({ productName: 1 });
+//       return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
+//     }
+//     if (sort === 'Z to A') {
+//       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+//       const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+//       const products = await Product.find(filter).sort({ productName: -1 });
+//       return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
+//     }
+//     if (sort === 'Low To High') {
+//       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+//       const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+//       const products = await Product.find(filter).sort({ salePrice: 1 });
+//       return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
+//     }
+//     if (sort === 'High To Low') {
+//       const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+//       const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+//       const products = await Product.find(filter).sort({ salePrice: -1 });
+//       return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
+//     }
+//     console.log(filter, 'filter')
+//     const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+//     const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+//     const products = await Product.find(filter);
+//     console.log(products)
+//     return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
+
+//   }
+//   catch (error) {
+//     console.log('error from homecontroller', error)
+//   }
+// }
+
 const getfilterpage = async (req, res) => {
-  const cat = await brandschema.find({})
-  const user = req.session.User
+  const user = req.session.User;
+
   try {
-    console.log('hi')
-    const { sort, category, priceFrom, priceTo } = req.query;
-    const cat = await brandschema.find({ brandName: category })
-    const categories = await brandschema.find({})
-    let filter = {}
-    console.log('hello')
-    if (cat && cat.length > 0) {
-      filter.brand = cat[0]._id
+    if(!user){
+      req.session.message = "Please Login"
+     return res.redirect('/login')
     }
+    const { sort, category, priceFrom, priceTo } = req.query;
+
+    const categories = await brandschema.find({});
+    let filter = {};
+
+    // If a brand is selected
+    if (category) {
+      const cat = await brandschema.findOne({ brandName: category });
+      if (cat) {
+        filter.brand = cat._id;
+      }
+    }
+
+    // If price range is selected
     if (priceFrom || priceTo) {
       filter.salePrice = {};
       if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
     }
-    if (sort === 'A to Z') {
-      const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
-      const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
-      const products = await Product.find(filter).sort({ productName: 1 });
-      return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
-    }
-    if (sort === 'Z to A') {
-      const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
-      const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
-      const products = await Product.find(filter).sort({ productName: -1 });
-      return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
-    }
-    if (sort === 'Low To High') {
-      const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
-      const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
-      const products = await Product.find(filter).sort({ salePrice: 1 });
-      return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
-    }
-    if (sort === 'High To Low') {
-      const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
-      const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
-      const products = await Product.find(filter).sort({ salePrice: -1 });
-      return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
-    }
-    console.log(filter, 'filter')
+
+    // Get wishlist products for current user
     const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
     const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
-    const products = await Product.find(filter);
-    console.log(products)
-    return res.render('shoppage', { product: products, category: categories, wishlistProductIds });
 
+    // Sorting logic
+    let sortOption = {};
+    if (sort === 'A to Z') sortOption = { productName: 1 };
+    else if (sort === 'Z to A') sortOption = { productName: -1 };
+    else if (sort === 'Low To High') sortOption = { salePrice: 1 };
+    else if (sort === 'High To Low') sortOption = { salePrice: -1 };
+
+    // Fetch filtered & sorted products
+    const products = await Product.find(filter).sort(sortOption);
+
+    // Render page with selected filters to persist them in EJS
+    return res.render('shoppage', {
+      product: products,
+      category: categories,
+      wishlistProductIds,
+      selectedSort: sort || '',
+      selectedCategory: category || '',
+      selectedPriceFrom: priceFrom || '',
+      selectedPriceTo: priceTo || ''
+    });
+
+  } catch (error) {
+    console.error('Error from homecontroller getfilterpage:', error);
+    return res.status(500).send('Server Error');
   }
-  catch (error) {
-    console.log('error from homecontroller', error)
-  }
-}
+};
+
+
+
 const getprofilepage = async (req, res) => {
   const user = req.session.User
   const finduser = await userschema.findById(user._id)
@@ -1286,11 +1361,15 @@ const orderplacedpage = async (req, res) => {
     if (payment === 'cash') {
       console.log('caghtdasdafdsaf',req.session.appliedCoupon)
       if (isexit.length > 0) {
+        if(items?.totalPrice >= 1000){
+          req.session.message = "Below 1000 is not allowed for the Cash ON Delivery"
+          return res.redirect('/user/getpaymentpage')
+        }
         if (req.session.address) {
           console.log('hi')
-          if (req.session.appliedCoupon && req.session.appliedCoupon.couponId) {
+          if (req.session.appliedCoupon && req.session.appliedCoupon?.couponId) {
             try {
-              const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId);
+              const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId);
               console.log(couponfind, 'coupon ameer');
         
               if (couponfind) {
@@ -1656,6 +1735,7 @@ const orderpage = async (req, res) => {
     if (user) {
       const orders = await orderSchema.find({ userId: user._id }).populate('orderedItems.product').sort({ createdOn: -1 })
       console.log(orders, 'hidasfdsa')
+      console.log(orders.orderedItems,'lenght')
       return res.render('orderpage', { orders })
     }
     else {
@@ -1680,7 +1760,7 @@ const pagination = async (req, res) => {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const currentItems = items.slice(startIndex, endIndex);
-    console.log(currentItems, 'currentitems')
+    console.log(currentItems.orderedItems, 'currentitems')
     const totalPages = Math.ceil(count.length / limit);
     res.json({
       data: currentItems,
@@ -1729,6 +1809,7 @@ const puppeteer = require('puppeteer');
 const Wishlist = require('../models/wishlistSchema')
 const { isNull } = require('util')
 const { filterAsync } = require('puppeteer')
+const user = require('../models/user')
 
 
 
@@ -1745,7 +1826,7 @@ const pdfdownload = async (req, res) => {
       return res.status(404).json({ message: 'Cart not found' });
     }
 
-    const totalPriceWithGST = cart.totalPrice + cart.totalGST
+    const totalPriceWithGST = cart.totalPrice
     const invoiceData = {
       items: cart.orderedItems,
       cartId: cart._id,
@@ -1871,7 +1952,7 @@ const createRazorpayOrder = async (req, res) => {
       }
       const offer = req.session.offerprice || 0;
       const coupon = req.session.appliedCoupon || { couponDiscount: 0 };
-      const totalAmount = ((cart.totalPrice + cart.totalGST - offer - coupon.couponDiscount) * 100);
+      const totalAmount = ((cart.totalPrice  - offer - coupon.couponDiscount) * 100);
       const options = {
         amount: totalAmount,
         currency: "INR",
@@ -2099,48 +2180,62 @@ const paymentfailedpage = async (req, res) => {
 const returnorder = async (req, res) => {
   try {
     const user = req.session.User;
-    const { orderId, returnReason } = req.body;
-
-    console.log('Return process started');
-
-    const order = await orderSchema.findOne({ _id: orderId });
-    if (!order) {
-      console.log('Order not found');
-      return res.redirect('/user/order');
+    const { orderId, returnReason,productId } = req.body;
+    if(productId){
+      const order = await orderSchema.findById(orderId);
+      const item = order.orderedItems.find(i => i.product.toString() === productId);
+  
+      if (item) {
+        item.returnStatus = 'Requested';
+        item.returnReason = returnReason;
+        await order.save();
+        res.redirect('/user/order');
+      } else {
+        console.log('Order not found');
+        return res.redirect('/user/order');
+      }
     }
+    else{
+      console.log('Return process started');
 
-    // if (order.paymentMethod === "Online Payment") {
-    //   let wallet = await walletSchema.findOne({ userId: user._id });
-
-    //   if (!wallet) {
-    //     console.log('Creating new wallet entry');
-    //     wallet = new walletSchema({
-    //       userId: user._id,
-    //       transaction: [{
-    //         Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
-    //         Type: 'Credit',
-    //       }]
-    //     });
-    //   } else {
-    //     console.log('Updating existing wallet');
-    //     wallet.transaction.push({
-    //       Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
-    //       Type: 'Credit',
-    //     });
-    //   }
-
-    //   await wallet.calculateWalletTotal(); 
-    //   await wallet.save();
-    //   console.log('Wallet updated:', wallet);
-    // }
-
-    order.ReturnReason = returnReason;
-    order.status = "Return Request";
-    await order.save();
-
-    console.log('Order updated:', order);
-    res.redirect('/user/order');
-
+      const order = await orderSchema.findOne({ _id: orderId });
+      if (!order) {
+        console.log('Order not found');
+        return res.redirect('/user/order');
+      }
+  
+      // if (order.paymentMethod === "Online Payment") {
+      //   let wallet = await walletSchema.findOne({ userId: user._id });
+  
+      //   if (!wallet) {
+      //     console.log('Creating new wallet entry');
+      //     wallet = new walletSchema({
+      //       userId: user._id,
+      //       transaction: [{
+      //         Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+      //         Type: 'Credit',
+      //       }]
+      //     });
+      //   } else {
+      //     console.log('Updating existing wallet');
+      //     wallet.transaction.push({
+      //       Total: (order.totalPrice + order.totalGST) - (order.discount || 0),
+      //       Type: 'Credit',
+      //     });
+      //   }
+  
+      //   await wallet.calculateWalletTotal(); 
+      //   await wallet.save();
+      //   console.log('Wallet updated:', wallet);
+      // }
+  
+      order.ReturnReason = returnReason;
+      order.status = "Return Request";
+      await order.save();
+  
+      console.log('Order updated:', order);
+      res.redirect('/user/order');
+    }
   } catch (error) {
     console.error('Error from homecontroller returnorder:', error);
     res.status(500).send('Internal Server Error');
@@ -2289,6 +2384,72 @@ const walletfilter = async(req,res)=>{
   }
 }
 
+const toggleWishlist = async (req, res) => {
+  try {
+    const userId = req.session.User?._id;
+    const { productId } = req.body;
+
+    const user = await userschema.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    let action = '';
+    let wishlist = await wishlistSchema.findOne({ userId });
+
+    if (wishlist) {
+      // Check if product is already in wishlist
+      const index = wishlist.Products.findIndex(p => p.productId.toString() === productId);
+
+      if (index !== -1) {
+        // Remove product from wishlist
+        wishlist.Products.splice(index, 1);
+        action = 'removed';
+      } else {
+        // Add product to wishlist
+        wishlist.Products.push({ productId });
+        action = 'added';
+      }
+
+      await wishlist.save();
+    } else {
+      // Create a new wishlist
+      wishlist = new wishlistSchema({
+        userId,
+        Products: [{ productId }]
+      });
+      await wishlist.save();
+      action = 'added';
+    }
+
+    return res.json({ success: true, action, message: `Product ${action} from wishlist` });
+  } catch (error) {
+    console.error("Toggle Wishlist Error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+const removeFromWishlist = async (req, res) => {
+  try {
+    const userId = req.session.User._id;
+    const { productId } = req.body;
+
+    console.log(userId, 'userID', productId, 'productid');
+
+  //  const  wishlist = await wishlistSchema.findOne({userId:userId})
+  //  console.log(wishlist,'wishlist')
+  const result = await wishlistSchema.findOneAndUpdate(
+    { userId },
+    { $pull: { Products: { productId: new ObjectId(productId) } } },  // Use ObjectId for comparison
+    { new: true }  // Optionally return the updated document
+  );
+
+    res.json({ success: true, message: "Item removed from wishlist" });
+  } catch (err) {
+    console.error("Error removing wishlist item:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -2324,4 +2485,6 @@ module.exports = {
   getwallet,
   addOffer,
   walletfilter,
+  toggleWishlist,
+  removeFromWishlist,
 }

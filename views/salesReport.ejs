@@ -32,9 +32,10 @@
                         <th>Order ID</th>
                         <th>Product</th>
                         <th>Brand</th>
+                        <th>paymentMethod</th>
                         <th>Price</th>
                         <th>QTY</th>
-                        <th>totalGST</th>
+                        <!-- <th>totalGST</th> -->
                         <th>Discount</th>
                         <th>CouponDiscount</th>
                         <th>Total</th>
@@ -43,16 +44,17 @@
                 <tbody>
                     <% orders.forEach(order => { %>
                         <% order.orderedItems.forEach(item => {
-                            const itemTotal = item.price * item.quantity - (order.discount + order.couponDiscount) + order.totalGST;
+                            const itemTotal = item.price * item.quantity - (order.discount + order.couponDiscount);
                             grandTotal += itemTotal;
                         %>
                             <tr>
                                 <td><%= order.orderId %></td>
                                 <td><%= item.product.productName %></td>
                                 <td><%= item.product.brand.brandName %></td>
+                                <td><%= order.paymentMethod %></td>
                                 <td>₹<%= item.price %></td>
                                 <td><%= item.quantity %></td>
-                                <td><%= order.totalGST %></td>
+                                <!-- <td><%= order.totalGST %></td> -->
                                 <td><%= order.discount %></td>
                                 <td><%= order.couponDiscount %></td>
                                 <td>₹<%= itemTotal %></td>
@@ -60,7 +62,7 @@
                         <% }) %>
                     <% }) %>
                     <tr style="font-weight: bold; background-color: #f4f4f4;">
-                        <td colspan="8" style="text-align: right;">Grand Total</td>
+                        <td colspan="8" style="margin-right: 30px;">Grand Total</td>
                         <td>₹<%= grandTotal %></td>
                     </tr>
                 </tbody>

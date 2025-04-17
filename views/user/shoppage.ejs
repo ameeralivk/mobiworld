@@ -37,39 +37,51 @@
     <div class="row">
       <!-- Sidebar with Categories & Filters -->
       <div class="col-lg-3 mb-4">
-        <form id="filterForm" action="/user/getfilterpage" >
-        <div class="sidebar">
-          <div class="categories">
-            <h5 class="section-title">SORTING</h5>
+        <form id="filterForm" action="/user/getfilterpage" method="GET">
+          <!-- Sorting -->
+          <div class="sidebar">
+            <div class="categories">
+              <h5 class="section-title">SORTING</h5>
               <select name="sort" class="form-select">
-                <option >A to Z</option>
-                <option >Z to A</option>
-                <option>Low To High</option>
-                <option >High To Low</option>
+                <option <%= selectedSort === 'A to Z' ? 'selected' : '' %>>A to Z</option>
+                <option <%= selectedSort === 'Z to A' ? 'selected' : '' %>>Z to A</option>
+                <option <%= selectedSort === 'Low To High' ? 'selected' : '' %>>Low To High</option>
+                <option <%= selectedSort === 'High To Low' ? 'selected' : '' %>>High To Low</option>
               </select>
+            </div>
           </div>
-        </div>
-        <div class="sidebar">
-          <div class="categories">
-            <h5 class="section-title">CATEGORIES</h5>
+  
+          <!-- Categories -->
+          <div class="sidebar mt-4">
+            <div class="categories">
+              <h5 class="section-title">CATEGORIES</h5>
               <select name="category" class="form-select">
                 <option value="">All</option>
-                <% category.forEach(function(category) { %>
-                <option><%= category.brandName %></option>
+                <% category.forEach(function(cat) { %>
+                  <option value="<%= cat.brandName %>" <%= selectedCategory === cat.brandName ? 'selected' : '' %>>
+                    <%= cat.brandName %>
+                  </option>
                 <% }); %>
               </select>
-              <div class="price-range">
-                <h5 class="section-title">PRICE RANGE</h5>
-                <p class="mb-1">Price from:</p>
-                <input type="text" name="priceFrom" class="price-input" placeholder="">
-                <p class="mb-1 mt-3">Price to:</p>
-                <input type="text" name="priceTo" class="price-input" placeholder="">
-              </div>
-              <button type="submit" class="btn btn-primary mt-3">Apply Filters</button>
-            </form>
+            </div>
           </div>
-        </div>
+  
+          <!-- Price Range -->
+          <div class="sidebar mt-4">
+            <div class="price-range">
+              <h5 class="section-title">PRICE RANGE</h5>
+              <p class="mb-1">Price from:</p>
+              <input type="text" name="priceFrom" class="form-control" value="<%= selectedPriceFrom %>" />
+              <p class="mb-1 mt-3">Price to:</p>
+              <input type="text" name="priceTo" class="form-control" value="<%= selectedPriceTo %>" />
+            </div>
+          </div>
+  
+          <button type="submit" class="btn btn-primary mt-4">Apply Filters</button>
+        </form>
       </div>
+  
+  
      
       <!-- Product Grid -->
       <div class="col-lg-9">

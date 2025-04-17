@@ -68,7 +68,7 @@
         </table>
         <h3>Total</h3>
         <p><strong>Subtotal:</strong> ₹<%= totalPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></p>
-        <p><strong>GST:</strong> ₹<%= totalGST.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></p>
+        <!-- <p><strong>GST:</strong> ₹<%= totalGST.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></p> -->
         <p><strong>Discount:</strong> ₹<%= offer.toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></p>
         <p><strong>CouponDiscount:</strong>₹<%= (couponDiscount) %></p>
         <p><strong>Total (incl. GST):</strong> ₹<%= (totalPriceWithGST-(offer+couponDiscount)).toLocaleString('en-IN', { minimumFractionDigits: 2 }) %></p>

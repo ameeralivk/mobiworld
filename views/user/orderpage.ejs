@@ -30,6 +30,10 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="orderIdInput" name="orderId">
+                <input type="hidden" id="productIdInput" name="productId">
+                <p id="para" style="color: red;"></p>
+                  
+                
                 <label for="returnReason" class="form-label">Reason for Return:</label>
                 <textarea class="form-control bg-secondary text-white" name="returnReason" id="returnReason" rows="3" placeholder="Enter reason here..."></textarea>
             </div>
@@ -134,9 +138,23 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
         <script>
-            function openReturnModal(orderid){
+             function setProductId(checkbox) {
+                    const productIdInput = document.getElementById('productIdInput');
+                
+                }
+            function openReturnModal(orderid,productid,itemCount){
+                console.log(productid,'productid')
                 const returnModal = new bootstrap.Modal(document.getElementById("returnModal"));
                 document.getElementById('orderIdInput').value = orderid
+                document.getElementById('productIdInput').value = productid;
+                const checkbox = document.getElementById('returnCheckbox');
+                const paragraph = document.getElementById('para')
+                if (itemCount > 1) {
+                    paragraph.innerText = "This order contains multiple products.The selected Item will be returned";
+                    paragraph.style.display = "block";
+                } else {
+                    paragraph.style.display = "none"
+                }
                 returnModal.show();
             }
             let currentPage = 1;
@@ -171,13 +189,13 @@
                                 orderRow.classList.add('row', 'order-row', 'align-items-center');
                                 let downloadBtnHTML = '';
                                 let cancell = '';
-                                if (order.status === 'Delivered') {
+                                if (order.status === 'Delivered'  && item.returnStatus !== "Requested" && item.returnStatus !== "Returned" && item.returnStatus !== "Rejected") {
                                  downloadBtnHTML = `
                                  <a href="/download-invoice/${order._id}" download class="download-btn">
                                  <span>PDF</span>
                                  <div class="icon"></div>
                                  </a> 
-                                  <a href="javascript:void(0);" class="download-btn bg-danger"onclick="openReturnModal('${order._id}')">
+                                  <a href="javascript:void(0);" class="download-btn bg-danger"onclick="openReturnModal('${order._id}','${item.product._id}', ${order.orderedItems.length})">
                                  <span class="bg-danger">Return</span>
                                  </a>
                                  `;
@@ -197,7 +215,7 @@
                                 <div class="col-3">${item.quantity}</div>
                                 <div class="col-3">${new Date(order.createdOn).toLocaleString('en-IN')}</div>
                                 <div class="col-2">
-                                    <span class="delivered-badge">${order.status}</span>
+                                    <span class="delivered-badge">${item.returnStatus || order.status}</span>
                                 </div>
                                 <div class="col-1">
                                     <img src="${item.product.productImage[0]}" alt="Product" class="product-image">
@@ -338,10 +356,6 @@
                                         <span class="text-white">Shipping:</span>
                                         <span class="text-white">₹0</span>
                                     </div>
-                                     <div class="d-flex justify-content-between mb-1">
-                                        <span class="text-white">Tax:</span>
-                                        <span class="text-white">₹${orderDetails.order.totalGST.toLocaleString('en-IN')}</span>
-                                    </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span class="text-white">Discount:</span>
                                         <span class="text-white">₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
@@ -353,7 +367,7 @@
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span class="text-white">Total:</span>
-                                        <span class="text-white">₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount)) + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                        <span class="text-white">₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>

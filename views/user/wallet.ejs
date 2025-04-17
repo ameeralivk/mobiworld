@@ -302,10 +302,6 @@
                                         <span>Shipping:</span>
                                         <span>₹0</span>
                                     </div>
-                                     <div class="d-flex justify-content-between mb-1">
-                                        <span>Tax:</span>
-                                        <span>₹${orderDetails.order.totalGST.toLocaleString('en-IN')}</span>
-                                    </div>
                                     <div class="d-flex justify-content-between mb-1">
                                         <span>Discount:</span>
                                         <span>₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
@@ -317,7 +313,7 @@
                                     <hr class="my-2">
                                     <div class="d-flex justify-content-between fw-bold">
                                         <span>Total:</span>
-                                        <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount)) + orderDetails.order.totalGST).toLocaleString('en-IN')}</span>
+                                        <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
                                     </div>
                                 </div>
                             </div>

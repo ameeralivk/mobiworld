@@ -149,10 +149,10 @@
                                     <div class="col-6">Subtotal</div>
                                     <div id="Subtotal" class="col-6 text-end">₹<%=totalPrice.toLocaleString('en-IN') %></div>
                                 </div>
-                                <div class="row mb-2">
+                                <!-- <div class="row mb-2">
                                     <div class="col-6">TotalGST</div>
                                     <div id="totalgst" class="col-6 text-end">₹<%=totalGST.toLocaleString('en-IN') %></div>
-                                </div>
+                                </div> -->
                                 <div class="row mb-2">
                                     <div class="col-6">Delivery</div>
                                     <div class="col-6 text-end">₹0.00</div>
@@ -176,7 +176,7 @@
                                 <div class="row mb-4 pt-2 border-top mt-2">
                                     <div class="col-6 fw-bold">TOTAL(Including GST)</div>
                                     <div id="totalamound" class="col-6 text-end fw-bold">
-                                        ₹<%= ((totalPrice - (offerPrice || 0) - (coupon.couponDiscount || 0)) + (totalGST || 0)).toLocaleString('en-IN') %>
+                                        ₹<%= ((totalPrice - (offerPrice || 0) - (coupon.couponDiscount || 0))).toLocaleString('en-IN') %>
                                       </div>
 
                                     </div>
@@ -318,9 +318,9 @@
                                     if(result.cartTotal === 0){
                                         result.coupon = 0
                                     }
-                                    document.getElementById('totalamound').innerText = `₹${((result.cartTotal-(result.offerPrice+result.coupon?result.coupon:0))  + result.carttotalGST).toLocaleString('en-IN')}`
+                                    document.getElementById('totalamound').innerText = `₹${((result.cartTotal-(result.offerPrice+result.coupon?result.coupon:0))).toLocaleString('en-IN')}`
                                     document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
-                                     document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`
+                                    //  document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`
                                      document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`
                                      document.getElementById('coupon').innerText = `₹${(result.coupon || 0).toLocaleString('en-IN')}`;
                                     const productrow = button.closest('tr')

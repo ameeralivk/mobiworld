@@ -524,7 +524,11 @@ const shoppage = async (req, res) => {
             product,
             category,
             count: product.length,
-            wishlistProductIds
+            wishlistProductIds,
+            selectedSort: '',
+            selectedCategory: '',
+            selectedPriceFrom: '',
+            selectedPriceTo: '',
         });
 
     } catch (error) {

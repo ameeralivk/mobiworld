@@ -157,6 +157,14 @@
                 <!-- Action Buttons -->
                 <div class="d-grid gap-2 mb-3">
                     <button id="addtocartbutton" data-product-id="<% product._id %>" class="btn btn-info text-white">Add to Cart</button>
+                    <button id="wishlistToggleBtn" 
+                    data-product-id="<%= product._id %>" 
+                    class="btn <%= isWishlisted ? 'btn-danger' : 'btn-outline-danger' %>">
+                    <i class="fas fa-heart me-1"></i>
+                    <%= isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist' %>
+                  </button>
+                  
+
                     <button id="buynow" class="btn btn-dark">Buy Now</button>
                 </div>
             </div>
@@ -198,6 +206,56 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+
+        document.getElementById("wishlistToggleBtn").addEventListener("click", async function () {
+            const button = this;
+            const productId = button.getAttribute("data-product-id");
+            console.log("hi")
+            try {
+                const response = await fetch("/user/toggle-wishlist", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    
+                    body: JSON.stringify({ productId }),
+                    credentials: "include",
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Update button style and text dynamically
+                    if (result.action === 'added') {
+                        button.classList.remove('btn-outline-danger');
+                        button.classList.add('btn-danger');
+                        button.innerHTML = '<i class="fas fa-heart me-1"></i> Remove from Wishlist';
+                    } else {
+                        button.classList.remove('btn-danger');
+                        button.classList.add('btn-outline-danger');
+                        button.innerHTML = '<i class="fas fa-heart me-1"></i> Add to Wishlist';
+                    }
+
+                    Swal.fire({
+                        icon: "success",
+                        title: result.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: result.message || "Something went wrong!"
+                    });
+                }
+            } catch (err) {
+                console.error("Wishlist Toggle Error:", err);
+            }
+        });
+
+
+
         document.addEventListener('DOMContentLoaded', function () {
             // Image gallery functionality
             const mainImageContainer = document.getElementById('main-image-display');

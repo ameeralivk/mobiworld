@@ -154,6 +154,51 @@
                 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.all.min.js"></script>
 
                 <script>
+                   
+                        document.querySelectorAll(".remove-btn").forEach(button => {
+                        button.addEventListener("click", async function () {
+                            const productId = this.getAttribute("data-id");
+                             console.log(productId,)
+                            try {
+                                const response = await fetch("/user/remove-from-wishlist", {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    credentials: "include",
+                                    body: JSON.stringify({ productId })
+                                });
+
+                                const result = await response.json();
+
+                                if (result.success) {
+                                    Swal.fire({
+                                        icon: "success",
+                                        title: result.message || "Removed from wishlist",
+                                        showConfirmButton: false,
+                                        timer: 1500
+                                    });
+
+                                    // Optionally remove the item from DOM
+                                    this.closest(".cart-item").remove(); // adjust class as needed
+                                } else {
+                                    Swal.fire({
+                                        icon: "error",
+                                        title: "Oops...",
+                                        text: result.message || "Something went wrong"
+                                    });
+                                }
+                            } catch (err) {
+                                console.error("Error removing wishlist item:", err);
+                            }
+                        });
+                    });
+
+
+
+
+
+
 
                     document.addEventListener("DOMContentLoaded", function () {
 

@@ -122,6 +122,7 @@
                                     <th>PRODUCT NAME</th>
                                     <th>BRAND</th>
                                     <th>AMOUNT</th>
+                                    <th>Discount</th>
                                     <th>TOTAL <i class="bi bi-caret-down-fill small"></i></th>
                                     <th>QTY SOLD <i class="bi bi-caret-down-fill small"></i></th>
                                 </tr>
@@ -143,7 +144,9 @@
                                             </td>
                                             <td>₹<%= item.price %>
                                             </td>
-                                            <td>₹<%= (item.price * item.quantity-(order.discount+order.couponDiscount)+order.totalGST) %>
+                                            <td>₹<%= (order.discount+order.couponDiscount) %>
+                                            </td>
+                                            <td>₹<%= (item.price * item.quantity-(order.discount+order.couponDiscount)) %>
                                             </td>
                                             <td>
                                                 <%= item.quantity %>
@@ -232,7 +235,8 @@
                     <td>${item.product.productName}</td>
                     <td>${item.product.brand.brandName}</td>
                     <td>₹${item.price}</td>
-                    <td>₹${item.price * item.quantity}</td>
+                    <td>₹${(order.discount+order.couponDiscount)}</td>
+                    <td>₹${(item.price * item.quantity -(order.discount+order.couponDiscount)) }</td>
                     <td>${item.quantity}</td>
                 `;
                                 tbody.appendChild(row);
@@ -284,7 +288,8 @@
                     <td>${item.product.productName}</td>
                     <td>${item.product.brand.brandName}</td>
                     <td>₹${item.price}</td>
-                    <td>₹${item.price * item.quantity}</td>
+                    <td>₹${(order.discount+order.couponDiscount)}</td>
+                    <td>₹${(item.price * item.quantity -(order.discount+order.couponDiscount)) }</td>
                     <td>${item.quantity}</td>
                 `;
 

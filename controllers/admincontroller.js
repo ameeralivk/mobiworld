@@ -17,6 +17,7 @@ const productschema = require('../models/productSchema')
 const CouponSchema = require('../models/couponSchema')
 const offerschema = require('../models/offerSchema')
 const { resendOtp } = require('./usercontroller')
+const walletSchema = require('../models/walletSchem')
 connectDB()
 
 const loadlogin = async (req, res) => {
@@ -215,7 +216,7 @@ const SalesReport = async (req, res) => {
             order.orderedItems.forEach(item => {
                 totalPurchasedItems += item.quantity;
             });
-            totalSales += (order.totalPrice + order.totalGST) - (order.discount || 0) - (order.couponDiscount || 0)
+            totalSales += (order.totalPrice) - (order.discount || 0) - (order.couponDiscount || 0)
         });
         res.render('salesReportPage', { orders, users, totalPurchasedItems, totalSales, PendingOrders, page, totalPages })
     } catch (error) {
@@ -638,7 +639,8 @@ const getChartData = async (req, res) => {
     }
     try {
         const orders = await orderschema.find({ 
-            createdOn: { $gte: startDate, $lte: endDate } 
+            createdOn: { $gte: startDate, $lte: endDate } ,
+            status: { $ne: 'Cancelled' },
           }).populate('userId') .populate({
             path: 'orderedItems.product',
             populate: [
@@ -733,7 +735,8 @@ const brandData = sortedBrands.map(([_, value]) => value);
         const statusLabels = Object.keys(statusMap);
         const statusData = Object.values(statusMap);
         const lastorders = await orderschema.find({ 
-            createdOn: { $gte: startDate, $lte: endDate } 
+            createdOn: { $gte: startDate, $lte: endDate },
+            status: { $ne: 'Cancelled' },
           }).populate('userId') .populate({
             path: 'orderedItems.product',
             populate: [
@@ -775,6 +778,167 @@ const brandData = sortedBrands.map(([_, value]) => value);
     }
 }
 
+const returnProduct = async(req,res)=>{
+    try {
+        const orderId = req.params.id?.trim();
+        const order = await orderschema
+            .findOne({  orderId:orderId })
+            .populate({
+                path: 'orderedItems.product',
+            });
+        console.log(order,'order is here')
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+        
+        // Filter items with return requests
+        const returnItems = order.orderedItems.filter(
+            item => item.returnStatus === "Requested" || item.returnStatus === "returnRequest"
+        );
+        
+        res.json({
+            success: true,
+            orderId: order.orderId,
+            returnItems,
+            orderStatus: order.status
+        });
+    } catch (error) {
+        console.error('Error fetching return details:', error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+}
+
+const getBestOfferForProduct = async (product) => {
+  // if (!product.category && !product.brand) return null;
+  if (!product || (!product.category && !product.brand)) return null;
+  const filterConditions = [];
+
+  if (product.category != null) {
+    filterConditions.push({ categoryId: new mongoose.Types.ObjectId(product.category) });
+  }
+  if (product.brand != null) {
+    filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+  }
+  if (product._id != null) {
+    filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
+  }
+  console.log(filterConditions, 'filtercondition')
+  const offers = await offerschema.find({
+    $or: filterConditions,
+    status: true,
+    startDate: { $lte: new Date() },
+    expiredOn: { $gte: new Date() },
+  });
+  console.log(offers, 'offers')
+  if (!offers || offers.length === 0) return null; // No offers available
+
+  let bestOffer = null;
+  let maxDiscountValue = 0;
+
+  offers.forEach((offer) => {
+    let discountValue =
+      offer.discountType === "percentage"
+        ? (offer.discountValue / 100) * product.salePrice
+        : offer.discountValue;
+
+    if (offer.maxDiscount) {
+      discountValue = Math.min(discountValue, offer.maxDiscount);
+    }
+
+    if (discountValue > maxDiscountValue) {
+      maxDiscountValue = discountValue;
+      bestOffer = offer;
+    }
+  });
+  return bestOffer;
+};
+
+const updateReturnStatus = async (req, res) => {
+    const { orderId, itemId } = req.params;
+    const { status } = req.body;
+  
+    try {
+            const order = await orderschema.findOne({ orderId });
+  
+            if (!order) {
+              return res.status(404).json({ success: false, message: 'Order not found' });
+            }
+        
+            const item = order.orderedItems.id(itemId);
+            if (!item) {
+              return res.status(404).json({ success: false, message: 'Order item not found' });
+            }
+        
+            const product = await productschema.findOne({ _id: item.product });
+            if (!product) {
+              return res.status(404).json({ success: false, message: 'Product not found' });
+            }
+            if (status === "Rejected") {
+                // Only update return status if it's Rejected
+                item.returnStatus = "Rejected";
+                await order.save();
+                return res.json({ success: true, message: 'Return status updated to Rejected' });
+              }
+            // Restock product
+            product.quantity += item.quantity;
+            await product.save();
+        
+            // Get offer discount
+            const offer = await getBestOfferForProduct(product);
+            const bestOffer = (offer?.maxDiscount || 0) * item.quantity;
+        
+            // Calculate proportional coupon deduction
+            let couponAdjustment = 0;
+            if (order.couponDiscount && order.totalPrice) {
+              const itemValue = item.quantity * item.price;
+              const proportion = itemValue / order.totalPrice;
+              couponAdjustment = Math.round(order.couponDiscount * proportion); 
+              console.log('Coupon Adjustment:', couponAdjustment);
+            }
+        
+            // Create wallet transaction
+            const transactionEntry = {
+              Total: (item.quantity * item.price) - (bestOffer || 0) - couponAdjustment,
+              Type: "Credit",
+              description: `Amount refunded on return of ${product.productName}`,
+              orderId: order._id,
+            };
+        
+            const wallet = await walletSchema.findOne({ userId: order.userId });
+            if (wallet) {
+              wallet.transaction.push(transactionEntry);
+              wallet.calculateWalletTotal();
+              await wallet.save();
+            } else {
+              const newWallet = new walletSchema({
+                userId: order.userId,
+                transaction: [transactionEntry]
+              });
+              newWallet.calculateWalletTotal();
+              await newWallet.save();
+            }
+        
+            // Update item return status
+            item.returnStatus = status;
+        
+            // Check if all items are returned — if so, reset coupon
+            const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
+            if (allReturned) {
+              order.couponCode = null;
+              order.couponDiscount = 0;
+            }
+        
+            await order.save();
+        
+            res.json({ success: true, message: 'Return status updated successfully' }); 
+  
+    } catch (err) {
+      console.error('Error updating return status:', err);
+      res.status(500).json({ success: false, message: 'Server error' });
+    }
+  };
+  
+
 module.exports = {
     loadlogin,
     loginverification,
@@ -798,4 +962,6 @@ module.exports = {
     deleteCoupon,
     deleteOffer,
     getChartData,
+    returnProduct,
+    updateReturnStatus,
 }
