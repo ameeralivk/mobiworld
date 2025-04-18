@@ -2,6 +2,85 @@
 <link rel="stylesheet" href="\css\admin css\users.css">
 <body>
 
+    <% users.forEach(user => { %>
+        <!-- Table row here... -->
+      
+        <!-- Wallet Modal -->
+        <div class="modal fade" id="walletModal-<%= user._id %>" tabindex="-1" aria-labelledby="walletModalLabel-<%= user._id %>" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable modal-lg">
+              <div class="modal-content text-dark border-0 shadow-lg">
+                <!-- Colorful header with gradient -->
+                <div class="modal-header bg-gradient-primary text-white" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
+                  <h5 class="modal-title fw-bold" id="walletModalLabel-<%= user._id %>">
+                    <i class="fas fa-wallet me-2"></i>Wallet Details - <%= user.name %>
+                  </h5>
+                  <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body bg-light p-4">
+                  <!-- Wallet balance card -->
+                  <div class="card mb-4 border-0 shadow-sm">
+                    <div class="card-body bg-gradient-info text-white" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
+                      <div class="row align-items-center">
+                        <div class="col">
+                          <h6 class="mb-0 text-white-50">Current Balance</h6>
+                          <h3 class="mb-0">₹<%= user.wallet?.WalletTotal?.toFixed(2) || '0.00' %></h3>
+                        </div>
+                        <div class="col-auto">
+                          <i class="fas fa-coins fa-2x text-white-50"></i>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Transactions list with colorful indicators -->
+                  <h6 class="text-uppercase mb-3 fw-bold text-secondary">Transaction History</h6>
+                  <% if (user.wallet?.transaction?.length) { %>
+                    <div class="list-group shadow-sm">
+                      <% user.wallet.transaction.forEach(tx => { %>
+                        <div class="list-group-item list-group-item-action border-0 mb-2 rounded">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                              <!-- Colorful transaction icon -->
+                              <div class="transaction-icon rounded-circle p-2 me-3 <%= tx.Type === 'Credit' ? 'bg-success bg-opacity-25' : 'bg-danger bg-opacity-25' %>">
+                                <i class="fas <%= tx.Type === 'Credit' ? 'fa-arrow-down' : 'fa-arrow-up' %> <%= tx.Type === 'Credit' ? 'text-success' : 'text-danger' %>"></i>
+                              </div>
+                              <div>
+                                <h6 class="mb-0 fw-bold"><%= tx.Type %></h6>
+                                <small class="text-muted">
+                                  <i class="far fa-calendar-alt me-1"></i><%= new Date(tx.createdOn).toLocaleString() %>
+                                </small>
+                                <% if (tx.description) { %>
+                                  <small class="text-secondary d-block">
+                                    <i class="far fa-sticky-note me-1"></i><%= tx.description %>
+                                  </small>
+                                <% } %>
+                              </div>
+                            </div>
+                            <span class="badge <%= tx.Type === 'Credit' ? 'bg-success' : 'bg-danger' %> fw-normal fs-6 p-2">
+                              <%= tx.Type === 'Credit' ? '+' : '-' %>₹<%= tx.Total.toFixed(2) %>
+                            </span>
+                          </div>
+                        </div>
+                      <% }) %>
+                    </div>
+                  <% } else { %>
+                    <div class="alert alert-info text-center py-5">
+                      <i class="fas fa-exclamation-circle fa-3x mb-3 text-info"></i>
+                      <p class="mb-0">No transactions available yet.</p>
+                    </div>
+                  <% } %>
+                </div>
+                
+                <div class="modal-footer bg-light">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+      <% }) %>
+      
+
       <div class="container-fluid mb-4">
         <div class="row">
           <div class="col-md-6 col-lg-4">
@@ -42,6 +121,8 @@
                                 <th scope="col">EMAIL</th>
                                 <th scope="col">PHONE</th>
                                 <th scope="col">DATE OF CREATION</th>
+                                <th scope="col">WALLET</th>
+                                <th scope="col">VIEW WALLET</th>
                                 <th scope="col" class="text-center">ACTION</th>
                             </tr>
                         </thead>
@@ -57,6 +138,28 @@
                                 <td data-label="EMAIL"><%= user.email %></td>
                                 <td data-label="ADDRESS"><%= user.phone %></td>
                                 <td data-label="DATE OF CREATION"><%= new Date(user.createdOn).toLocaleDateString() %></td>
+                                <td data-label="WALLET" class="position-relative">
+                                    <div class="d-flex align-items-center">
+                                      <!-- Wallet balance with currency symbol -->
+                                      <div class="wallet-amount fw-bold">
+                                        ₹ <%= user.wallet?.WalletTotal?.toFixed(2) || "0.00" %>
+                                      </div>
+                                      
+                                      <!-- Enhanced view button with better styling -->
+                                    </div>
+                                  </td>
+                                  <td>
+                                    <button type="button" 
+                                              class="btn btn-sm ms-2 rounded-pill text-white" 
+                                              style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);"
+                                              data-bs-toggle="modal" 
+                                              data-bs-target="#walletModal-<%= user._id %>"
+                                              title="View Wallet Details">
+                                        <i class="fas fa-wallet me-1"></i> View
+                                      </button>
+                                  </td>
+                                  
+                                
                                 <td data-label="ACTION" class="text-center">
                                     <form action="/admin/blockUnblock/<%= user._id %>" method="post">
                                     <button class="btn btn-block btn-sm text-white px-3" id="button" style="background-color: <%= user.isBlocked ? 'green' : 'red' %>" onclick="alert('Do you Wand tO Proceed')"><%= user.isBlocked ? 'Unblock' : 'Block' %></button>

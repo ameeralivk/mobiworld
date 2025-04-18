@@ -482,6 +482,12 @@ const registeraddress = async (req, res) => {
       'address.state': data.state,
     })
     console.log(exitsaddress, 'exitst ad')
+    // const address = await addressSchema.Address.find({userId:user._id})
+    // console.log(address,'address')
+    // if (address && address.length == 3) {
+    //   req.session.message = 'You can only have up to 3 addresses.';
+    //   return res.redirect('/user/addresspage');
+    // }
     if (exitsaddress) {
       console.log('already exite')
       req.session.message = 'address already exist'
@@ -1362,7 +1368,7 @@ const orderplacedpage = async (req, res) => {
       console.log('caghtdasdafdsaf',req.session.appliedCoupon)
       if (isexit.length > 0) {
         if(items?.totalPrice >= 1000){
-          req.session.message = "Below 1000 is not allowed for the Cash ON Delivery"
+          req.session.message = "Above 1000 is not allowed for the Cash ON Delivery"
           return res.redirect('/user/getpaymentpage')
         }
         if (req.session.address) {
