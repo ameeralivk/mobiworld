@@ -1439,6 +1439,7 @@ const paymentpage = async (req, res) => {
         console.log(adduser, 'useradd')
         const save = await adduser.save()
         req.session.newaddress = save.address[0]._id
+        console.log(req.session.newaddress,'new address ======')
         if (save) {
          return res.redirect('/user/getpaymentpage')
         }
@@ -1451,6 +1452,7 @@ const paymentpage = async (req, res) => {
     }
     if (user) {
       req.session.address = data.selectedAddress
+      console.log(data.selectedAddress,'selected address')
       res.redirect('/user/getpaymentpage')
     }
     else {
@@ -1505,7 +1507,9 @@ const orderplacedpage = async (req, res) => {
                 const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
                 const totalPrice = orderededuser.totalPrice
                 const totalGST = orderededuser.totalGST
-                const address = req.session.address
+                const addressId = new mongoose.Types.ObjectId(req.session.address);
+                const address = await addressSchema.Address.findOne({'address._id':addressId });
+                console.log(address.address,'addresdaf +++++')
                 req.session.address = null
                 const orderedItems = orderededuser.items.map(item => ({
                   product: item.productId,
@@ -1519,7 +1523,7 @@ const orderplacedpage = async (req, res) => {
                   orderedItems: orderedItems,
                   totalPrice: totalPrice,
                   finalAmount: totalPrice,
-                  address: address,
+                  address: address.address[0],
                   status: "Pending", // Default status is 'Pending' if not provided
                   invoiceDate: new Date(),
                   couponApplied:!!req.session.appliedCoupon ,
@@ -1543,7 +1547,9 @@ const orderplacedpage = async (req, res) => {
 
             const totalPrice = orderededuser.totalPrice
             const totalGST = orderededuser.totalGST
-            const address = req.session.address
+            const addressId = new mongoose.Types.ObjectId(req.session.address);
+            const address = await addressSchema.Address.findOne({'address._id':addressId });
+            console.log(address.address,'addresdaf +++++')
             req.session.address = null
             const orderedItems = orderededuser.items.map(item => ({
               product: item.productId,
@@ -1557,7 +1563,7 @@ const orderplacedpage = async (req, res) => {
               orderedItems: orderedItems,
               totalPrice: totalPrice,
               finalAmount: totalPrice,
-              address: address,
+              address: address.address[0],
               status: "Pending", // Default status is 'Pending' if not provided
               invoiceDate: new Date(),
               couponApplied:!!req.session.appliedCoupon ,
@@ -1593,7 +1599,8 @@ const orderplacedpage = async (req, res) => {
           else {
             return res.redirect('/user/getcart')
           }
-          const address = req.session.newaddress
+          const address = await addressSchema.Address.findOne({'address._id':req.session.newaddress})
+          console.log(address.address[0],'new addresfdas ----')
           req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
@@ -1608,7 +1615,7 @@ const orderplacedpage = async (req, res) => {
             totalGST: totalGST,
             totalPrice: totalPrice,
             finalAmount: totalPrice,
-            address: address,
+            address: address.address[0],
             status: "Pending",
             invoiceDate: new Date(),
             couponApplied:!!req.session.appliedCoupon,
@@ -1642,8 +1649,6 @@ const orderplacedpage = async (req, res) => {
           const orderededuser = await cartSchema.findOne({ userId: user._id })
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
-          const address = req.session.address
-          req.session.address = null
           const orderedItems = orderededuser.items.map(item => ({
             product: item.productId,
             quantity: item.quantity,
@@ -1651,6 +1656,11 @@ const orderplacedpage = async (req, res) => {
           }))
           const totalAmount = (totalPrice + totalGST) - (req.session.offerprice ? req.session.offerprice : 0)
           const findwallet = await walletSchema.findOne({ userId: user._id })
+          console.log(req.session.address,'address sdfa')
+          const addressId = new mongoose.Types.ObjectId(req.session.address);
+          const address = await addressSchema.Address.findOne({'address._id':addressId });
+          console.log(address.address,'addresdaf +++++')
+          req.session.address = null
           if (findwallet && findwallet.WalletTotal >= totalAmount) {
             const newOrder = new orderSchema({
               userId: user._id,
@@ -1659,7 +1669,7 @@ const orderplacedpage = async (req, res) => {
               orderedItems: orderedItems,
               totalPrice: totalPrice,
               finalAmount: totalPrice,
-              address: address,
+              address: address.address[0],
               status: "Pending", // Default status is 'Pending' if not provided
               invoiceDate: new Date(),
               couponApplied:!!req.session.appliedCoupon,
@@ -1677,7 +1687,7 @@ const orderplacedpage = async (req, res) => {
             })
             req.session.order = saved.orderId
             if(req.session.appliedCoupon){
-              const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
+              const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
               console.log(couponfind, 'coupon ameer')
               couponfind.userId.push(user._id)
               await couponfind.save()
@@ -1694,7 +1704,7 @@ const orderplacedpage = async (req, res) => {
           }
 
         }
-        else {
+        else  {
           console.log('12,33')
           const orderededuser = await cartSchema.findOne({ userId: user._id })
           if (orderededuser) {
@@ -1703,7 +1713,8 @@ const orderplacedpage = async (req, res) => {
           else {
             return res.redirect('/user/getcart')
           }
-          const address = req.session.newaddress
+          const address = await addressSchema.Address.findOne({'address._id':req.session.newaddress})
+          console.log(address.address[0],'new addresfdas ----')
           req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
@@ -1712,7 +1723,9 @@ const orderplacedpage = async (req, res) => {
             quantity: item.quantity,
             price: item.price,
           }))
-
+          const totalAmount = (totalPrice + totalGST) - (req.session.offerprice ? req.session.offerprice : 0)
+          const findwallet = await walletSchema.findOne({ userId: user._id })
+          if (findwallet && findwallet.WalletTotal >= totalAmount) {
           const newOrder = new orderSchema({
             userId: user._id,
             paymentMethod: 'wallet Transfer',
@@ -1720,7 +1733,7 @@ const orderplacedpage = async (req, res) => {
             totalGST: totalGST,
             totalPrice: totalPrice,
             finalAmount: totalPrice,
-            address: address,
+            address: address.address[0],
             status: "Pending",
             invoiceDate: new Date(),
             couponApplied: false,
@@ -1728,6 +1741,14 @@ const orderplacedpage = async (req, res) => {
           });
          const saved = await newOrder.save();
           updateQuantities(orderededuser.items)
+          findwallet.transaction.push({
+            Total: totalAmount,
+            Type: 'Debit',
+            description: 'amount debited from wallet',
+            orderId:saved._id,
+          })
+          await findwallet.calculateWalletTotal()
+          await findwallet.save()
           req.session.offerprice = null
           if(req.session.appliedCoupon){
             const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
@@ -1738,6 +1759,11 @@ const orderplacedpage = async (req, res) => {
           await cartSchema.findOneAndDelete({userId:user._id})
           req.session.order = saved.orderId
           res.redirect('/user/paymentsuccesspage')
+        }
+        else {
+          req.session.message = "wallet is empty or Insufficient Amount"
+          return res.redirect('/user/getcart')
+        }
         }
       }
       else {
@@ -1861,10 +1887,19 @@ const orderpage = async (req, res) => {
   const user = req.session.User
   try {
     if (user) {
-      const orders = await orderSchema.find({ userId: user._id }).populate('orderedItems.product').sort({ createdOn: -1 })
-      console.log(orders, 'hidasfdsa')
-      console.log(orders.orderedItems,'lenght')
-      return res.render('orderpage', { orders })
+      if(req.session.message){
+        const orders = await orderSchema.find({ userId: user._id }).populate('orderedItems.product').sort({ createdOn: -1 })
+        const message = req.session.message 
+        req.session.message = null
+        return res.render('orderpage',{orders,message})
+      }
+      else{
+        const orders = await orderSchema.find({ userId: user._id }).populate('orderedItems.product').sort({ createdOn: -1 })
+        console.log(orders, 'hidasfdsa')
+        console.log(orders.orderedItems,'lenght')
+        return res.render('orderpage', { orders,message:'' })
+      }
+     
     }
     else {
       req.session.message = 'user not found'
@@ -2130,6 +2165,7 @@ const verifypayment = async (req, res) => {
       if (generated_signature === razorpay_signature) {
         const orderDetails = req.session.orderdetails;
         req.session.orderDetails = null;
+        console.log(orderDetails,'orderameaafads === ==__')
         req.session.razorpayid = orderDetails.orderId
         const coupon = req.session.appliedCoupon || { couponDiscount: 0 };
         const couponApplied = coupon.couponDiscount > 0;
@@ -2137,7 +2173,8 @@ const verifypayment = async (req, res) => {
         if (!orderDetails) {
           return res.status(400).send("Session expired, please try again.");
         }
-  
+        const address = await addressSchema.Address.findOne({'address._id':req.session.newaddress})
+        req.session.newaddress = null
         const newOrder = new orderSchema({
           razorpayOrderId: orderDetails.orderId,
           userId: orderDetails.userId,
@@ -2147,7 +2184,7 @@ const verifypayment = async (req, res) => {
           orderedItems: orderDetails.orderedItems,
           totalPrice: orderDetails.amount,
           finalAmount: orderDetails.amount,
-          address: req.session.newaddress,
+          address: address.address[0],
           status: "Pending",
           invoiceDate: new Date(),
           couponApplied: couponApplied,
@@ -2171,10 +2208,12 @@ const verifypayment = async (req, res) => {
           })
         );
         req.session.offerprice = null;
-        const couponfind = await couponSchema.findById(req.session.appliedCoupon.couponId)
-        console.log(couponfind, 'coupon ameer')
-        couponfind.userId.push(user._id)
-        await couponfind.save()
+        const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+        if(couponfind){
+          console.log(couponfind, 'coupon ameer')
+          couponfind.userId.push(user._id)
+          await couponfind.save()
+        }
         await cartSchema.deleteOne({ userId: orderDetails.userId });
       }
       else {
@@ -2199,7 +2238,9 @@ const verifypayment = async (req, res) => {
         if (!orderDetails) {
           return res.status(400).send("Session expired, please try again.");
         }
-  
+        const addressId = new mongoose.Types.ObjectId(req.session.address);
+        const address = await addressSchema.Address.findOne({'address._id':addressId });
+        console.log(address.address,'addresdaf +++++')
         const newOrder = new orderSchema({
           razorpayOrderId: orderDetails.orderId,
           userId: orderDetails.userId,
@@ -2209,7 +2250,7 @@ const verifypayment = async (req, res) => {
           orderedItems: orderDetails.orderedItems,
           totalPrice: orderDetails.amount,
           finalAmount: orderDetails.amount,
-          address: req.session.address,
+          address:address.address[0],
           status: "Pending",
           invoiceDate: new Date(),
           couponApplied: couponApplied,
@@ -2320,7 +2361,10 @@ const returnorder = async (req, res) => {
     if(productId){
       const order = await orderSchema.findById(orderId);
       const item = order.orderedItems.find(i => i.product.toString() === productId);
-  
+      if(item.returnStatus === 'Requested'){
+        req.session.message = "item return requist already submited"
+        return res.redirect('/user/order');
+      }
       if (item) {
         item.returnStatus = 'Requested';
         item.returnReason = returnReason;

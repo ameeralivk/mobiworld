@@ -928,10 +928,8 @@ const getBestOfferForProduct = async (product) => {
 const updateReturnStatus = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { status } = req.body;
-
     try {
         const order = await orderschema.findOne({ orderId });
-
         if (!order) {
             return res.status(404).json({ success: false, message: 'Order not found' });
         }
@@ -940,7 +938,6 @@ const updateReturnStatus = async (req, res) => {
         if (!item) {
             return res.status(404).json({ success: false, message: 'Order item not found' });
         }
-
         const product = await productschema.findOne({ _id: item.product });
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });

@@ -59,7 +59,7 @@ const forgetOtp = async(req,res)=>{
                 res.render('forgetpasswordOTP',{message}) 
             }
             else{
-                return res.render('forgetpasswordOTP',{message})
+                return res.render('forgetpasswordOTP',{message:''})
             }
             
         
@@ -78,9 +78,8 @@ const resetpassOtp = async (req,res)=>{
         return Math.floor(100000 + Math.random() * 900000).toString();
     } 
     const {email} = req.body
-    const isexist = await userschema.findOne({email})
+    const isexist = await userschema.findOne({email:email})
     req.session.data = isexist
-    console.log(req.session.data)
     try {
         if(req.session.User){
               if(req.session.User.email == email){
