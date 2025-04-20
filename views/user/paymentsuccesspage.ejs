@@ -10,44 +10,112 @@
     <link rel="stylesheet" href="\css\paymentsuccesspage.css">
 </head>
 <body>
-
-        <%- include("../../views/partials/user/shoppage_header") %>
-
+    <%- include("../../views/partials/user/shoppage_header") %>
+    
     <div class="section">
-    <div class="container1">
-        <div class="success-icon">
-            <div class="checkmark"></div>
-        </div>
-        
-        <h1>Order Successful!</h1>
-        <p>Thank you for your purchase. Your order has been confirmed.</p>
-        
-        <div class="order-details">
-            <div class="detail-row">
-                <span><strong>Order ID:</strong></span>
-                <span>#ORD-<%= orderdetails.orderId %></span>
+        <div class="container1">
+            <div class="swal-icon swal-icon--success">
+                <span class="swal-icon--success__line swal-icon--success__line--long bg-white"></span>
+                <span class="swal-icon--success__line swal-icon--success__line--tip bg-white"></span>
+            
+                <div class="swal-icon--success__ring"></div>
+                <div class="swal-icon--success__hide-corners"></div>
+              </div>
+            
+            <h1>Order Successful!</h1>
+            <p>Thank you for your purchase. Your order has been confirmed.</p>
+            
+            <div class="order-details">
+                <div class="detail-row">
+                    <span><strong>Order ID:</strong></span>
+                    <span>#ORD-<%= orderdetails.orderId %></span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Date:</strong></span>
+                    <span><%= new Date( orderdetails.createdOn).toLocaleString('en-IN') %></span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Payment Method:</strong></span>
+                    <span><%= orderdetails.paymentMethod %></span>
+                </div>
+                <div class="detail-row">
+                    <span><strong>Total Amount:</strong></span>
+                    <span>₹<%= ((orderdetails.totalPrice)-(offer+coupon)) %></span>
+                </div>
             </div>
-            <div class="detail-row">
-                <span><strong>Date:</strong></span>
-                <span><%= new Date( orderdetails.createdOn).toLocaleString('en-IN') %></span>
+            
+            <p>A confirmation email has been sent to your registered email address.</p>
+            
+            <div class="buttons">
+                <a href="/user/shoppage" class="btn btn-secondary">Continue Shopping</a>
+                <a href="/user/order" class="btn btn-primary">Go to Orders</a>
             </div>
-            <div class="detail-row">
-                <span><strong>Payment Method:</strong></span>
-                <span><%= orderdetails.paymentMethod %></span>
-            </div>
-            <div class="detail-row">
-                <span><strong>Total Amount:</strong></span>
-                <span>₹<%= ((orderdetails.totalPrice)-(offer+coupon)) %></span>
-            </div>
-        </div>
-        
-        <p>A confirmation email has been sent to your registered email address.</p>
-        
-        <div class="buttons">
-            <a href="/user/shoppage" class="btn btn-secondary">Continue Shopping</a>
-            <a href="/user/order" class="btn btn-primary">Go to Orders</a>
         </div>
     </div>
-</div>
+    
+    <!-- Confetti Container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+    
+    <script>
+        // Function to create confetti effects
+        function createConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#f94144', '#f3722c', '#f8961e', '#f9c74f', '#90be6d', '#43aa8b', '#577590', '#ff99c8', '#9b5de5'];
+            const shapes = ['circle', 'square', 'triangle'];
+            const confettiCount = 150;
+            
+            for (let i = 0; i < confettiCount; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                
+                // Random position
+                const posX = Math.random() * 100;
+                
+                // Random color
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Random shape
+                const shape = shapes[Math.floor(Math.random() * shapes.length)];
+                
+                // Random size
+                const size = Math.random() * 10 + 5;
+                
+                // Random animation duration
+                const duration = Math.random() * 3 + 2;
+                
+                // Apply styles
+                confetti.style.left = posX + 'vw';
+                confetti.style.backgroundColor = color;
+                confetti.style.width = size + 'px';
+                confetti.style.height = size + 'px';
+                confetti.style.animationDuration = duration + 's';
+                
+                // Apply shape
+                if (shape === 'circle') {
+                    confetti.style.borderRadius = '50%';
+                } else if (shape === 'triangle') {
+                    confetti.style.width = '0';
+                    confetti.style.height = '0';
+                    confetti.style.backgroundColor = 'transparent';
+                    confetti.style.borderLeft = size/2 + 'px solid transparent';
+                    confetti.style.borderRight = size/2 + 'px solid transparent';
+                    confetti.style.borderBottom = size + 'px solid ' + color;
+                }
+                
+                // Add confetti to container
+                container.appendChild(confetti);
+                
+                // Remove confetti after animation
+                setTimeout(() => {
+                    confetti.remove();
+                }, duration * 1000);
+            }
+        }
+        
+        // Trigger confetti when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createConfetti();
+        });
+    </script>
 </body>
 </html>

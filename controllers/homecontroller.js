@@ -251,16 +251,17 @@ const getfilterpage = async (req, res) => {
   const user = req.session.User;
 
   try {
-    if(!user){
-      req.session.message = "Please Login"
-     return res.redirect('/login')
+    if (!user) {
+      req.session.message = "Please Login";
+      return res.redirect('/login');
     }
-    const { sort, category, priceFrom, priceTo } = req.query;
+
+    const { sort, category, priceFrom, priceTo, page = 1, limit = 6 } = req.query; // Default page=1, limit=6
 
     const categories = await brandschema.find({});
     let filter = {};
 
-    // If a brand is selected
+    // Brand filter
     if (category) {
       const cat = await brandschema.findOne({ brandName: category });
       if (cat) {
@@ -268,28 +269,33 @@ const getfilterpage = async (req, res) => {
       }
     }
 
-    // If price range is selected
+    // Price filter
     if (priceFrom || priceTo) {
       filter.salePrice = {};
       if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
     }
 
-    // Get wishlist products for current user
+    // Wishlist
     const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
     const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
 
-    // Sorting logic
+    // Sorting
     let sortOption = {};
     if (sort === 'A to Z') sortOption = { productName: 1 };
     else if (sort === 'Z to A') sortOption = { productName: -1 };
     else if (sort === 'Low To High') sortOption = { salePrice: 1 };
     else if (sort === 'High To Low') sortOption = { salePrice: -1 };
 
-    // Fetch filtered & sorted products
-    const products = await Product.find(filter).sort(sortOption);
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const totalProducts = await Product.countDocuments(filter);
+    const totalPages = Math.ceil(totalProducts / limit);
 
-    // Render page with selected filters to persist them in EJS
+    const products = await Product.find(filter)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(parseInt(limit));
+
     return res.render('shoppage', {
       product: products,
       category: categories,
@@ -297,7 +303,9 @@ const getfilterpage = async (req, res) => {
       selectedSort: sort || '',
       selectedCategory: category || '',
       selectedPriceFrom: priceFrom || '',
-      selectedPriceTo: priceTo || ''
+      selectedPriceTo: priceTo || '',
+      currentPage: parseInt(page),
+      totalPages
     });
 
   } catch (error) {
@@ -305,6 +313,7 @@ const getfilterpage = async (req, res) => {
     return res.status(500).send('Server Error');
   }
 };
+
 
 
 
@@ -941,6 +950,102 @@ const deleteaddress = async (req, res) => {
 //   }
 // };
 
+// const getcart = async (req, res) => {
+//   const user = req.session.User;
+
+//   try {
+//     if (!user) {
+//       req.session.message = 'Please login';
+//       return res.redirect('/user/login');
+//     }
+//     if (req.session.couponUsed) {
+//       req.session.appliedCoupon = null;
+//       req.session.couponUsed = null;
+//     }
+
+//     const coupon = req.session.appliedCoupon || '';
+//     const message = req.session.message || '';
+//     req.session.message = null;
+
+//     if (req.session.appliedCoupon) {
+//       req.session.couponUsed = true;
+//     }
+
+//     const isexist = await cartSchema.findOne({ userId: user._id });
+
+//     if (!isexist) {
+//       return res.render('addtocart', {
+//         combineddata: [],
+//         quantity: '',
+//         totalPrice: 0,
+//         totalGST: '',
+//         message,
+//         offerPrice: 0,
+//         coupon,
+//         coupons: [],
+//       });
+//     }
+
+//     const items = isexist.items.map(item => item.productId);
+//     const quantity = isexist.items.map(item => item.quantity);
+
+//     const products = await Product.find({ _id: { $in: items } });
+//     const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
+//     // const offerPrices = async (products) => {
+//     //   const discounts = await Promise.all(products.map(getTotalOffers)); // Assume you have getTotalOffers()
+//     //   return discounts.reduce((acc, discount, index) => acc + discount * quantity[index], 0);
+//     // };
+    
+//     const offerPrices = async (products, productQuantityMap) => {
+//       const discounts = await Promise.all(products.map(getTotalOffers));
+    
+//       return discounts.reduce((acc, discount, index) => {
+//         const productId = products[index]._id.toString();
+//         const quantity = productQuantityMap.get(productId) || 0;
+//         return acc + discount * quantity;
+//       }, 0);
+//     };
+    
+//     console.log(offerPrices,'offerprice ameer ali vk')
+//     const offerPrice = await offerPrices(products);
+//     req.session.offerprice = offerPrice;
+
+//     const now = new Date();
+//     const categoryIds = products.map(p => p.category?.toString());
+//     const brandIds = products.map(p => p.brand?.toString());
+//     const productIds = products.map(p => p._id.toString());
+
+//     const matchingCoupons = await couponSchema.find({
+//       status: true,
+//       expiredOn: { $gte: now },
+//       userId: { $ne: user._id },
+//       $or: [
+//         { appliesTo: "all" },
+//         { appliesTo: "category", categoryId: { $in: categoryIds } },
+//         { appliesTo: "brand", brandId: { $in: brandIds } },
+//         { appliesTo: "product", productId: { $in: productIds } }
+//       ]
+//     });
+//     const validCoupons = matchingCoupons.filter(coupon => {
+//       return isexist.totalPrice >= coupon.minimumPrice;
+//     });
+
+//     return res.render('addtocart', {
+//       combineddata: populatedCart.items,
+//       quantity,
+//       totalPrice: isexist.totalPrice,
+//       totalGST: isexist.totalGST,
+//       message,
+//       offerPrice,
+//       coupon,
+//       coupons: validCoupons,
+//     });
+
+//   } catch (error) {
+//     console.error('Error in getcart controller:', error);
+//     res.status(500).send("Server error");
+//   }
+// };
 const getcart = async (req, res) => {
   const user = req.session.User;
 
@@ -949,6 +1054,7 @@ const getcart = async (req, res) => {
       req.session.message = 'Please login';
       return res.redirect('/user/login');
     }
+
     if (req.session.couponUsed) {
       req.session.appliedCoupon = null;
       req.session.couponUsed = null;
@@ -982,14 +1088,28 @@ const getcart = async (req, res) => {
 
     const products = await Product.find({ _id: { $in: items } });
     const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
-    const offerPrices = async (products) => {
-      const discounts = await Promise.all(products.map(getTotalOffers)); // Assume you have getTotalOffers()
-      return discounts.reduce((acc, discount, index) => acc + discount * quantity[index], 0);
+
+    // 🧠 Build a map of productId to quantity
+    const productQuantityMap = new Map();
+    isexist.items.forEach(item => {
+      productQuantityMap.set(item.productId.toString(), item.quantity);
+    });
+
+    // 💰 Offer logic
+    const offerPrices = async (products, productQuantityMap) => {
+      const discounts = await Promise.all(products.map(getTotalOffers));
+
+      return discounts.reduce((acc, discount, index) => {
+        const productId = products[index]._id.toString();
+        const quantity = productQuantityMap.get(productId) || 0;
+        return acc + discount * quantity;
+      }, 0);
     };
 
-    const offerPrice = await offerPrices(products);
+    const offerPrice = await offerPrices(products, productQuantityMap);
     req.session.offerprice = offerPrice;
 
+    // 🎟 Coupon logic
     const now = new Date();
     const categoryIds = products.map(p => p.category?.toString());
     const brandIds = products.map(p => p.brand?.toString());
@@ -1006,10 +1126,12 @@ const getcart = async (req, res) => {
         { appliesTo: "product", productId: { $in: productIds } }
       ]
     });
+
     const validCoupons = matchingCoupons.filter(coupon => {
       return isexist.totalPrice >= coupon.minimumPrice;
     });
 
+    // 🛒 Render cart page
     return res.render('addtocart', {
       combineddata: populatedCart.items,
       quantity,
@@ -1026,6 +1148,7 @@ const getcart = async (req, res) => {
     res.status(500).send("Server error");
   }
 };
+
 
 const updatequantity = async (req, res) => {
   const quantity = parseInt(req.body.quantity);
@@ -1069,7 +1192,6 @@ const updatequantity = async (req, res) => {
 
       return discounts.reduce((acc, discount) => acc + discount, 0);
     };
-
     const offerprice = await offerPrices();
     req.session.offerprice = offerprice
     res.status(200).json({ success: true, total, totalGST, offerprice });
@@ -1895,6 +2017,14 @@ const getwishlistpage = async (req, res) => {
   }
 
   try {
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.json({ success: false, message: 'Product not found' });
+    }
+
+    if (product.quantity === 0) {
+      return res.json({ success: false, message: 'Product is out of stock and cannot be added to wishlist' });
+    }
     let wishlist = await wishlistSchema.findOne({ userId: user._id });
     console.log(wishlist, 'wishlist')
     if (!wishlist) {
@@ -2394,7 +2524,12 @@ const toggleWishlist = async (req, res) => {
   try {
     const userId = req.session.User?._id;
     const { productId } = req.body;
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
+    if (product.quantity <= 0) {
+      return res.json({ success: false, message: "Cannot add out-of-stock product to wishlist" });
+    }
     const user = await userschema.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
 

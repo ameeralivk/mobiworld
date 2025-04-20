@@ -502,11 +502,61 @@ const logout = async (req,res)=>{
     }
 }
 
+// const shoppage = async (req, res) => {
+//     const user = req.session.User;
+//     try {
+//         const category = await brandschema.find({});
+//         const product = await productSchema.find({ isDeleted: false, isBlocked: false });
+
+//         let wishlistProductIds = [];
+
+//         if (user) {
+//             const wishlist = await wishlistSchema
+//                 .findOne({ userId: user._id })
+//                 .populate("Products.productId");
+
+//             wishlistProductIds = wishlist
+//                 ? wishlist.Products.map(item => item.productId._id.toString())
+//                 : [];
+//         }
+
+//         return res.render('shoppage', {
+//             product,
+//             category,
+//             count: product.length,
+//             wishlistProductIds,
+//             selectedSort: '',
+//             selectedCategory: '',
+//             selectedPriceFrom: '',
+//             selectedPriceTo: '',
+//         });
+
+//     } catch (error) {
+//         console.error('error from usercontroller', error);
+//         res.status(500).send("Something went wrong");
+//     }
+// }
 const shoppage = async (req, res) => {
     const user = req.session.User;
     try {
         const category = await brandschema.find({});
-        const product = await productSchema.find({ isDeleted: false, isBlocked: false });
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = 9;
+        const skip = (page - 1) * limit;
+        let products = await productSchema.find({ isDeleted: false, isBlocked: false })
+            .populate('brand')
+            .populate('category')
+            .sort({ createdAt: -1 });
+        products = products.filter(product => {
+            return product.brand && !product.brand.isDeleted &&
+                   product.category && !product.category.isDeleted;
+        });
+
+        const totalProducts = products.length;
+
+       
+        const paginatedProducts = products.slice(skip, skip + limit);
 
         let wishlistProductIds = [];
 
@@ -520,15 +570,19 @@ const shoppage = async (req, res) => {
                 : [];
         }
 
+        const totalPages = Math.ceil(totalProducts / limit);
+
         return res.render('shoppage', {
-            product,
+            product: paginatedProducts,
             category,
-            count: product.length,
+            count: totalProducts,
             wishlistProductIds,
             selectedSort: '',
             selectedCategory: '',
             selectedPriceFrom: '',
             selectedPriceTo: '',
+            currentPage: page,
+            totalPages
         });
 
     } catch (error) {
@@ -536,6 +590,8 @@ const shoppage = async (req, res) => {
         res.status(500).send("Something went wrong");
     }
 }
+
+
 
 module.exports = { 
     loadregisterpage,

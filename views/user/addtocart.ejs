@@ -236,7 +236,14 @@
                                 })
                                 const result = await response.json()
                                 if (result.success) {
-                                    document.getElementById('totalamound').innerText = `₹${((result.total-result.offerprice) + result.totalGST).toLocaleString('en-IN')}`
+                                    // document.getElementById('totalamound').innerText = `₹${((result.total-result.offerprice)).toLocaleString('en-IN')}`
+                                    const couponDiscount = result.coupon || 0;
+                                    const totalAmount = result.total - result.offerprice - couponDiscount;
+
+                                    document.getElementById('totalamound').innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
+                                    document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`;
+                                    document.getElementById('totalOffer').innerText = `₹${result.offerprice.toLocaleString('en-IN')}`;
+                                    document.getElementById('coupon').innerText = `₹${couponDiscount.toLocaleString('en-IN')}`;
                                     document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`
                                     document.getElementById('totalgst').innerText = `₹${result.totalGST.toLocaleString('en-IN')}`
                                     document.getElementById('totalOffer').innerText = `₹${result.offerprice.toLocaleString('en-IN')}`
@@ -318,7 +325,15 @@
                                     if(result.cartTotal === 0){
                                         result.coupon = 0
                                     }
-                                    document.getElementById('totalamound').innerText = `₹${((result.cartTotal-(result.offerPrice+result.coupon?result.coupon:0))).toLocaleString('en-IN')}`
+                                    // document.getElementById('totalamound').innerText = `₹${((result.cartTotal-(result.offerPrice+result.coupon?result.coupon:0))).toLocaleString('en-IN')}`
+                                    const couponDiscount = result.coupon || 0;
+                                    const totalAmount = result.cartTotal - result.offerPrice - couponDiscount;
+
+                                    document.getElementById('totalamound').innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
+                                    document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`;
+                                    document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`;
+                                    document.getElementById('coupon').innerText = `₹${couponDiscount.toLocaleString('en-IN')}`;
+
                                     document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
                                     //  document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`
                                      document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`

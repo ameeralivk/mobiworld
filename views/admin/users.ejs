@@ -1,15 +1,32 @@
 <%- include("../../views/partials/admin/layout") %>
 <link rel="stylesheet" href="\css\admin css\users.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <body>
 
     <% users.forEach(user => { %>
         <!-- Table row here... -->
-      
+        <div class="modal" id="myModal" tabindex="-1" role="dialog" style="z-index: 1065 !important;" >
+          <div class="modal-dialog modal-lg" role="document">
+              <div class="modal-content bg-dark">
+                  <div class="modal-header">
+                      <h5 class="modal-title">Transaction Details</h5>
+                      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body bg-dark" id="modalBodyContent">
+                   
+                  </div>
+                  <div class="modal-footer">
+                      <button id="okbutton" type="button" class="btn btn-primary" data-bs-dismiss="modal">Ok</button>
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"  >Close</button>
+                  </div>
+              </div>
+          </div>
+      </div>
         <!-- Wallet Modal -->
         <div class="modal fade" id="walletModal-<%= user._id %>" tabindex="-1" aria-labelledby="walletModalLabel-<%= user._id %>" aria-hidden="true">
             <div class="modal-dialog modal-dialog-scrollable modal-lg">
               <div class="modal-content text-dark border-0 shadow-lg">
-                <!-- Colorful header with gradient -->
+                
                 <div class="modal-header bg-gradient-primary text-white" style="background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);">
                   <h5 class="modal-title fw-bold" id="walletModalLabel-<%= user._id %>">
                     <i class="fas fa-wallet me-2"></i>Wallet Details - <%= user.name %>
@@ -18,7 +35,7 @@
                 </div>
                 
                 <div class="modal-body bg-light p-4">
-                  <!-- Wallet balance card -->
+                
                   <div class="card mb-4 border-0 shadow-sm">
                     <div class="card-body bg-gradient-info text-white" style="background: linear-gradient(45deg, #11998e, #38ef7d);">
                       <div class="row align-items-center">
@@ -35,10 +52,10 @@
                   
                   <!-- Transactions list with colorful indicators -->
                   <h6 class="text-uppercase mb-3 fw-bold text-secondary">Transaction History</h6>
-                  <% if (user.wallet?.transaction?.length) { %>
+                  <% if (user.wallet?.transaction?.length && !user.wallet.transaction.every(tx => Object.keys(tx).length === 0)) { %>
                     <div class="list-group shadow-sm">
                       <% user.wallet.transaction.forEach(tx => { %>
-                        <div class="list-group-item list-group-item-action border-0 mb-2 rounded">
+                        <div onclick="abc('<%= tx.orderId?.orderId %>')"  class="list-group-item list-group-item-action border-0 mb-2 rounded">
                           <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center">
                               <!-- Colorful transaction icon -->
@@ -57,9 +74,13 @@
                                 <% } %>
                               </div>
                             </div>
-                            <span class="badge <%= tx.Type === 'Credit' ? 'bg-success' : 'bg-danger' %> fw-normal fs-6 p-2">
-                              <%= tx.Type === 'Credit' ? '+' : '-' %>₹<%= tx.Total.toFixed(2) %>
-                            </span>
+                            <% if (tx && tx.Total !== undefined) { %>
+                              <span class="badge <%= tx.Type === 'Credit' ? 'bg-success' : 'bg-danger' %> fw-normal fs-6 p-2">
+                                <%= tx.Type === 'Credit' ? '+' : '-' %>₹<%= tx.Total.toFixed(2) %>
+                              </span>
+                            <% } else { %>
+                              <span class="badge bg-secondary fw-normal fs-6 p-2">N/A</span>
+                            <% } %>
                           </div>
                         </div>
                       <% }) %>
@@ -212,6 +233,144 @@
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
+       function showOrderModal(orderId) {
+            // Fetch the order details from the server
+            fetch(`/admin/orderdetails/${orderId}`)
+                .then(response => response.json())
+                .then(orderDetails => {
+                    console.log(orderDetails.order, orderDetails.address)
+                    // Check if we got the correct data
+                    if (orderDetails) {
+                        // Get the modal body element by ID
+                        const modalBody = document.getElementById('modalBodyContent');
+
+                        // Build the HTML content for the modal
+                        let modalContent = `
+                    <!-- Order Header -->
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <h5 class="mb-1 ">Order #ORD-${orderDetails.order.orderId}</h5>
+                            <p class="text-white mb-0 ">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h6 class="mb-2">Order Items</h6>
+                            
+                 ${orderDetails.order.orderedItems.map(item => `
+                <div class="card mb-2">
+                    <div class="card-body py-2 bg-dark">
+                        <div class="row align-items-center bg-dark">
+                            <div class="col-2">
+                                <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                            </div>
+                            <div class="col-7">
+                                <p class="mb-0 fw-bold">${item.product.productName}</p>
+                                <small class="text-muted">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                            </div>
+                            <div class="col-3 text-end">
+                                <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             `).join('')}
+        
+                        </div>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-body bg-dark">
+                                    <h6 class="mb-2">Order Summary</h6>
+                                    <div class="d-flex justify-content-between mb-1 bg-dark">
+                                        <span>Subtotal:</span>
+                                        <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Shipping:</span>
+                                        <span>₹0</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>Discount:</span>
+                                        <span>₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
+                                    </div>
+                                     <div class="d-flex justify-content-between mb-1">
+                                        <span>Coupon Discount:</span>
+                                        <span>₹${orderDetails.order.couponDiscount.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between fw-bold">
+                                        <span>Total:</span>
+                                        <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information -->
+                    <div class="row">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <div class="card h-100"> 
+                                <div class="card-body bg-dark">
+                                    <h6 class="card-title">Shipping Address</h6>
+                                    <p class="card-text mb-0">
+                                        ${orderDetails.address.address[0].name}<br>
+                                        ${orderDetails.address.address[0].addressType}<br>
+                                        ${orderDetails.address.address[0].city}, ${orderDetails.address.address[0].state} ${orderDetails.address.address[0].pincode}<br>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body bg-dark">
+                                    <h6 class="card-title">Payment Method</h6>
+                                    <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                        // Insert the modal content into the modal body
+                        modalBody.innerHTML = modalContent;
+
+                        // Show the modal
+                        var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                        myModal.show();
+                    } else {
+                        // Handle error, if no order details are found
+                        alert('Order not found');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching order details:', error);
+                    alert('Something went wrong!');
+                });
+        }
+      function abc(orderid){
+        console.log(orderid,'orderid')
+        if(!orderid){
+          Swal.fire({
+                icon: 'info',
+                title: 'Referral Amount',
+                text: 'This transaction is a referral amount, and there is no associated order.',
+                confirmButtonText: 'Okay'
+              });
+        }
+        else{
+          showOrderModal(orderid)
+        }
+      }
         // function change(){
         //     const users = document.getElementById('users')
         //     const dashboard = document.getElementById('dashboard')

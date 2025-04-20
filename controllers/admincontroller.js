@@ -65,26 +65,66 @@ const loadusers = async (req, res) => {
     const paginatedData = await getPaginatedData(page, limit);
     const users = await user.aggregate([
         {
-            $lookup: {
-                from: 'wallets',
-                localField: '_id',
-                foreignField: 'userId', // <- this is important
-                as: 'wallet'
-              }
-            },
+          $lookup: {
+            from: 'wallets',
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'wallet'
+          }
+        },
+        { $unwind: { path: '$wallet', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$wallet.transaction', preserveNullAndEmptyArrays: true } },
         {
-          $unwind: {
-            path: '$wallet',
-            preserveNullAndEmptyArrays: true
+          $lookup: {
+            from: 'orders',
+            localField: 'wallet.transaction.orderId',
+            foreignField: '_id',
+            as: 'orderDetails'
           }
         },
         {
-            $sort: { createdOn: -1 }
+          $addFields: {
+            'wallet.transaction.orderId': { $arrayElemAt: ['$orderDetails', 0] }
+          }
         },
+        {
+          $group: {
+            _id: '$_id',
+            user: { $first: '$$ROOT' },
+            transactions: {
+                $push: {
+                  $cond: [
+                    { $ne: ['$wallet.transaction', null] },
+                    '$wallet.transaction',
+                    '$$REMOVE'
+                  ]
+                }
+              }
+          }
+        },
+        {
+          $addFields: {
+            'user.wallet.transaction': '$transactions'
+          }
+        },
+        {
+          $replaceRoot: {
+            newRoot: '$user'
+          }
+        },
+        { $sort: { createdOn: -1 } },
         { $skip: skip },
         { $limit: limit }
       ]);
+      
+      
      console.log(users,'useres')
+     users.forEach(user => {
+        console.log(user.wallet.transaction,'transaction')
+        user.wallet.transaction.forEach(element => {
+            console.log(element.order)
+        });
+     });
     res.render('users', {
         users: users,
         data: paginatedData.data,
@@ -932,7 +972,7 @@ const updateReturnStatus = async (req, res) => {
             offerDiscount = discountPerItem * item.quantity;
 
             // Subtract the offer discount from order's total discount
-            order.discount = Math.max(0, (order.discount || 0) - offerDiscount);
+            // order.discount = Math.max(0, (order.discount || 0) - offerDiscount);
         }
 
         // Calculate proportional coupon deduction
@@ -973,14 +1013,14 @@ const updateReturnStatus = async (req, res) => {
         const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
         if (allReturned) {
             order.couponCode = null;
-            order.couponDiscount = 0;
             order.status = "Returned";
         }
 
         // Recalculate totalPrice and finalAmount after return
         const itemPriceTotal = item.price * item.quantity;
-        order.totalPrice = Math.max(0, order.totalPrice - itemPriceTotal);
-        order.finalAmount = Math.max(0, order.totalPrice - (order.couponDiscount || 0) - (order.discount || 0));
+        // order.totalPrice = Math.max(0, order.totalPrice - itemPriceTotal);
+        // order.finalAmount = Math.max(0, order.totalPrice - (order.couponDiscount || 0) - (order.discount || 0));
+        order.returnAmound = itemPriceTotal - (order.couponDiscount || 0) - (order.discount || 0)
 
         await order.save();
 

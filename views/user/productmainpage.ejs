@@ -39,6 +39,62 @@
     pointer-events: none;
     border-radius: 100px;
 }
+/* Wishlist notification styles */
+.wishlist-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    overflow: hidden;
+    width: 300px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 1000;
+}
+
+.wishlist-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification-icon {
+    background-color: #e91e63;
+    color: white;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.notification-content {
+    padding: 12px 15px;
+    flex-grow: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin: 0 0 3px 0;
+    font-size: 14px;
+}
+
+.notification-message {
+    margin: 0;
+    color: #666;
+    font-size: 13px;
+}
+
+.heart-icon {
+    color: white;
+    font-size: 20px;
+}
 
 </style>
 <body>
@@ -49,8 +105,7 @@
             <%= message %>
         </p>
         <% } %>
-
-    <div class="container mt-5">
+    <div class="container mt-5"> 
         <div class="row">
             <!-- Product Images Section - Modified Layout -->
             <div class="col-md-6">
@@ -207,6 +262,75 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
 
+
+            function showWishlistNotification(productName) {
+            // Create notification container
+            const notification = document.createElement('div');
+            notification.className = 'wishlist-notification';
+            
+            // Create notification content
+            notification.innerHTML = `
+                <div class="notification-icon">
+                    <span class="heart-icon">♥</span>
+                </div>
+                <div class="notification-content">
+                    <h4 class="notification-title">Added to Wishlist</h4>
+                    <p class="notification-message">${productName} has been added to your wishlist.</p>
+                </div>
+            `;
+            
+            // Add to DOM
+            document.body.appendChild(notification);
+            
+            // Show notification (with slight delay for animation)
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 10);
+            
+            // Hide and remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+
+        function showRemovedFromWishlistNotification(productName) {
+    // Create notification container
+    const notification = document.createElement('div');
+    notification.className = 'wishlist-notification';
+    
+    // Create notification content with different icon and message for removal
+    notification.innerHTML = `
+        <div class="notification-icon" style="background-color: #666;">
+            <span class="heart-icon">♡</span>
+        </div>
+        <div class="notification-content">
+            <h4 class="notification-title">Removed from Wishlist</h4>
+            <p class="notification-message">${productName} has been removed from your wishlist.</p>
+        </div>
+    `;
+    
+    // Add to DOM
+    document.body.appendChild(notification);
+    
+    // Show notification (with slight delay for animation)
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 10);
+    
+    // Hide and remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+
         document.getElementById("wishlistToggleBtn").addEventListener("click", async function () {
             const button = this;
             const productId = button.getAttribute("data-product-id");
@@ -230,24 +354,33 @@
                         button.classList.remove('btn-outline-danger');
                         button.classList.add('btn-danger');
                         button.innerHTML = '<i class="fas fa-heart me-1"></i> Remove from Wishlist';
+                        showWishlistNotification(result.productName || "Product");
                     } else {
                         button.classList.remove('btn-danger');
                         button.classList.add('btn-outline-danger');
                         button.innerHTML = '<i class="fas fa-heart me-1"></i> Add to Wishlist';
+                        showRemovedFromWishlistNotification(result.productName || "Product");
                     }
+                  
 
-                    Swal.fire({
-                        icon: "success",
-                        title: result.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
+                    // Swal.fire({
+                    //     icon: "success",
+                    //     title: result.message,
+                    //     showConfirmButton: false,
+                    //     timer: 1500
+                    // });
+                   
                 } else {
                     Swal.fire({
-                        icon: "error",
-                        title: "Oops...",
-                        text: result.message || "Something went wrong!"
+                    icon: 'warning',
+                    title: 'Action Blocked',
+                    text: result.message,
+                    toast: true,
+                    position: 'top-end',
+                    timer: 2500,
+                    showConfirmButton: false,
                     });
+                   
                 }
             } catch (err) {
                 console.error("Wishlist Toggle Error:", err);

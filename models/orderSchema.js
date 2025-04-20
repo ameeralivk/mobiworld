@@ -62,6 +62,11 @@ const orderSchema = new Schema({
      type: Number,
      required:true
     },
+    returnAmound:{
+        type:Number,
+        default:0,
+        required:false,
+    },
     discount:{
         type:Number,
         default:0
