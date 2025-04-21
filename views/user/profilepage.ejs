@@ -97,10 +97,10 @@
                         <% } %>
                     </div>
                     <div class="row">
+                        <% if(!user.googleId){ %>
                         <div class="col-md-6 mb-3">
                             <a href="/user/editprofile" class="btn btn-outline-secondary" id="editButton" onclick="toggleButtonClass(this)">Edit</a>
                         </div>
-                        <% if(!user.googleId){ %>
                         <div class="col-md-6 mb-3 text-end">
                             <form action="/user/forgetOtp">
                             <button class="btn btn-primary" onclick="toggleButtonClass(this)">change password</button>

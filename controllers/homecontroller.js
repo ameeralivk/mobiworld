@@ -1654,7 +1654,7 @@ const orderplacedpage = async (req, res) => {
             quantity: item.quantity,
             price: item.price,
           }))
-          const totalAmount = (totalPrice + totalGST) - (req.session.offerprice ? req.session.offerprice : 0)
+          const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0)
           const findwallet = await walletSchema.findOne({ userId: user._id })
           console.log(req.session.address,'address sdfa')
           const addressId = new mongoose.Types.ObjectId(req.session.address);
@@ -1806,6 +1806,7 @@ const getpaymentsuccesspage = async (req, res) => {
 
   try {
     if (orderid) {
+      console.log(orderid,'orderid')
       console.log('2 hi')
       req.session.orderId = null
       const orderdetails = await orderSchema.findOne({ orderId: orderid})
@@ -2193,6 +2194,7 @@ const verifypayment = async (req, res) => {
   
         });
         await newOrder.save();
+        req.session.order = newOrder.orderId
         console.log(orderDetails, 'orderd details')
         await Promise.all(
           orderDetails.orderedItems.map(async (item) => {

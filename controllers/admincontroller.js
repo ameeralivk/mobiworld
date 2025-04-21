@@ -239,9 +239,65 @@ async function getPaginatedData(page, limit) {
 
 }
 
+// const SalesReport = async (req, res) => {
+//     try {
+
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = 10;
+//         const skip = (page - 1) * limit;
+
+//         const filter = {
+//             $or: [
+//                 { status: "Pending" },
+//                 { status: "Confirmed" },
+//                 { status: "Delivered" },
+//                 { status: "Return Request" }
+//             ]
+//         };
+
+//         const totalOrders = await orderschema.countDocuments(filter);
+//         const totalPages = Math.ceil(totalOrders / limit);
+
+//         const orders = await orderschema.find(filter)
+//             .skip(skip)
+//             .limit(limit)
+//             .populate("userId")
+//             .populate("orderedItems.product")
+//             .populate({
+//                 path: "orderedItems.product",
+//                 populate: { path: "brand" }
+//             });
+
+//         console.log(orders, 'orders')
+//         const users = await userschema.countDocuments()
+//         // const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
+//         const PendingOrders = await orderschema.find({ status: "Pending" }).countDocuments()
+//         let totalPurchasedItems = 0;
+//         let totalSales = 0
+//         orders.forEach(order => {
+//             let nonReturnedTotal = 0;
+//             let fullItemTotal = 0;
+//             let hasValidItem = false;
+//             order.orderedItems.forEach(item => {
+//                 const itemTotal = item.price * item.quantity;
+//                 fullItemTotal += itemTotal;
+//                 if (item.product && item.returnStatus !== "Returned" && order.status !== "Cancelled") {
+//                     nonReturnedTotal += itemTotal;
+//                     totalPurchasedItems += item.quantity;
+//                     hasValidItem = true;
+//                 }
+//             });
+//            totalSales = order.finalAmount - order.discount - order.returnAmound
+//         });
+        
+        
+//         res.render('salesReportPage', { orders, users, totalPurchasedItems, totalSales, PendingOrders, page, totalPages })
+//     } catch (error) {
+//         console.error('error from salesReport admincontroller', error)
+//     }
+// }
 const SalesReport = async (req, res) => {
     try {
-
         const page = parseInt(req.query.page) || 1;
         const limit = 10;
         const skip = (page - 1) * limit;
@@ -261,32 +317,51 @@ const SalesReport = async (req, res) => {
         const orders = await orderschema.find(filter)
             .skip(skip)
             .limit(limit)
+            .populate("userId")
             .populate("orderedItems.product")
             .populate({
                 path: "orderedItems.product",
                 populate: { path: "brand" }
             });
 
-        console.log(orders, 'orders')
-        const users = await userschema.countDocuments()
-        // const orders = await orderschema.find({$or: [{ status: "Confirmed" }, { status: "Delivered" },{ status: "Return Request" }]}).populate("orderedItems.product").populate({path:"orderedItems.product",populate:{path:"brand"},})
-        const PendingOrders = await orderschema.find({ status: "Pending" }).countDocuments()
+        const users = await userschema.countDocuments();
+        const PendingOrders = await orderschema.countDocuments({ status: "Pending" });
+
         let totalPurchasedItems = 0;
-        let totalSales = 0
+        let totalSales = 0;
+
         orders.forEach(order => {
+            let orderItemTotal = 0;
+
             order.orderedItems.forEach(item => {
-                if (item.product && item.returnStatus !== "Returned") {
+                if (item.returnStatus !== "Returned" && order.status !== "Cancelled") {
                     totalPurchasedItems += item.quantity;
-                    totalSales += item.price * item.quantity - order.discount;
                 }
             });
+
+            // Apply your exact logic here:
+            if (order.status !== "Returned" && order.status !== "Cancelled") {
+                totalSales += (order.totalPrice || 0) - ((order.discount || 0) + (order.couponDiscount || 0)) - (order.returnAmound || 0);
+            }
         });
-        
-        res.render('salesReportPage', { orders, users, totalPurchasedItems, totalSales, PendingOrders, page, totalPages })
+
+        res.render('salesReportPage', {
+            orders,
+            users,
+            totalPurchasedItems,
+            totalSales,
+            PendingOrders,
+            page,
+            totalPages
+        });
+
     } catch (error) {
-        console.error('error from salesReport admincontroller', error)
+        console.error('Error from salesReport admincontroller:', error);
+        res.status(500).render('errorPage', { message: 'Something went wrong while loading the sales report.' });
     }
 }
+
+
 const filterSalesReport = async (req, res) => {
     const { from, to } = req.body
     try {
@@ -725,8 +800,14 @@ const getChartData = async (req, res) => {
         console.log("Hi")
         const salesMap = {};
         orders.forEach(order => {
-            const key = filter === 'daily' ? order.createdOn.toLocaleDateString() : order.createdOn.toLocaleString('default', { month: 'short' });
-            salesMap[key] = (salesMap[key] || 0) + order.totalPrice-(order.discount+order.couponDiscount);
+            if (order.status !== "Returned" && order.status !== "Cancelled") {
+                const key = filter === 'daily'
+                    ? order.createdOn.toLocaleDateString()
+                    : order.createdOn.toLocaleString('default', { month: 'short' });
+            
+                salesMap[key] = (salesMap[key] || 0) + order.totalPrice - (order.discount + order.couponDiscount) -(order.returnAmound);
+            }
+            
         });
         const salesLabels = Object.keys(salesMap);
         const salesData = Object.values(salesMap);
@@ -925,9 +1006,122 @@ const getBestOfferForProduct = async (product) => {
   return bestOffer;
 };
 
+// const updateReturnStatus = async (req, res) => {
+//     const { orderId, itemId } = req.params;
+//     const { status } = req.body;
+//     try {
+//         const order = await orderschema.findOne({ orderId });
+//         if (!order) {
+//             return res.status(404).json({ success: false, message: 'Order not found' });
+//         }
+
+//         const item = order.orderedItems.id(itemId);
+//         if (!item) {
+//             return res.status(404).json({ success: false, message: 'Order item not found' });
+//         }
+//         if (item.returnStatus === "Returned" || item.returnStatus === "Rejected") {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: `Product already marked as ${item.returnStatus}`
+//             });
+//         }
+//         const product = await productschema.findOne({ _id: item.product });
+//         if (!product) {
+//             return res.status(404).json({ success: false, message: 'Product not found' });
+//         }
+
+//         if (status === "Rejected") {
+//             // Only update return status if it's Rejected
+//             item.returnStatus = "Rejected";
+//             await order.save();
+//             return res.json({ success: true, message: 'Return status updated to Rejected' });
+//         }
+
+//         // Restock product
+//         product.quantity += item.quantity;
+//         await product.save();
+
+//         // Get offer discount
+//         const offer = await getBestOfferForProduct(product);
+//         let offerDiscount = 0;
+//         if (offer) {
+//             let discountPerItem = offer.discountType === "percentage"
+//                 ? (offer.discountValue / 100) * item.price
+//                 : offer.discountValue;
+
+//             if (offer.maxDiscount) {
+//                 discountPerItem = Math.min(discountPerItem, offer.maxDiscount);
+//             }
+
+//             offerDiscount = discountPerItem * item.quantity;
+
+//             // Subtract the offer discount from order's total discount
+//             // order.discount = Math.max(0, (order.discount || 0) - offerDiscount);
+//         }
+
+//         // Calculate proportional coupon deduction
+//         let couponAdjustment = 0;
+//         if (order.couponDiscount && order.totalPrice) {
+//             const itemValue = item.quantity * item.price;
+//             const proportion = itemValue / order.totalPrice;
+//             couponAdjustment = Math.round(order.couponDiscount * proportion);
+//             console.log('Coupon Adjustment:', couponAdjustment);
+//         }
+
+//         // Create wallet transaction
+//         const transactionEntry = {
+//             Total: (item.quantity * item.price) - offerDiscount - couponAdjustment,
+//             Type: "Credit",
+//             description: `Amount refunded on return of ${product.productName}`,
+//             orderId: order._id,
+//         };
+
+//         const wallet = await walletSchema.findOne({ userId: order.userId });
+//         if (wallet) {
+//             wallet.transaction.push(transactionEntry);
+//             wallet.calculateWalletTotal();
+//             await wallet.save();
+//         } else {
+//             const newWallet = new walletSchema({
+//                 userId: order.userId,
+//                 transaction: [transactionEntry]
+//             });
+//             newWallet.calculateWalletTotal();
+//             await newWallet.save();
+//         }
+
+//         // Update item return status
+//         item.returnStatus = status;
+
+//         // Check if all items are returned — if so, reset coupon and mark order status as Returned
+//         const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
+//         if (allReturned) {
+//             order.couponCode = null;
+//             order.status = "Returned";
+//         }
+
+//         // Recalculate totalPrice and finalAmount after return
+//         const itemPriceTotal = item.price * item.quantity;
+//         // order.totalPrice = Math.max(0, order.totalPrice - itemPriceTotal);
+//         // order.finalAmount = Math.max(0, order.totalPrice - (order.couponDiscount || 0) - (order.discount || 0));
+//         // order.returnAmound = itemPriceTotal - (order.couponDiscount || 0) - (order.discount || 0)
+//         order.returnAmound += transactionEntry.Total
+
+//         await order.save();
+
+//         res.json({ success: true, message: 'Return status updated successfully' });
+
+//     } catch (err) {
+//         console.error('Error updating return status:', err);
+//         res.status(500).json({ success: false, message: 'Server error' });
+//     }
+// };
+
+
 const updateReturnStatus = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { status } = req.body;
+
     try {
         const order = await orderschema.findOne({ orderId });
         if (!order) {
@@ -938,13 +1132,20 @@ const updateReturnStatus = async (req, res) => {
         if (!item) {
             return res.status(404).json({ success: false, message: 'Order item not found' });
         }
+
+        if (item.returnStatus === "Returned" || item.returnStatus === "Rejected") {
+            return res.status(400).json({
+                success: false,
+                message: `Product already marked as ${item.returnStatus}`
+            });
+        }
+
         const product = await productschema.findOne({ _id: item.product });
         if (!product) {
             return res.status(404).json({ success: false, message: 'Product not found' });
         }
 
         if (status === "Rejected") {
-            // Only update return status if it's Rejected
             item.returnStatus = "Rejected";
             await order.save();
             return res.json({ success: true, message: 'Return status updated to Rejected' });
@@ -954,9 +1155,10 @@ const updateReturnStatus = async (req, res) => {
         product.quantity += item.quantity;
         await product.save();
 
-        // Get offer discount
+        // Get best offer and calculate discount
         const offer = await getBestOfferForProduct(product);
         let offerDiscount = 0;
+
         if (offer) {
             let discountPerItem = offer.discountType === "percentage"
                 ? (offer.discountValue / 100) * item.price
@@ -968,8 +1170,10 @@ const updateReturnStatus = async (req, res) => {
 
             offerDiscount = discountPerItem * item.quantity;
 
-            // Subtract the offer discount from order's total discount
-            // order.discount = Math.max(0, (order.discount || 0) - offerDiscount);
+            // ✅ Store only the discount applied to this item
+            item.bestOffer = offerDiscount;
+            order.discount -= offerDiscount
+
         }
 
         // Calculate proportional coupon deduction
@@ -978,12 +1182,13 @@ const updateReturnStatus = async (req, res) => {
             const itemValue = item.quantity * item.price;
             const proportion = itemValue / order.totalPrice;
             couponAdjustment = Math.round(order.couponDiscount * proportion);
-            console.log('Coupon Adjustment:', couponAdjustment);
         }
+          order.couponDiscount = couponAdjustment
+        // Wallet refund calculation
+        const refundAmount = (item.quantity * item.price) - offerDiscount - couponAdjustment;
 
-        // Create wallet transaction
         const transactionEntry = {
-            Total: (item.quantity * item.price) - offerDiscount - couponAdjustment,
+            Total: refundAmount,
             Type: "Credit",
             description: `Amount refunded on return of ${product.productName}`,
             orderId: order._id,
@@ -1006,18 +1211,15 @@ const updateReturnStatus = async (req, res) => {
         // Update item return status
         item.returnStatus = status;
 
-        // Check if all items are returned — if so, reset coupon and mark order status as Returned
+        // Check if all items are returned
         const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
         if (allReturned) {
             order.couponCode = null;
             order.status = "Returned";
         }
 
-        // Recalculate totalPrice and finalAmount after return
-        const itemPriceTotal = item.price * item.quantity;
-        // order.totalPrice = Math.max(0, order.totalPrice - itemPriceTotal);
-        // order.finalAmount = Math.max(0, order.totalPrice - (order.couponDiscount || 0) - (order.discount || 0));
-        order.returnAmound = itemPriceTotal - (order.couponDiscount || 0) - (order.discount || 0)
+        // Update return amount in the order
+        order.returnAmound += refundAmount;
 
         await order.save();
 
@@ -1028,6 +1230,7 @@ const updateReturnStatus = async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 };
+
 
   
 

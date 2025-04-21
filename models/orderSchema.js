@@ -1,4 +1,4 @@
-const { MongoServerClosedError } = require("mongodb");
+
 const mongoose = require("mongoose")
 const {Schema} = mongoose
 // const {v4:uuidv4} = require('uuid');
@@ -49,6 +49,11 @@ const orderSchema = new Schema({
         price:{
             type:Number,
             default:0
+        },
+        bestOffer:{
+            type:Number,
+            default:0,
+            required:false,
         },
         returnStatus: {
             type: String,

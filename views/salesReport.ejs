@@ -125,14 +125,17 @@
                 let totalQuantity = 0;
                 
                 orders.forEach(order => {
+                    // Add total once per order (not per item!)
+                    grandTotal += (order.totalPrice || 0) - ((order.discount || 0) + (order.couponDiscount || 0));
+                
                     order.orderedItems.forEach(item => {
-                        const itemTotal = item.price * item.quantity - (order.discount + order.couponDiscount);
-                        grandTotal += itemTotal;
-                        totalQuantity += item.quantity;
-                        
+                        if (item.returnStatus !== "Returned") {
+                            totalQuantity += item.quantity;
+                        }
+                
                         let paymentClass = "";
                         if (order.paymentMethod === "Online Payment") paymentClass = "payment-cash";
-                        else if (order.paymentMethod === "Cash on delivery") paymentClass = "Cash on delivery";
+                        else if (order.paymentMethod === "Cash on delivery") paymentClass = "payment-cod";
                         else if (order.paymentMethod === "wallet") paymentClass = "payment-wallet";
                 %>
                 <tr>
@@ -144,7 +147,7 @@
                     <td class="quantity"><%= item.quantity %></td>
                     <td class="currency"><%= order.discount.toFixed(2) %></td>
                     <td class="currency"><%= order.couponDiscount.toFixed(2) %></td>
-                    <td class="currency"><%= itemTotal.toFixed(2) %></td>
+                    <td class="currency"><%= (order.totalPrice-order.discount-order.couponDiscount).toFixed(2) %></td>
                 </tr>
                 <% 
                     });

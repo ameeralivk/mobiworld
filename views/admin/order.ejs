@@ -553,7 +553,6 @@
             function populateReturnModal(data, orderId) {
                 console.log(data.returnItems, 'data')
                 const container = document.getElementById('returnItemsContainer');
-
                 if (!data.returnItems || data.returnItems.length === 0) {
                     container.innerHTML = '<div class="alert alert-info">No return requests found for this order.</div>';
                     return;
@@ -634,20 +633,25 @@
                             // Show success message and reload page after 1.5 seconds
                             const row = btn.closest('tr');
                             row.innerHTML = `<td colspan="4" class="text-center">
-                <div class="alert alert-success">
-                    Return request has been ${status.toLowerCase()}. Refreshing...
-                </div>
-            </td>`;
+                            <div class="alert alert-success">
+                                Return request has been ${status.toLowerCase()}. Refreshing...
+                            </div>
+                        </td>`;
 
                             setTimeout(() => {
                                 window.location.reload();
                             }, 1500);
                         } else {
                             btn.innerHTML = originalHtml;
-                            btn.disabled = false;
-                            alert('Failed to update return status: ' + data.message);
-                        }
-                    })
+                        btn.disabled = false;
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed!',
+                            text: data.message || 'Failed to update return status.'
+                        });
+                   }
+                 })
                     .catch(error => {
                         console.error('Error updating return status:', error);
                         btn.innerHTML = originalHtml;

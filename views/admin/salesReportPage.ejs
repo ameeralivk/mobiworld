@@ -128,32 +128,24 @@
                                 </tr>
                             </thead>
                             <tbody id="tablebody">
-                                <% orders.forEach(order=> { %>
-                                    <% order.orderedItems.forEach(item=> { %>
+                                <% orders.forEach(order => { %>
+                                    <% order.orderedItems.forEach(item => { %>
+                                      <% if (item.returnStatus !== "Returned") { %>
                                         <tr>
-                                            <td>
-                                                <%= order.orderId %>
-                                            </td>
-                                            <td><img src="<%= item.product.productImage[0] %>" alt="Redmi A3x"
-                                                    class="product-image"></td>
-                                            <td>
-                                                <%= item.product.productName %>
-                                            </td>
-                                            <td>
-                                                <%= item.product.brand.brandName %>
-                                            </td>
-                                            <td>₹<%= item.price %>
-                                            </td>
-                                            <td>₹<%= (order.discount+order.couponDiscount) %>
-                                            </td>
-                                            <td>₹<%= (item.price * item.quantity-(order.discount+order.couponDiscount)) %>
-                                            </td>
-                                            <td>
-                                                <%= item.quantity %>
-                                            </td>
+                                          <td><%= order.orderId %></td>
+                                          <td><img src="<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" class="product-image"></td>
+                                          <td><%= item.product.productName %></td>
+                                          <td><%= item.product.brand.brandName %></td>
+                                          <td>₹<%= item.price %></td>
+                                          <td>₹<%= item.bestOffer ? item.bestOffer.toFixed(2) : (order.discount + order.couponDiscount).toFixed(2) %></td>
+
+                                          <td>₹<%= (order.totalPrice-order.discount-order.couponDiscount) %></td>
+                                          <td><%= item.quantity %></td>
                                         </tr>
-                                        <% }) %>
-                                            <% }) %>
+                                      <% } %>
+                                    <% }) %>
+                                  <% }) %>
+                                  
                             </tbody>
                         </table>
                     </div>
@@ -236,7 +228,7 @@
                     <td>${item.product.brand.brandName}</td>
                     <td>₹${item.price}</td>
                     <td>₹${(order.discount+order.couponDiscount)}</td>
-                    <td>₹${(item.price * item.quantity -(order.discount+order.couponDiscount)) }</td>
+                    <td>₹${(order.totalPrice-order.discount-order.couponDiscount) }</td>
                     <td>${item.quantity}</td>
                 `;
                                 tbody.appendChild(row);
@@ -289,7 +281,7 @@
                     <td>${item.product.brand.brandName}</td>
                     <td>₹${item.price}</td>
                     <td>₹${(order.discount+order.couponDiscount)}</td>
-                    <td>₹${(item.price * item.quantity -(order.discount+order.couponDiscount)) }</td>
+                    <td>₹${(order.totalPrice-order.discount-order.couponDiscount) }</td>
                     <td>${item.quantity}</td>
                 `;
 

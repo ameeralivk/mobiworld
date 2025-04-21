@@ -270,39 +270,104 @@
                     fetchData(currentPage);
                 }
             });
+            // function cancelorder(id, items) {
+            //     Swal.fire({
+            //         title: 'Are you sure?',
+            //         text: 'Do you want to cancel this order?',
+            //         icon: 'warning',
+            //         showCancelButton: true,
+            //         confirmButtonText: 'Yes, cancel it!',
+            //         cancelButtonText: 'No, keep it'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             fetch('/admin/cancelorder', {
+            //                 method: "POST",
+            //                 headers: {
+            //                     'Content-Type': 'application/json',
+
+            //                 },
+            //                 body: JSON.stringify({ orderId: id, items })
+            //             })
+            //                 .then(response => response.json())
+            //                 .then(data => {
+            //                     console.log(data)
+            //                     if (data) {
+            //                         if(data.message){
+                                        
+            //                         }
+            //                         window.location.href = '/user/order'
+            //                     }
+            //                 })
+            //         }
+            //     })
+
+
+            // }
+            // function modalopen(id) {
+            //     showOrderModal(id)
+            // }
             function cancelorder(id, items) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: 'Do you want to cancel this order?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, cancel it!',
-                    cancelButtonText: 'No, keep it'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch('/admin/cancelorder', {
-                            method: "POST",
-                            headers: {
-                                'Content-Type': 'application/json',
-
-                            },
-                            body: JSON.stringify({ orderId: id, items })
-                        })
-                            .then(response => response.json())
-                            .then(data => {
-                                console.log(data)
-                                if (data) {
-                                    window.location.href = '/user/order'
+                            Swal.fire({
+                                title: 'Are you sure?',
+                                text: 'Do you want to cancel this order?',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, cancel it!',
+                                cancelButtonText: 'No, keep it'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    fetch('/admin/cancelorder', {
+                                        method: "POST",
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify({ orderId: id, items })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        console.log(data);
+                                        if (data.message === "Order is already cancelled") {
+                                            Swal.fire({
+                                                icon: 'info',
+                                                title: 'Already Cancelled',
+                                                text: 'This order was already cancelled earlier.',
+                                                confirmButtonText: 'OK'
+                                            });
+                                        } else if (data.message === "Order cancelled successfully") {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Cancelled!',
+                                                text: 'The order has been cancelled successfully.',
+                                                showConfirmButton: false,
+                                                timer: 1500
+                                            }).then(() => {
+                                                window.location.href = '/user/order';
+                                            });
+                                        } else {
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Error',
+                                                text: data.message || 'Something went wrong while cancelling!',
+                                                confirmButtonText: 'OK'
+                                            });
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        Swal.fire({
+                                            icon: 'error',
+                                            title: 'Oops...',
+                                            text: 'A server error occurred while cancelling the order.',
+                                        });
+                                    });
                                 }
-                            })
-                    }
-                })
+                            });
+                           }
 
+function modalopen(id) {
+    showOrderModal(id);
+}
 
-            }
-            function modalopen(id) {
-                showOrderModal(id)
-            }
 
 
             function showOrderModal(orderId) {

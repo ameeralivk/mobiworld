@@ -258,62 +258,68 @@ const Datefilter = async(req,res)=>{
          console.error('error from statusfilter',error)
      }
  }
+
 const cancelorder = async (req, res) => {
-    const user = req.session.User
+    const user = req.session.User;
     const { orderId } = req.body; 
+
     try {
         const order = await orderSchema.findOne({ orderId })
             .populate('userId')
             .populate('orderedItems.product');
-        if(order.paymentMethod === "Online Payment" || order.paymentMethod === "Wallet Transfer"){
-            const find = await walletSchema.findOne({userId:user._id})
-            console.log(find,'find')
-            if(!find){
-                const newWallet = new walletSchema({
-                    userId:user._id,
-                    transaction:[{
-                        Total:(order.totalPrice)-(order.discount?order.discount:0),
-                        Type:"Credit",
-                        description:"Amount On Cancelling",
-                        orderId:order._id,
-                    }]
-                })
-                await orderSchema.updateOne(
-                    { _id: order._id },
-                    { $set: { status: 'Cancelled'} }
-                  );
-                await newWallet.calculateWalletTotal()
-               await newWallet.save()
-            }
-            console.log('ready')
-            find.transaction.push({
-                Total:(order.totalPrice)-(order.discount?order.discount:0),
-                Type:"Credit",
-                description:"Amount On Cancelling",
-                orderId:order._id
-            })
-            await orderSchema.updateOne(
-                { _id: order._id },
-                { $set: { status: 'Cancelled'} }
-              );
-            await find.calculateWalletTotal()
-           await find.save()
-        }
+
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-        await Promise.all(order.orderedItems.map(async (item) => {
-            if (!item.product) return; 
 
+        if (order.status === 'Cancelled') {
+            return res.status(400).json({ message: 'Order is already cancelled' });
+        }
+
+        // Refund if payment method was online/wallet
+        if (order.paymentMethod === "Online Payment" || order.paymentMethod === "Wallet Transfer") {
+            const wallet = await walletSchema.findOne({ userId: user._id });
+            const refundAmount = order.totalPrice - (order.discount || 0)-(order.couponDiscount || 0);
+
+            if (!wallet) {
+                const newWallet = new walletSchema({
+                    userId: user._id,
+                    transaction: [{
+                        Total: refundAmount,
+                        Type: "Credit",
+                        description: "Amount On Cancelling",
+                        orderId: order._id,
+                    }]
+                });
+                await newWallet.calculateWalletTotal();
+                await newWallet.save();
+            } else {
+                wallet.transaction.push({
+                    Total: refundAmount,
+                    Type: "Credit",
+                    description: "Amount On Cancelling",
+                    orderId: order._id
+                });
+                await wallet.calculateWalletTotal();
+                await wallet.save();
+            }
+        }
+
+        // Restock products
+        await Promise.all(order.orderedItems.map(async (item) => {
+            if (!item.product) return;
             await Product.updateOne(
                 { _id: item.product._id },
-                { $inc: { quantity: item.quantity } } 
+                { $inc: { quantity: item.quantity } }
             );
         }));
+
+        // Update order status
         await orderSchema.updateOne(
             { _id: order._id },
-            { $set: { status: 'Cancelled'} }
-          );
+            { $set: { status: 'Cancelled' } }
+        );
+
         const orders = await orderSchema.find({}).populate('userId').populate('orderedItems.product');
         res.status(200).json({ message: "Order cancelled successfully", data: orders });
 
@@ -322,6 +328,7 @@ const cancelorder = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     } 
 };
+
 
 
 module.exports = {
