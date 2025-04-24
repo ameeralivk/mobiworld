@@ -6,423 +6,487 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout Page</title>
     <link rel="stylesheet" href="\css\shoppage_header.css">
-    <link rel="stylesheet" href="\css\checkoutpage.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
+    <link rel="stylesheet" href="\css\checkoutpage.css">
 </head>
 
 <body>
-
     <%- include("../../views/partials/user/shoppage_header") %>
+
     <% if (typeof message !=='undefined' && message) { %>
+    <div class="container">
         <p id="mess" class="error-message">
             <%= message %>
         </p>
-        <% } %>
-        <div class="header">
+    </div>
+    <% } %>
+
+    <div class="checkout-container">
+        <div class="checkout-header">
             <h1>Checkout</h1>
+            <div class="checkout-steps">
+                <div class="checkout-step active">
+                    <div style="background-color: green;" class="checkout-step-number">1</div>
+                    <span>Cart</span>
+                </div>
+                <div class="checkout-step active">
+                    <div class="checkout-step-number">2</div>
+                    <span>Address</span>
+                </div>
+                <div class="checkout-step">
+                    <div class="checkout-step-number">3</div>
+                    <span>Payment</span>
+                </div>
+                <div class="checkout-step">
+                    <div class="checkout-step-number">4</div>
+                    <span>Confirmation</span>
+                </div>
+            </div>
         </div>
 
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <!-- Single main form that includes everything -->
-                    <form action="/user/paymentpage" method="POST" id="checkoutForm">
+        <div class="checkout-content">
+            <div class="checkout-left">
+                <form action="/user/paymentpage" method="POST" id="checkoutForm">
+                    <div class="checkout-card">
                         <h5>SELECT ADDRESS</h5>
                         <div id="addressSelectionSection">
                             <% address.forEach(function(addressArray) { %>
                                 <% addressArray.forEach(function(address) { %>
-                                    <div class="address-option">
-                                        <input type="radio" id="address-<%= address._id %>" name="selectedAddress"
-                                            value="<%= address._id %>" class="address-radio" required>
-                                        <label for="address-<%= address._id %>" class="text-decoration-none">
-                                            <strong>
-                                                <%= address.name %>
-                                            </strong>
-                                        </label>
-                                        <div class="address-details">
-                                            <%= address.addressType %>, <%= address.city %>, <%= address.state %> - <%=
-                                                            address.pincode %>
-                                        </div>
-                                        <div class="phone-details me-2">
-                                            Phone: <%= address.phone %> | Alt Phone: <%= address.altPhone %>
-                                        </div>
+                                <div class="address-option">
+                                    <input type="radio" id="address-<%= address._id %>" name="selectedAddress" value="<%= address._id %>" class="address-radio" required>
+                                    <label for="address-<%= address._id %>" class="text-decoration-none">
+                                        <%= address.name %>
+                                    </label>
+                                    <div class="address-details">
+                                        <%= address.addressType %>, <%= address.city %>, <%= address.state %> - <%= address.pincode %>
                                     </div>
-                                    <% }); %>
-                                        <% }); %>
+                                    <div class="phone-details">
+                                        <i class="bi bi-telephone-fill"></i> <%= address.phone %> | Alt: <%= address.altPhone %>
+                                    </div>
+                                </div>
+                                <% }); %>
+                            <% }); %>
                         </div>
 
-                        <!-- Add New Address Button -->
                         <div class="mt-4">
                             <button type="button" class="btn btn-outline-secondary btn-sm" id="addNewAddressBtn">
                                 <i class="bi bi-plus-circle"></i> Add New Address
                             </button>
                         </div>
 
-                        <!-- New Address Form Section (initially hidden) -->
                         <div id="newAddressSection" class="mt-3" style="display: none;">
-                            <!-- Hidden field to indicate if using new address -->
                             <input type="hidden" name="useNewAddress" id="useNewAddress" value="false">
 
                             <fieldset id="newAddressFields">
                                 <legend>New Address</legend>
 
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Name</label>
-                                    <input name="name" type="text" class="form-control" id="name">
+                                    <label for="name" class="form-label">Full Name</label>
+                                    <input name="name" type="text" class="form-control" id="name" placeholder="Enter your full name">
                                 </div>
                                 <div class="mb-3">
                                     <label for="streetAddress" class="form-label">Street Address</label>
-                                    <input name="address" type="text" class="form-control" id="streetAddress"
-                                        placeholder="House number and street name">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="state" class="form-label">State</label>
-                                    <select name="state" class="form-select" id="state">
-                                        <option id="option" selected disabled value="">Kerala</option>
-                                        <option>Kerala</option>
-                                        <option>Andhra Pradesh</option>
-                                        <option>Arunachal Pradesh</option>
-                                        <option>Assam</option>
-                                        <option>Bihar</option>
-                                        <option>Chhattisgarh</option>
-                                        <option>Goa</option>
-                                        <option>Gujarat</option>
-                                        <option>Haryana</option>
-                                        <option>Himachal Pradesh</option>
-                                        <option>Jharkhand</option>
-                                        <option>Karnataka</option>
-                                        <option>Madhya Pradesh</option>
-                                        <option>Maharashtra</option>
-                                        <option>Manipur</option>
-                                        <option>Meghalaya</option>
-                                        <option>Mizoram</option>
-                                        <option>Nagaland</option>
-                                        <option>Odisha</option>
-                                        <option>Punjab</option>
-                                        <option>Rajasthan</option>
-                                        <option>Sikkim</option>
-                                        <option>Tamil Nadu</option>
-                                        <option>Telangana</option>
-                                        <option>Tripura</option>
-                                        <option>Uttar Pradesh</option>
-                                        <option>Uttarakhand</option>
-                                        <option>West Bengal</option>
-                                    </select>
+                                    <input name="address" type="text" class="form-control" id="streetAddress" placeholder="House number and street name">
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
-                                        <label for="city" class="form-label">City</label>
-                                        <input type="text" class="form-control" id="city" name="city">
+                                        <label for="state" class="form-label">State</label>
+                                        <select name="state" class="form-select" id="state">
+                                            <option selected disabled value="">Select State</option>
+                                            <option>Kerala</option>
+                                            <option>Andhra Pradesh</option>
+                                            <option>Arunachal Pradesh</option>
+                                            <option>Assam</option>
+                                            <option>Bihar</option>
+                                            <option>Chhattisgarh</option>
+                                            <option>Goa</option>
+                                            <option>Gujarat</option>
+                                            <option>Haryana</option>
+                                            <option>Himachal Pradesh</option>
+                                            <option>Jharkhand</option>
+                                            <option>Karnataka</option>
+                                            <option>Madhya Pradesh</option>
+                                            <option>Maharashtra</option>
+                                            <option>Manipur</option>
+                                            <option>Meghalaya</option>
+                                            <option>Mizoram</option>
+                                            <option>Nagaland</option>
+                                            <option>Odisha</option>
+                                            <option>Punjab</option>
+                                            <option>Rajasthan</option>
+                                            <option>Sikkim</option>
+                                            <option>Tamil Nadu</option>
+                                            <option>Telangana</option>
+                                            <option>Tripura</option>
+                                            <option>Uttar Pradesh</option>
+                                            <option>Uttarakhand</option>
+                                            <option>West Bengal</option>
+                                        </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="postcode" class="form-label">Postcode / ZIP *</label>
-                                        <input name="pincode" type="text" class="form-control" id="postcode">
+                                        <label for="city" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="city" name="city" placeholder="Your city">
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone</label>
-                                    <input name="phone" type="tel" class="form-control" id="phone">
+                                    <label for="postcode" class="form-label">Pincode</label>
+                                    <input name="pincode" type="text" class="form-control" id="postcode" placeholder="6-digit pincode">
                                 </div>
-                                <div class="mb-3">
-                                    <label for="altPhone" class="form-label">Alternative Phone</label>
-                                    <input name="altphone" type="tel" class="form-control" id="altPhone">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="phone" class="form-label">Phone Number</label>
+                                        <input name="phone" type="tel" class="form-control" id="phone" placeholder="10-digit phone number">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="altPhone" class="form-label">Alternative Phone</label>
+                                        <input name="altphone" type="tel" class="form-control" id="altPhone" placeholder="Alternative phone number">
+                                    </div>
                                 </div>
-                                <button type="button" class="btn btn-secondary" id="cancelAddressBtn">Cancel</button>
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-secondary" id="cancelAddressBtn">Cancel</button>
+                                    <button type="button" class="btn btn-primary" id="saveAddressBtn">Save Address</button>
+                                </div>
                             </fieldset>
                         </div>
 
-                        <div class="estimated-delivery mt-4">
-                            <p><strong>Estimated Delivery Date</strong><br>
-                                Monday, 13 12:00 - 16:00</p>
+                        <div class="estimated-delivery">
+                            <p><i class="bi bi-truck"></i> <strong>Estimated Delivery Date</strong><br>
+                                <%= estimatedDelivery.toDateString() %></p>
                         </div>
+                    </div>
 
-                        <!-- Continue/Submit button -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <button type="submit" class="btn btn-primary continue-btn">Continue</button>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary continue-btn">Proceed to Payment</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="checkout-right">
+                <div class="checkout-card">
+                    <h5>ORDER SUMMARY</h5>
+
+                    <div class="mb-4">
+                        <% product.forEach(function(product) { %>
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="<%= product.productImage[0] %>" alt="Product" class="item-image">
+                            <div>
+                                <div class="fw-semibold"><%= product.productName %></div>
+                                <div class="text-muted small">Qty: <%= product.quantity %></div>
                             </div>
                         </div>
-                    </form>
+                        <% }); %>
+                    </div>
+
+                    <h5>PRICE DETAILS</h5>
+
+                    <div class="cart-total">
+                        <div class="row">
+                            <div class="col-6">Subtotal</div>
+                            <div class="col-6 price">₹<%= total.toLocaleString('en-IN') %></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">Shipping</div>
+                            <div class="col-6 price text-success">Free</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">Discount</div>
+                            <div class="col-6 price text-success">-₹<%= offerPrice %></div>
+                        </div>
+
+                        <% if (coupon) { %>
+                        <div class="row">
+                            <div class="col-6">Coupon Discount <span class="discount-badge">APPLIED</span></div>
+                            <div class="col-6 price text-success">-₹<%= coupon %></div>
+                        </div>
+                        <% } else { %>
+                        <div class="row">
+                            <div class="col-6">Coupon Discount</div>
+                            <div class="col-6 price">₹0</div>
+                        </div>
+                        <% } %>
+
+                        <div class="row total-row">
+                            <div class="col-6"><strong>TOTAL</strong></div>
+                            <div class="col-6 price"><strong>₹<%= ((total - (offerPrice || 0) - (coupon || 0))).toLocaleString('en-IN') %></strong></div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="confirmation-box">
-                        <h5>CONFIRM DETAILS</h5>
-
-                        <div class="mt-3">
-                            <div class="row">
-                                <div class="col-3">
-                                    <strong>Item</strong>
-                                </div>
-                                <div class="col-9">
-                                    <% product.forEach(function(product) { %>
-                                        <img src="<%= product.productImage[0] %>" alt="Product" class="item-image">
-                                        <% }); %>
-                                </div>
-                            </div>
+                <div class="checkout-card">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-shield-check text-success fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-semibold">Secure Checkout</div>
+                            <div class="text-muted small">Your payment information is protected</div>
                         </div>
-
-                        <div class="cart-total mt-4">
-                            <h5>CART TOTAL</h5>
-
-                            <div class="row mt-3">
-                                <div class="col-6">Subtotal</div>
-                                <div class="col-6 price">₹<%= total.toLocaleString('en-IN') %>
-                                </div>
-                            </div>
-                            <!-- <div class="row mt-3">
-                                <div class="col-6">totalGST</div>
-                                <div class="col-6 price">₹<%= totalGST.toLocaleString('en-IN') %>
-                                </div>
-                            </div> -->
-
-                            <div class="row mt-2">
-                                <div class="col-6">Delivery</div>
-                                <div class="col-6 price">₹0.00</div>
-                            </div>
-
-                            <div class="row mt-2">
-                                <div class="col-6">Discount</div>
-                                <div class="col-6 price">₹<%= offerPrice %></div>
-                            </div>
-                            <% if (coupon) { %>
-                                <div class="row mt-2">
-                                    <div class="col-6">CouponDiscount</div>
-                                    <div class="col-6 price">₹<%= coupon %></div>
-                                </div>
-                                <% } else { %>
-                                    <div class="row mt-2">
-                                        <div class="col-6">CouponDiscount</div>
-                                        <div class="col-6 price">₹0</div>
-                                    </div>
-                                <% } %>
-
-                            <div class="row mt-3">
-                                <div class="col-6"><strong>TOTAL</strong></div>
-                                <div class="col-6 price"><strong>₹<%= ((total - (offerPrice || 0) - (coupon || 0))).toLocaleString('en-IN') %></strong></div>
-                                
-                            </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-arrow-return-left text-primary fs-4 me-2"></i>
+                        <div>
+                            <div class="fw-semibold">Easy Returns</div>
+                            <div class="text-muted small">30-day return policy</div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="row mb-5">
-                <div class="col-12 text-center">
-                    <i class="bi bi-chevron-up"></i>
-                </div>
-            </div>
         </div>
+    </div>
 
-        <script>
-            // JavaScript to handle toggling between existing address and new address
-            document.addEventListener('DOMContentLoaded', function () {
-                const addNewAddressBtn = document.getElementById('addNewAddressBtn');
-                const cancelAddressBtn = document.getElementById('cancelAddressBtn');
-                const newAddressSection = document.getElementById('newAddressSection');
-                const useNewAddressField = document.getElementById('useNewAddress');
-                const addressRadios = document.querySelectorAll('input[name="selectedAddress"]');
-                const newAddressFields = document.querySelectorAll('#newAddressFields input, #newAddressFields select');
-                let errorParagraph = document.getElementById("error-message");
-                 const message = document.getElementById('mess')
-                setTimeout(() => {
-                    if(message){
-                        message.style.display = 'none'
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addNewAddressBtn = document.getElementById('addNewAddressBtn');
+            const cancelAddressBtn = document.getElementById('cancelAddressBtn');
+            const saveAddressBtn = document.getElementById('saveAddressBtn');
+            const newAddressSection = document.getElementById('newAddressSection');
+            const useNewAddressField = document.getElementById('useNewAddress');
+            const addressRadios = document.querySelectorAll('input[name="selectedAddress"]');
+            const newAddressFields = document.querySelectorAll('#newAddressFields input, #newAddressFields select');
+            const addressOptions = document.querySelectorAll('.address-option');
+            const message = document.getElementById('mess');
+            
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                if(message){
+                    message.style.display = 'none';
+                }
+            }, 3000);
+
+            // Add selected class when address is checked
+            addressRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    addressOptions.forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    if (this.checked) {
+                        this.closest('.address-option').classList.add('selected');
                     }
-                }, 3000);
+                });
+            });
 
-                // Function to disable new address fields
-                function disableNewAddressFields(disable) {
-                    newAddressFields.forEach(field => {
-                        field.disabled = disable;
+            // Function to disable new address fields
+            function disableNewAddressFields(disable) {
+                newAddressFields.forEach(field => {
+                    field.disabled = disable;
+                });
+            }
+
+            // Initially disable all new address fields
+            disableNewAddressFields(true);
+
+            // Show new address form and enable fields
+            addNewAddressBtn.addEventListener('click', function () {
+                newAddressSection.style.display = 'block';
+                useNewAddressField.value = 'true';
+                disableNewAddressFields(false);
+
+                // Uncheck all existing address radio buttons
+                addressRadios.forEach(radio => {
+                    radio.checked = false;
+                    radio.required = false;
+                });
+                
+                // Remove selected class from all address options
+                addressOptions.forEach(option => {
+                    option.classList.remove('selected');
+                });
+            });
+
+            // Save address button (just hides the form for now)
+            saveAddressBtn.addEventListener('click', function() {
+                // Here you would typically validate the form first
+                const requiredFields = ['name', 'streetAddress', 'state', 'city', 'postcode', 'phone', 'altphone'];
+                let isValid = true;
+                
+                requiredFields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    if (field && field.value === '') {
+                        isValid = false;
+                    }
+                });
+                
+                if (isValid) {
+                    // This is just visual feedback - in a real implementation you might want to actually save the address
+                    Swal.fire({
+                        title: 'Address Ready',
+                        text: 'Your new address has been added and will be used for this order',
+                        icon: 'success',
+                        confirmButtonText: 'Continue'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Info!',
+                        text: 'Please fill all the fields',
+                        icon: 'info',
+                        confirmButtonText: 'Okay'
+                    });
+                }
+            });
+
+            // Hide new address form, disable fields and reset to existing addresses
+            cancelAddressBtn.addEventListener('click', function () {
+                newAddressSection.style.display = 'none';
+                useNewAddressField.value = 'false';
+                disableNewAddressFields(true);
+
+                // Re-enable the required attribute on radio buttons
+                addressRadios.forEach(radio => {
+                    radio.required = true;
+                });
+
+                // Clear new address form fields
+                newAddressFields.forEach(input => {
+                    input.value = '';
+                });
+            });
+
+            // When an address radio is selected
+            addressRadios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    if (this.checked) {
+                        useNewAddressField.value = 'false';
+                        newAddressSection.style.display = 'none';
+                        disableNewAddressFields(true);
+                    }
+                });
+            });
+
+            // Validate form before submit
+            document.getElementById('checkoutForm').addEventListener('submit', function (e) {
+                const useNewAddress = useNewAddressField.value === 'true';
+                const addressSelected = [...addressRadios].some(radio => radio.checked);
+
+                if (!useNewAddress && !addressSelected) {
+                    Swal.fire({
+                        title: 'Info!',
+                        text: 'Please select an address',
+                        icon: 'info',
+                        confirmButtonText: 'Okay'
+                    });
+
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (useNewAddress) {
+                    // Validate required fields for new address
+                    let isValid = true;
+                    const requiredFields = ['name', 'streetAddress', 'state', 'city', 'postcode', 'phone', 'altphone'];
+
+                    requiredFields.forEach(fieldId => {
+                        const field = document.getElementById(fieldId);
+                        let errorParagraph;
+                        if (fieldId === 'state' || fieldId === 'name' || fieldId === 'streetAddress' || fieldId === 'city' || fieldId === 'postcode' || fieldId === 'phone' || fieldId === 'altphone') {
+                            if (field && field.value == '') {
+                                Swal.fire({
+                                    title: 'Info!',
+                                    text: 'Please fill all the fields or select an Address',
+                                    icon: 'info',
+                                    confirmButtonText: 'Okay'
+                                });
+
+                                e.preventDefault();
+                                return false;
+                            }
+                        }
+                        // Name validation
+                        if (fieldId === 'name') {
+                            const nameRegex = /^[a-zA-Z\s]+$/;
+                            if (field && !nameRegex.test(field.value)) {
+                                errorParagraph = document.createElement("p");
+                                errorParagraph.id = "error-message";
+                                errorParagraph.style.color = "red";
+                                errorParagraph.textContent = "Please enter a valid name (only letters and spaces are allowed).";
+                                field.parentNode.appendChild(errorParagraph);
+                                e.preventDefault();
+                                setTimeout(function () {
+                                    errorParagraph.remove();
+                                }, 3000);
+                            }
+                        }
+
+                        // Phone number validation
+                        if (fieldId === 'phone' || fieldId === 'altphone') {
+                            const phoneRegex = /^[0-9]{10}$/;
+                            if (field && !phoneRegex.test(field.value)) {
+                                errorParagraph = document.createElement("p");
+                                errorParagraph.id = "error-message";
+                                errorParagraph.style.color = "red";
+                                errorParagraph.textContent = "Please enter a valid phone number (10 digits required).";
+                                field.parentNode.appendChild(errorParagraph);
+                                e.preventDefault();
+                                setTimeout(function () {
+                                    errorParagraph.remove();
+                                }, 3000);
+                            }
+                        }
+                        if (fieldId === 'streetAddress') {
+                            const addressRegex = /^[a-zA-Z0-9\s,.'-]+$/;
+                            if (field && !addressRegex.test(field.value)) {
+                                errorParagraph = document.createElement("p");
+                                errorParagraph.id = "error-message";
+                                errorParagraph.style.color = "red";
+                                errorParagraph.textContent = "Please enter a valid address";
+                                field.parentNode.appendChild(errorParagraph);
+                                e.preventDefault();
+                                setTimeout(function () {
+                                    errorParagraph.remove();
+                                }, 3000);
+                            }
+                        }
+                        if (fieldId === 'postcode') {
+                            const pinCodeRegex = /^\d{6}$/;
+                            if (field && !pinCodeRegex.test(field.value)) {
+                                errorParagraph = document.createElement("p");
+                                errorParagraph.id = "error-message";
+                                errorParagraph.style.color = "red";
+                                errorParagraph.textContent = "Please enter a valid 6-digit pincode";
+                                field.parentNode.appendChild(errorParagraph);
+                                e.preventDefault();
+                                setTimeout(function () {
+                                    errorParagraph.remove();
+                                }, 3000);
+                            }
+                        }
+                        if (fieldId === 'state') {
+                            if (field && field.value == '') {
+                                errorParagraph = document.createElement("p");
+                                errorParagraph.id = "error-message";
+                                errorParagraph.style.color = "red";
+                                errorParagraph.textContent = "Please select your state";
+                                field.parentNode.appendChild(errorParagraph);
+                                e.preventDefault();
+                                setTimeout(function () {
+                                    errorParagraph.remove();
+                                }, 3000);
+                            }
+                        }
+                        if (fieldId === 'city') {
+                            if (field && field.value == '') {
+                                errorParagraph = document.createElement("p");
+                                errorParagraph.id = "error-message";
+                                errorParagraph.style.color = "red";
+                                errorParagraph.textContent = "Please enter your city";
+                                field.parentNode.appendChild(errorParagraph);
+                                e.preventDefault();
+                                setTimeout(function () {
+                                    errorParagraph.remove();
+                                }, 3000);
+                            }
+                        }
                     });
                 }
 
-                // Initially disable all new address fields
-                disableNewAddressFields(true);
-
-                // Show new address form and enable fields
-                addNewAddressBtn.addEventListener('click', function () {
-                    newAddressSection.style.display = 'block';
-                    useNewAddressField.value = 'true';
-                    disableNewAddressFields(false);
-
-                    // Uncheck all existing address radio buttons
-                    addressRadios.forEach(radio => {
-                        radio.checked = false;
-                        radio.required = false;
-                    });
-                });
-
-                // Hide new address form, disable fields and reset to existing addresses
-                cancelAddressBtn.addEventListener('click', function () {
-                    newAddressSection.style.display = 'none';
-                    useNewAddressField.value = 'false';
-                    disableNewAddressFields(true);
-
-                    // Re-enable the required attribute on radio buttons
-                    addressRadios.forEach(radio => {
-                        radio.required = true;
-                    });
-
-                    // Clear new address form fields
-                    newAddressFields.forEach(input => {
-                        input.value = '';
-                    });
-                });
-
-                // When an address radio is selected
-                addressRadios.forEach(radio => {
-                    radio.addEventListener('change', function () {
-                        if (this.checked) {
-                            useNewAddressField.value = 'false';
-                            newAddressSection.style.display = 'none';
-                            disableNewAddressFields(true);
-                        }
-                    });
-                });
-
-                // Validate form before submit
-                document.getElementById('checkoutForm').addEventListener('submit', function (e) {
-                    const useNewAddress = useNewAddressField.value === 'true';
-                    const addressSelected = [...addressRadios].some(radio => radio.checked);
-
-                    if (!useNewAddress && !addressSelected) {
-                        Swal.fire({
-                            title: 'Info!',
-                            text: 'Please Select an address',
-                            icon: 'info',
-                            confirmButtonText: 'Okay'
-                        });
-
-                        e.preventDefault();
-                        return false;
-                    }
-
-                    if (useNewAddress) {
-                        // Validate required fields for new address
-                        let isValid = true;
-                        const requiredFields = ['name', 'streetAddress', 'state', 'city', 'postcode', 'phone', 'altphone'];
-
-                        requiredFields.forEach(fieldId => {
-                            const field = document.getElementById(fieldId);
-                            let errorParagraph;
-                            if (fieldId === 'state' || fieldId === 'name' || fieldId === 'streetAddress' || fieldId === 'city' || fieldId === 'postcode' || fieldId === 'phone' || fieldId === 'altphone') {
-                                if (field && field.value == '') {
-                                    Swal.fire({
-                                        title: 'Info!',
-                                        text: 'Please fill all the fields or select an Address',
-                                        icon: 'info',
-                                        confirmButtonText: 'Okay'
-                                    });
-
-                                    e.preventDefault();
-                                    return false;
-                                }
-                            }
-                            // Name validation
-                            if (fieldId === 'name') {
-                                const nameRegex = /^[a-zA-Z\s]+$/;
-                                if (field && !nameRegex.test(field.value)) {
-                                    errorParagraph = document.createElement("p");
-                                    errorParagraph.id = "error-message";
-                                    errorParagraph.style.color = "red";
-                                    errorParagraph.textContent = "Please enter a valid name (only letters and spaces are allowed).";
-                                    field.parentNode.appendChild(errorParagraph);
-                                    e.preventDefault();
-                                    setTimeout(function () {
-                                        errorParagraph.remove();
-                                    }, 3000);
-                                }
-                            }
-
-                            // Phone number validation
-                            if (fieldId === 'phone' || fieldId === 'altphone') {
-                                const phoneRegex = /^[0-9]{10}$/;
-                                if (field && !phoneRegex.test(field.value)) {
-                                    errorParagraph = document.createElement("p");
-                                    errorParagraph.id = "error-message";
-                                    errorParagraph.style.color = "red";
-                                    errorParagraph.textContent = "Please enter a valid phone number (only numbers are allowed).";
-                                    field.parentNode.appendChild(errorParagraph);
-                                    e.preventDefault();
-                                    setTimeout(function () {
-                                        errorParagraph.remove();
-                                    }, 3000);
-                                }
-                            }
-                            if (fieldId === 'streetAddress') {
-                                const addressRegex = /^[a-zA-Z\s,.'-]+$/;
-                                if (field && !addressRegex.test(field.value)) {
-                                    errorParagraph = document.createElement("p");
-                                    errorParagraph.id = "error-message";
-                                    errorParagraph.style.color = "red";
-                                    errorParagraph.textContent = "Please enter a valid email";
-                                    field.parentNode.appendChild(errorParagraph);
-                                    e.preventDefault();
-                                    setTimeout(function () {
-                                        errorParagraph.remove();
-                                    }, 3000);
-                                }
-                            }
-                            if (fieldId === 'postcode') {
-                                const pinCodeRegex = /^\d{6}$/;
-                                if (field && !pinCodeRegex.test(field.value)) {
-                                    errorParagraph = document.createElement("p");
-                                    errorParagraph.id = "error-message";
-                                    errorParagraph.style.color = "red";
-                                    errorParagraph.textContent = "Please enter a valid pincode";
-                                    field.parentNode.appendChild(errorParagraph);
-                                    e.preventDefault();
-                                    setTimeout(function () {
-                                        errorParagraph.remove();
-                                    }, 3000);
-                                }
-                            }
-                            if (fieldId === 'state') {
-                                if (field && field.value == '') {
-                                    errorParagraph = document.createElement("p");
-                                    errorParagraph.id = "error-message";
-                                    errorParagraph.style.color = "red";
-                                    errorParagraph.textContent = "Please select your state";
-                                    field.parentNode.appendChild(errorParagraph);
-                                    e.preventDefault();
-                                    setTimeout(function () {
-                                        errorParagraph.remove();
-                                    }, 3000);
-                                }
-                            }
-                            if (fieldId === 'city') {
-                                if (field && field.value == '') {
-                                    errorParagraph = document.createElement("p");
-                                    errorParagraph.id = "error-message";
-                                    errorParagraph.style.color = "red";
-                                    errorParagraph.textContent = "Please select your city";
-                                    field.parentNode.appendChild(errorParagraph);
-                                    e.preventDefault();
-                                    setTimeout(function () {
-                                        errorParagraph.remove();
-                                    }, 3000);
-                                }
-                            }
-                        });
-
-                        if (!isValid) {
-
-                        }
-                    }
-
-                    return true;
-                });
-
+                return true;
             });
-        </script>
+        });
+    </script>
 </body>
 
 </html>

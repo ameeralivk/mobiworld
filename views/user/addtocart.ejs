@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Shopping Cart</title>
     <link rel="stylesheet" href="\css\addtocart.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="\css\shoppage_header.css">
@@ -13,10 +13,13 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.all.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="\css\shoppage_footer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
 </head>
 
 <body>
     <%- include("../../views/partials/user/shoppage_header") %>
+    
     <% if (typeof message !== 'undefined' && message) { %>
         <script>
           const msg = `<%= message %>`;
@@ -28,339 +31,347 @@
             confirmButtonColor: msg.startsWith('Coupon applied') ? '#28a745' : '#d33',
           });
         </script>
-      <% } %>
+    <% } %>
       
+    <!-- Cart Header -->
+    <div class="cart-header">
+        <div class="container">
+            <h1><i class="bi bi-cart3 me-3"></i>MY SHOPPING CART</h1>
+        </div>
+    </div>
 
-                <!-- Cart Header -->
-                <div class="cart-header">
-                    <div class="container">
-                        <h1>MY CART</h1>
-                    </div>
+    <!-- Cart Content -->
+    <div class="container mb-5">
+        <% if (combineddata && combineddata.length > 0) { %>
+            <!-- Cart Items Section -->
+            <div class="cart-section">
+                <div class="table-responsive">
+                    <table class="table table-borderless align-middle">
+                        <thead>
+                            <tr class="table-header">
+                                <th style="width: 5%"></th>
+                                <th style="width: 15%">Product</th>
+                                <th style="width: 35%">Product Name</th>
+                                <th style="width: 15%" class="text-center">Price</th>
+                                <th style="width: 15%" class="text-center">Quantity</th>
+                                <th style="width: 15%" class="text-center">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% combineddata.forEach(product => { %>
+                                <tr class="cart-item align-middle">
+                                    <td>
+                                        <button data-id="<%= product.productId._id %>" class="remove-btn">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <img src="<%=product.productId.productImage[0]%>" alt="<%= product.productId.productName %>" class="cart-image rounded">
+                                    </td>
+                                    <td>
+                                        <h5 class="product-name">
+                                            <input type="hidden" value="<%= product._id %>">
+                                            <%= product.productId.productName %>
+                                        </h5>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="price-section">
+                                            <span class="original-price">₹<%= product.productId.salePrice %></span>
+                                            <span class="current-price">₹<%= (product.productId.salePrice - product.bestOffer).toLocaleString('en-IN') %></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="quantity-control">
+                                            <button data-product-id="<%= product._id %>" class="quantity-btn rounded-start">
+                                                <i class="bi bi-dash"></i>
+                                            </button>
+                                            <input id="quantityInput-<%= product._id %>" type="text" value="<%= product.quantity %>" class="quantity-input" readonly>
+                                            <button data-product-id="<%= product._id %>" class="quantity-btn rounded-end">
+                                                <i class="bi bi-plus"></i>
+                                            </button>
+                                        </div>
+                                        <input type="hidden" id="currentstock-<%= product._id %>" value="<%= product.productId.quantity %>">
+                                    </td>
+                                    <td id="Total" class="text-center total-price"></td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
 
-                <!-- Cart Content -->
-                <div class="container mb-5">
-                    <!-- Cart Items Table -->
-                    <div class="row">
-                        <div class="col-12">
-                            <table class="table">
-                                <thead>
-                                    <tr class="table-header">
-                                        <th style="width: 5%"></th>
-                                        <th style="width: 15%">Product</th>
-                                        <th style="width: 40%"></th>
-                                        <th style="width: 15%" class="text-center">Price</th>
-                                        <th style="width: 15%" class="text-center">Quantity</th>
-                                        <th style="width: 15%" class="text-center">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% combineddata.forEach(product=> { %>
-                                        <!-- Samsung Item -->
-                                        <tr class="cart-item align-middle">
-                                            <td>
-                                                <button data-id="<%= product.productId._id %>"
-                                                    class="remove-btn rounded mt-3">✕</button>
-                                            </td>
-                                            <td>
-                                                <img src="<%=product.productId.productImage[0]%>"
-                                                    alt="Samsung Galaxy S23 Ultra" class="cart-image rounded">
-                                            </td>
-                                            <td>
-                                                <h5>
-                                                    <input type="hidden" value="<%= product._id %>">
-                                                    <%= product.productId.productName %>
-                                                </h5>
-                                                <!-- <p class="text-muted small">Meet the Galaxy S25 Ultra - your AI companion that adapts, anticipates, and connects seamlessly.</p> -->
-                                            </td>
-                                            <td class="text-center">
-                                                <%= product.productId.salePrice.toLocaleString('en-IN') %>
-                                            </td>
-                                            <td>
-                                                <div class="quantity-control">
-                                                    <button data-product-id="<%= product._id %>"
-                                                        class="quantity-btn rounded-start">-</button>
-                                                    <input id="quantityInput-<%= product._id %>" type="text"
-                                                        value="<%= product.quantity %>" class="quantity-input" readonly>
-                                                    <button data-product-id="<%= product._id %>"
-                                                        class="quantity-btn rounded-end">+</button>
-                                                </div>
-                                            </td>
-                                            <input type="hidden" id="currentstock-<%= product._id %>" value="<%= product.productId.quantity %>">
-
-                                            <td id="Total" class="text-center"> </td>
-                                        </tr>
-                                        <% }); %>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Cart Totals and Checkout -->
-                    <div class="coupon-section" style="border: 1px solid #ddd; padding: 10px; margin-top: 20px;">
-                        <h4>Available Coupons for Your Cart:</h4>
-                      
+            <!-- Coupons Section -->
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="coupon-section">
+                        <h4>AVAILABLE COUPONS</h4>
                         <% if (coupons.length > 0) { %>
-                          <ul>
-                            <% coupons.forEach(c => { %>
-                              <li style="margin-bottom: 10px;">
-                                <strong><%= c.name %></strong> - 
-                                <%= c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF` %>
-                                <br>
-                      
-                                <% if (c.appliesTo === "category") { %>
-                                  <small>(Category-based Coupon)</small>
-                                <% } else if (c.appliesTo === "brand") { %>
-                                  <small>(Brand-based Coupon)</small>
-                                <% } else if (c.appliesTo === "product") { %>
-                                  <small>(Product-specific Coupon)</small>
-                                <% } else if (c.appliesTo === "all") { %>
-                                  <small>(Site-wide Coupon)</small>
-                                <% } %>
-                      
-                                <br>
-                                <small>Min Purchase: ₹<%= c.minimumPrice %></small>
-                                <% if (c.maxDiscount) { %>
-                                  | <small>Max Discount: ₹<%= c.maxDiscount %></small>
-                                <% } %>
-                                | <small>Expires on: <%= c.expiredOn.toDateString() %></small>
-                              </li>
-                            <% }) %>
-                          </ul>
+                            <ul class="coupon-list">
+                                <% coupons.forEach(c => { %>
+                                    <li class="coupon-item">
+                                        <div class="coupon-name">
+                                            <%= c.name %>
+                                            <span class="ms-2">
+                                                <%= c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF` %>
+                                            </span>
+                                        </div>
+                                        <div class="coupon-details">
+                                            <% if (c.appliesTo === "category") { %>
+                                                <span class="coupon-badge">Category</span>
+                                            <% } else if (c.appliesTo === "brand") { %>
+                                                <span class="coupon-badge">Brand</span>
+                                            <% } else if (c.appliesTo === "product") { %>
+                                                <span class="coupon-badge">Product</span>
+                                            <% } else if (c.appliesTo === "all") { %>
+                                                <span class="coupon-badge">Site-wide</span>
+                                            <% } %>
+                                            
+                                            <span class="me-2">Min Purchase: ₹<%= c.minimumPrice %></span>
+                                            
+                                            <% if (c.maxDiscount) { %>
+                                                <span class="me-2">Max Discount: ₹<%= c.maxDiscount %></span>
+                                            <% } %>
+                                            
+                                            <span>Expires: <%= c.expiredOn.toDateString() %></span>
+                                        </div>
+                                    </li>
+                                <% }) %>
+                            </ul>
                         <% } else { %>
-                          <p>No coupons available for the current items in your cart.</p>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                No coupons available for the current items in your cart.
+                            </div>
                         <% } %>
-                      </div>
-                      
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <form method="post" action="/user/addoffer">
-                            <div class="input-group mb-3">
-                                <input name="coupon" type="text" class="form-control" placeholder="Coupon Code">
-                                <button  class="apply-coupon-btn" type="submit">Apply Coupon</button>
-                            </div>
+                        
+                        <form method="post" action="/user/addoffer" class="coupon-form">
+                            <input name="coupon" type="text" class="coupon-input" placeholder="Enter Coupon Code">
+                            <button class="apply-coupon-btn" type="submit">
+                                <i class="bi bi-tag-fill me-2"></i>Apply Coupon
+                            </button>
                         </form>
-                        </div>
-                          
-                        <div class="col-md-6">
-                            <div class="cart-totals">
-                                <h4 class="mb-4">CART TOTALS</h4>
-                                <div class="row mb-2">
-                                    <div class="col-6">Subtotal</div>
-                                    <div id="Subtotal" class="col-6 text-end">₹<%=totalPrice.toLocaleString('en-IN') %></div>
-                                </div>
-                                <!-- <div class="row mb-2">
-                                    <div class="col-6">TotalGST</div>
-                                    <div id="totalgst" class="col-6 text-end">₹<%=totalGST.toLocaleString('en-IN') %></div>
-                                </div> -->
-                                <div class="row mb-2">
-                                    <div class="col-6">Delivery</div>
-                                    <div class="col-6 text-end">₹0.00</div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-6">Discount</div>
-                                    <% if (offerPrice) { %>
-                                    <div id="totalOffer" class="col-6 text-end">₹<%= offerPrice %></div>
-                                    <% } else { %>
-                                    <div class="col-6 text-end">₹0</div>
-                                    <% } %>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="col-6">CouponDiscount</div>
-                                    <% if (coupon) { %>
-                                    <div id="coupon" class="col-6 text-end">₹<%= coupon.couponDiscount %></div>
-                                    <% } else { %>
-                                    <div id="coupon" class="col-6 text-end">₹0</div>
-                                    <% } %>
-                                </div>
-                                <div class="row mb-4 pt-2 border-top mt-2">
-                                    <div class="col-6 fw-bold">TOTAL(Including GST)</div>
-                                    <div id="totalamound" class="col-6 text-end fw-bold">
-                                        ₹<%= ((totalPrice - (offerPrice || 0) - (coupon.couponDiscount || 0))).toLocaleString('en-IN') %>
-                                      </div>
-
-                                    </div>
-                                </div>
-
-                                <button class="checkout-btn rounded">
-                                    <a class="text-decoration-none text-white" href="/user/checkoutpage/">Proceed to
-                                        Checkout</a>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
-                <input id="quantity1-<%= product.quantity %>" type="hidden" value="<%= product.quantity %>">
-                <input id="rate" type="hidden" value="<%= product.salePrice %>">
-                <!-- Bootstrap JS -->
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-                <link rel="stylesheet"
-                    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-                <!-- SweetAlert2 CDN -->
-                <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.min.css" rel="stylesheet">
-                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.4.24/dist/sweetalert2.all.min.js"></script>
+                
+                <div class="col-lg-6">
+                    <div class="cart-totals">
+                        <h4>ORDER SUMMARY</h4>
+                        
+                        <div class="total-row">
+                            <div class="total-label">Subtotal</div>
+                            <div id="Subtotal" class="total-value">₹<%=totalPrice.toLocaleString('en-IN') %></div>
+                        </div>
+                        
+                        <div class="total-row">
+                            <div class="total-label">Delivery</div>
+                            <div class="total-value">₹0.00</div>
+                        </div>
+                        
+                        <div class="total-row">
+                            <div class="total-label">Discount</div>
+                            <% if (offerPrice) { %>
+                                <div id="totalOffer" class="total-value">₹<%= offerPrice.toLocaleString('en-IN') %></div>
+                            <% } else { %>
+                                <div id="totalOffer" class="total-value">₹0</div>
+                            <% } %>
+                        </div>
+                        
+                        <div class="total-row">
+                            <div class="total-label">Coupon Discount</div>
+                            <% if (coupon) { %>
+                                <div id="coupon" class="total-value">₹<%= coupon.couponDiscount.toLocaleString('en-IN') %></div>
+                            <% } else { %>
+                                <div id="coupon" class="total-value">₹0</div>
+                            <% } %>
+                        </div>
+                        
+                        <div class="grand-total">
+                            <div class="total-row mb-0">
+                                <div class="total-label">TOTAL (Including GST)</div>
+                                <div id="totalamound" class="total-value">
+                                    ₹<%= ((totalPrice - (offerPrice || 0) - (coupon.couponDiscount || 0))).toLocaleString('en-IN') %>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <a href="/user/checkoutpage/" class="btn checkout-btn">
+                            <i class="bi bi-credit-card me-2"></i>Proceed to Checkout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <% } else { %>
+            <!-- Empty Cart Message -->
+            <div class="cart-section empty-cart-message">
+                <i class="bi bi-cart-x"></i>
+                <h3>Your cart is empty</h3>
+                <p>Looks like you haven't added any products to your cart yet.</p>
+                <a href="/user/shoppage" class="continue-shopping-btn">
+                    <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                </a>
+            </div>
+        <% } %>
+    </div>
 
-                <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        // Select all rows with the class "cart-item"
+    <!-- Hidden inputs for script -->
+    <% if (typeof product !== 'undefined') { %>
+        <input id="quantity1-<%= product.quantity %>" type="hidden" value="<%= product.quantity %>">
+        <input id="rate" type="hidden" value="<%= product.salePrice %>">
+    <% } %>
 
-                        const message = document.getElementById('mess')
-                        setTimeout(() => {
-                            if (message) {
-                                message.style.display = 'none'
-                            }
-                        }, 3000);
-                        const cartRows = document.querySelectorAll('.cart-item');
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-                        cartRows.forEach(row => {
-                            const minusBtn = row.querySelectorAll('.quantity-btn.rounded-start'); // Minus button
-                            const plusBtn = row.querySelectorAll('.quantity-btn.rounded-end');   // Plus button
-                            const quantityInput = row.querySelector('.quantity-input');      // Quantity input
-                            const totalElement = row.querySelector('.text-center#Total');    // Total cell
-                            const rate = parseFloat(row.querySelector('.text-center').innerText.replace(/[^0-9.]/g, '')); // Price
-                            const removebutton = row.querySelectorAll('.remove-btn.rounded');
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Select all rows with the class "cart-item"
+            const cartRows = document.querySelectorAll('.cart-item');
 
+            cartRows.forEach(row => {
+                const minusBtn = row.querySelectorAll('.quantity-btn.rounded-start'); // Minus button
+                const plusBtn = row.querySelectorAll('.quantity-btn.rounded-end');   // Plus button
+                const quantityInput = row.querySelector('.quantity-input');      // Quantity input
+                const totalElement = row.querySelector('.text-center#Total');    // Total cell
+                const priceElement = row.querySelector('.current-price');
+                const rate = parseFloat(priceElement.innerText.replace(/[^0-9.]/g, '')); // Price
+                const removebutton = row.querySelectorAll('.remove-btn');
 
-                            // Function to update the total for this row
-                            function updateTotal() {
-                                const quantity = parseInt(quantityInput.value);
-                                const total = rate * quantity;
-                                totalElement.innerText = `₹${total.toLocaleString('en-IN')}`;
-                            }
+                // Function to update the total for this row
+                function updateTotal() {
+                    const quantity = parseInt(quantityInput.value);
+                    const total = rate * quantity;
+                    totalElement.innerText = `₹${total.toLocaleString('en-IN')}`;
+                }
 
-                            async function updatequantity(productId, quantity) {
-                                const response = await fetch('/updatequantity', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ productId, quantity }),
-                                })
-                                const result = await response.json()
-                                if (result.success) {
-                                    // document.getElementById('totalamound').innerText = `₹${((result.total-result.offerprice)).toLocaleString('en-IN')}`
-                                    const couponDiscount = result.coupon || 0;
-                                    const totalAmount = result.total - result.offerprice - couponDiscount;
+                async function updatequantity(productId, quantity) {
+                    const response = await fetch('/updatequantity', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ productId, quantity }),
+                    })
+                    const result = await response.json()
+                    if (result.success) {
+                        const couponDiscount = result.coupon || 0;
+                        const totalAmount = result.total - result.offerprice - couponDiscount;
 
-                                    document.getElementById('totalamound').innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
-                                    document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`;
-                                    document.getElementById('totalOffer').innerText = `₹${result.offerprice.toLocaleString('en-IN')}`;
-                                    document.getElementById('coupon').innerText = `₹${couponDiscount.toLocaleString('en-IN')}`;
-                                    document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`
-                                    document.getElementById('totalgst').innerText = `₹${result.totalGST.toLocaleString('en-IN')}`
-                                    document.getElementById('totalOffer').innerText = `₹${result.offerprice.toLocaleString('en-IN')}`
-                                }
-                            }
+                        document.getElementById('totalamound').innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
+                        document.getElementById('Subtotal').innerText = `₹${result.total.toLocaleString('en-IN')}`;
+                        document.getElementById('totalOffer').innerText = `₹${result.offerprice.toLocaleString('en-IN')}`;
+                        document.getElementById('coupon').innerText = `₹${couponDiscount.toLocaleString('en-IN')}`;
+                        
+                        // These were commented out in original code
+                        // document.getElementById('totalgst').innerText = `₹${result.totalGST.toLocaleString('en-IN')}`;
+                    }
+                }
 
-                            // Minusbutton event
-                            minusBtn.forEach(button => {
-                                button.addEventListener('click', function () {
-                                    let productId = this.dataset.productId
-                                    const quantityInputField = document.getElementById(`quantityInput-${productId}`)
-                                    let currentQuantity = parseInt(quantityInputField.value);
-                                    if (currentQuantity - 1 >= 1) {
-                                        newQuantity = currentQuantity - 1
-                                    }
-                                    else {
-                                        newQuantity = newQuantity
-                                    }
-                                    quantityInputField.value = newQuantity;
-                                    updateTotal();
-                                    updatequantity(productId, newQuantity)
+                // Minusbutton event
+                minusBtn.forEach(button => {
+                    button.addEventListener('click', function () {
+                        let productId = this.dataset.productId
+                        const quantityInputField = document.getElementById(`quantityInput-${productId}`)
+                        let currentQuantity = parseInt(quantityInputField.value);
+                        let newQuantity;
+                        if (currentQuantity - 1 >= 1) {
+                            newQuantity = currentQuantity - 1
+                        }
+                        else {
+                            newQuantity = currentQuantity
+                        }
+                        quantityInputField.value = newQuantity;
+                        updateTotal();
+                        updatequantity(productId, newQuantity)
+                    })
+                })
 
-                                })
-                            })
+                // Plus button event
+                plusBtn.forEach(button => {
+                    button.addEventListener('click', function () {
+                        const productId = this.dataset.productId;
+                        const stock = parseInt(document.getElementById(`currentstock-${productId}`).value);
+                        const quantityInputField = document.getElementById(`quantityInput-${productId}`);
+                        let currentQuantity = parseInt(quantityInputField.value);
+                        let newQuantity = currentQuantity + 1;
 
-                            // Plus button event
-                            plusBtn.forEach(button => {
-                                button.addEventListener('click', function () {
-                                    const productId = this.dataset.productId;
-                                    const stock = parseInt(document.getElementById(`currentstock-${productId}`).value);
-                                    const quantityInputField = document.getElementById(`quantityInput-${productId}`);
-                                    let currentQuantity = parseInt(quantityInputField.value);
-                                    let newQuantity = currentQuantity + 1;
+                        const maxLimit = 5;
 
-                                    const maxLimit = 5;
-
-                                    if (newQuantity > stock) {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'Stock Limit Reached',
-                                            text: `Only ${stock} item(s) available in stock.`,
-                                            timer: 2000,
-                                            showConfirmButton: false
-                                        });
-                                    } else if (newQuantity > maxLimit) {
-                                        Swal.fire({
-                                            icon: 'warning',
-                                            title: 'Limit Exceeded',
-                                            text: `Only ${maxLimit} item(s) allowed at a time.`,
-                                            timer: 2000,
-                                            showConfirmButton: false
-                                        });
-                                    } else {
-                                        quantityInputField.value = newQuantity;
-                                        updateTotal();
-                                        updatequantity(productId, newQuantity);
-                                    }
-                                });
+                        if (newQuantity > stock) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Stock Limit Reached',
+                                text: `Only ${stock} item(s) available in stock.`,
+                                timer: 2000,
+                                showConfirmButton: false
                             });
-
-
-                            async function deletebutton(id, button) {
-                                const confirmation = await Swal.fire({
-                                    title: 'Are you sure?',
-                                    text: 'Do you want to remove this product from the cart?',
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Yes, remove it!',
-                                    cancelButtonText: 'No, keep it'
-                                });
-                                if (confirmation.isConfirmed){
-                                    const response = await fetch(`/cartdelete/${id}`, {
-                                    method: 'DELETE',
-                                    headers: { 'Content-Type': 'application/json' },
-                                })
-                                const result = await response.json()
-                                console.log(result.maxvalue,'maxvalue')
-                                if (result.success) {
-                                    if(result.cartTotal === 0){
-                                        result.coupon = 0
-                                    }
-                                    // document.getElementById('totalamound').innerText = `₹${((result.cartTotal-(result.offerPrice+result.coupon?result.coupon:0))).toLocaleString('en-IN')}`
-                                    const couponDiscount = result.coupon || 0;
-                                    const totalAmount = result.cartTotal - result.offerPrice - couponDiscount;
-
-                                    document.getElementById('totalamound').innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
-                                    document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`;
-                                    document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`;
-                                    document.getElementById('coupon').innerText = `₹${couponDiscount.toLocaleString('en-IN')}`;
-
-                                    document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`
-                                    //  document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`
-                                     document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`
-                                     document.getElementById('coupon').innerText = `₹${(result.coupon || 0).toLocaleString('en-IN')}`;
-                                    const productrow = button.closest('tr')
-                                    productrow.remove()
-                                }
-
-
-                                    
-                                }
-                                
-                            }
-                            removebutton.forEach(button => {
-                                button.addEventListener('click', function () {
-                                    console.log('hi')
-                                    const productId = this.getAttribute('data-id')
-                                    deletebutton(productId, this)
-                                })
-                            })
-                            // Initialize the total on page load
+                        } else if (newQuantity > maxLimit) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Limit Exceeded',
+                                text: `Only ${maxLimit} item(s) allowed at a time.`,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        } else {
+                            quantityInputField.value = newQuantity;
                             updateTotal();
-                        });
+                            updatequantity(productId, newQuantity);
+                        }
                     });
-                </script>
+                });
 
+                async function deletebutton(id, button) {
+                    const confirmation = await Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'Do you want to remove this product from the cart?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, remove it!',
+                        cancelButtonText: 'No, keep it',
+                        confirmButtonColor: '#3498db',
+                        cancelButtonColor: '#6c757d'
+                    });
+                    if (confirmation.isConfirmed){
+                        const response = await fetch(`/cartdelete/${id}`, {
+                            method: 'DELETE',
+                            headers: { 'Content-Type': 'application/json' },
+                        })
+                        const result = await response.json()
+                        if (result.success) {
+                            if(result.cartTotal === 0){
+                                result.coupon = 0
+                            }
+                            const couponDiscount = result.coupon || 0;
+                            const totalAmount = result.cartTotal - result.offerPrice - couponDiscount;
 
+                            document.getElementById('totalamound').innerText = `₹${totalAmount.toLocaleString('en-IN')}`;
+                            document.getElementById('Subtotal').innerText = `₹${result.cartTotal.toLocaleString('en-IN')}`;
+                            document.getElementById('totalOffer').innerText = `₹${result.offerPrice.toLocaleString('en-IN')}`;
+                            document.getElementById('coupon').innerText = `₹${couponDiscount.toLocaleString('en-IN')}`;
+
+                            // These were commented out in original code
+                            // document.getElementById('totalgst').innerText = `₹${result.carttotalGST.toLocaleString('en-IN')}`;
+                            
+                            const productrow = button.closest('tr')
+                            productrow.remove()
+                            
+                            // Check if cart is empty and refresh page if needed
+                            if (document.querySelectorAll('.cart-item').length === 0) {
+                                location.reload();
+                            }
+                        }
+                    }
+                }
+                
+                removebutton.forEach(button => {
+                    button.addEventListener('click', function () {
+                        const productId = this.getAttribute('data-id')
+                        deletebutton(productId, this)
+                    })
+                })
+                
+                // Initialize the total on page load
+                updateTotal();
+            });
+        });
+    </script>
 </body>
-
 </html>

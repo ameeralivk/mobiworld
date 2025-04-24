@@ -108,55 +108,48 @@
         <table>
             <thead>
                 <tr>
-                    <th>Order ID</th>
-                    <th>Product</th>
-                    <th>Brand</th>
-                    <th>Payment Method</th>
-                    <th>Price (₹)</th>
-                    <th>QTY</th>
-                    <th>Discount (₹)</th>
-                    <th>Coupon (₹)</th>
-                    <th>Total (₹)</th>
+                    <th>Date</th>
+                    <th>ID</th>
+                    <th>AMOUNT</th>
+                    <th>Discount</th>
+                    <th>CouponDiscount</th>
+                    <th>TOTAL <i class="bi bi-caret-down-fill small"></i></th>
+                    <th>RETURNED</th>
+                    <th>FINAL</th>
                 </tr>
             </thead>
             <tbody>
                 <% 
-                let grandTotal = 0;
-                let totalQuantity = 0;
-                
-                orders.forEach(order => {
-                    // Add total once per order (not per item!)
-                    grandTotal += (order.totalPrice || 0) - ((order.discount || 0) + (order.couponDiscount || 0));
-                
-                    order.orderedItems.forEach(item => {
-                        if (item.returnStatus !== "Returned") {
-                            totalQuantity += item.quantity;
-                        }
-                
-                        let paymentClass = "";
-                        if (order.paymentMethod === "Online Payment") paymentClass = "payment-cash";
-                        else if (order.paymentMethod === "Cash on delivery") paymentClass = "payment-cod";
-                        else if (order.paymentMethod === "wallet") paymentClass = "payment-wallet";
-                %>
+        let totalQuantity = 0;
+        let grandTotal = 0;
+
+        orders.forEach(order => {
+            const orderTotal = (order.totalPrice - order.discount - (order.couponDiscount || 0)) - (order.returnAmound || 0);
+            grandTotal += orderTotal;
+
+            order.orderedItems.forEach(item => {
+                if (item.returnStatus !== "Returned") {
+                    totalQuantity += item.quantity;
+                }
+    %>
                 <tr>
+                    <td><%= order.createdOn.toLocaleDateString() %></td>
                     <td><%= order.orderId %></td>
-                    <td><%= item.product.productName %></td>
-                    <td><%= item.product.brand.brandName %></td>
-                    <td class="<%= paymentClass %>"><%= order.paymentMethod %></td>
-                    <td class="currency"><%= item.price.toFixed(2) %></td>
-                    <td class="quantity"><%= item.quantity %></td>
-                    <td class="currency"><%= order.discount.toFixed(2) %></td>
-                    <td class="currency"><%= order.couponDiscount.toFixed(2) %></td>
-                    <td class="currency"><%= (order.totalPrice-order.discount-order.couponDiscount).toFixed(2) %></td>
+                    <td>₹<%= (order.totalPrice) %></td>
+                    <td><%= order.discount %></td>
+                    <td><%= order.couponDiscount || 0 %></td>
+                    <td><%= (order.totalPrice-order.discount-order.couponDiscount) %></td>
+                    <td><%=(order.returnAmound) %></td>
+                    <td><%= (order.totalPrice-order.discount-order.couponDiscount)-(order.returnAmound) %></td>
                 </tr>
                 <% 
                     });
                 });
                 %>
                 <tr class="summary-row">
-                    <td colspan="5">Grand Totals</td>
+                    <td colspan="3">Total Quantity</td>
                     <td class="quantity"><%= totalQuantity %></td>
-                    <td colspan="2"></td>
+                    <td colspan="3">grandTotal</td>
                     <td class="currency">₹<%= grandTotal.toFixed(2) %></td>
                 </tr>
             </tbody>

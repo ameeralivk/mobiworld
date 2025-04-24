@@ -60,7 +60,12 @@ const cartSchema = new Schema({
         cancellationReason:{
             type:String,
             default:"none"
-        }
+        },
+        bestOffer:{
+          type:Number,
+          default:0,
+          required:false,
+      },
     }]
 })
 

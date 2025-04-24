@@ -2,12 +2,10 @@
     <link rel="stylesheet" href="\css\admin css\orders.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
-    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
     <body>
-
-
-        <!-- Add this modal to your HTML -->
+        <!-- Return Details Modal -->
         <div class="modal fade" id="returnDetailsModal" tabindex="-1" aria-labelledby="returnDetailsModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-lg">
@@ -19,7 +17,6 @@
                     </div>
                     <div class="modal-body">
                         <div id="returnItemsContainer">
-                            <!-- Return items will be loaded here dynamically -->
                             <div class="text-center">
                                 <div class="spinner-border text-info" role="status">
                                     <span class="visually-hidden">Loading...</span>
@@ -33,14 +30,15 @@
                 </div>
             </div>
         </div>
-
-
-
+        <div id="orders-data" data-orders='<%= JSON.stringify(orders || []) %>'></div>
+        <!-- Order Details Modal -->
         <div class="modal" id="myModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
                 <div class="modal-content bg-dark">
                     <div class="modal-header">
-                        <h5 class="modal-title text-dark">Modal title</h5>
+                        <h5 class="modal-title text-white">Order Details</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="modalBodyContent"></div>
                     <div class="modal-footer">
@@ -51,21 +49,16 @@
             </div>
         </div>
 
-
         <div class="container mt-5">
             <h2>Orders</h2>
 
             <div class="row mb-3">
-                <!-- <div class="col-md-6 ">
-                <input type="text" id="dateSearch" class="form-control bg-dark" placeholder="Search by Order Date (e.g., 6/10/2024)">
-            </div> -->
-
                 <div class="input-group w-50">
-                    <input id="searchQuery" type="search" class="form-control bg-dark text-white "
+                    <input id="searchQuery" type="search" class="form-control bg-dark text-white"
                         placeholder="Search...">
                     <a href="javascript:void(0);" onclick="order()">
                         <span class="input-group-text bg-dark text-info">
-                            <i class="bi-search "></i>
+                            <i class="bi-search"></i>
                         </span>
                     </a>
                 </div>
@@ -75,12 +68,8 @@
                         <option value="All">All</option>
                         <option value="Delivered">Delivered</option>
                         <option value="Pending">Pending</option>
-                        <!-- <option value="Shipped">Shipped</option> -->
                         <option value="Cancelled">Cancelled</option>
-                        <!-- <option value="Confirmed">Confirmed</option> -->
-                        <!-- <option value="Returned">Returned</option>
-                        <option value="Return Request">Return Request</option>
-                        <option value="ReturnCancelled">ReturnCancelled</option> -->
+                        <option value="Returned">Returned</option>
                         <option value="return-requested">Return Requested</option>
                         <option value="return-mixed">Mixed Return Status</option>
                         <option value="return-rejected">Return Rejected</option>
@@ -95,6 +84,11 @@
                 </div>
             </div>
 
+            <div id="loadingSpinner" class="text-center" style="display: none;">
+                <div class="spinner-border text-info" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
 
             <table class="table table-dark table-bordered" id="ordersTable">
                 <thead>
@@ -104,152 +98,12 @@
                         <th>AMOUNT</th>
                         <th>ORDER DATE</th>
                         <th>STATUS</th>
-                        <th>RETURN</th>
                         <th>UPDATE</th>
+                        <th>VIEW</th>
                     </tr>
                 </thead>
-                <tbody id="body">
-                    <% const statuses=["Pending", "Shipped" , "Delivered" , "Cancelled" , "Confirmed" , "Returned" ];
-                        const statusFlow=["Pending", "Confirmed" , "Shipped" , "Delivered" , "Returned" ]; %>
-                        <% orders.forEach(order=> { %>
-                            <tr class="order-row">
-                                <td>
-                                    <a class="text-decoration-none text-white order-link" href="javascript:void(0)"
-                                        data-order-id="<%= order.orderId %>">
-                                        <%= order.userId.name %>
-                                    </a>
-                                </td>
-                                <td><%= order.orderId %>
-                                </td>
-                                <input type="hidden" class="id" value="<%= order.orderId %>">
-                                <td>₹<%= ((order.totalPrice - (order.discount +
-                                        order.couponDiscount))).toLocaleString('en-IN') %>
-                                </td>
-                                <td>
-                                    <%= new Date(order.invoiceDate).toLocaleDateString() %>
-                                </td>
-
-                                <td>
-                                    <% var currentIndex=statusFlow.indexOf(order.status); let allReturnUndefined=true;
-                                        let hasReturnRequest=false; let hasReturnApproved=false; let
-                                        hasReturnRejected=false; let hasReturnCompleted=false; if (order.orderedItems &&
-                                        order.orderedItems.length> 0) {
-                                        order.orderedItems.forEach(item => {
-                                        if (item.returnStatus && item.returnStatus !== '') {
-                                        allReturnUndefined = false;
-
-                                        if (item.returnStatus === 'Requested') {
-                                        hasReturnRequest = true;
-                                        } else if (item.returnStatus === 'Approved' || item.returnStatus === 'Returned')
-                                        {
-                                        hasReturnApproved = true;
-                                        hasReturnCompleted = true;
-                                        } else if (item.returnStatus === 'Rejected') {
-                                        hasReturnRejected = true;
-                                        }
-                                        }
-                                        });
-                                        }
-                                        %>
-
-                                        <% if (allReturnUndefined) { %>
-                                            <select class="form-select status-dropdown bg-dark text-white">
-                                                <option selected disabled>
-                                                    <%= order.status %>
-                                                </option>
-                                                <% if (order.status==="Return Request" ) { %>
-                                                    <option value="Returned">Returned</option>
-                                                    <option value="ReturnCancelled">Return Cancelled</option>
-                                                    <% } else if (order.status==="Returned" ||
-                                                        order.status==="ReturnCancelled" || order.status==="Cancelled" )
-                                                        { %>
-                                                        <option disabled>No further actions</option>
-                                                        <% } else { %>
-                                                            <% for (var i=0; i < statuses.length; i++) { var
-                                                                status=statuses[i]; var
-                                                                statusIndex=statusFlow.indexOf(status); if (statusIndex>
-                                                                currentIndex) {
-                                                                %>
-                                                                <option value="<%= status %>">
-                                                                    <%= status %>
-                                                                </option>
-                                                                <% } } %>
-                                                                    <% } %>
-                                            </select>
-                                            <% } else { const returnStatuses=new Set();
-                                                order.orderedItems.forEach(item=> {
-                                                if (item.returnStatus && item.returnStatus !== '') {
-                                                returnStatuses.add(item.returnStatus);
-                                                }
-                                                });
-
-                                                if (returnStatuses.size === 1) {
-                                                const status = [...returnStatuses][0];
-                                                if (status === "Requested") { %>
-                                                <span class="badge bg-warning text-dark">Return In Progress</span>
-                                                <% } else if (status==="Returned" ) { %>
-                                                    <span class="badge bg-success">Returned</span>
-                                                    <% } else if (status==="Rejected" ) { %>
-                                                        <span class="badge bg-danger">Return Rejected</span>
-                                                        <% } else { %>
-                                                            <span class="badge bg-secondary">Return: <%= status %>
-                                                            </span>
-                                                            <% } %>
-                                                                <% } else { %>
-                                                                    <span class="badge bg-info text-dark">Mixed Return
-                                                                        Status</span>
-                                                                    <% } %>
-                                                                        <% } %>
-
-                                </td>
-
-                                <td><button type="button" class="btn btn-primary updatebutton">Update</button></td>
-                                <td>
-                                    <i class="fas fa-eye action-btn order-link" title="View Details"
-                                        data-order-id="<%= order.orderId %>"></i>
-                                </td>
-                            </tr>
-
-                            <% let hasReturnRequestRow=false; let returnRequestItems=[]; if (order.orderedItems &&
-                                order.orderedItems.length> 0) {
-                                order.orderedItems.forEach(item => {
-                                if (item.returnStatus === "Requested" || item.returnStatus === "returnRequest") {
-                                hasReturnRequestRow = true;
-                                returnRequestItems.push(item);
-                                }
-                                });
-                                }
-
-                                if (hasReturnRequestRow) {
-                                %>
-                                <tr class="return-request-row">
-                                    <td colspan="8" class="p-0">
-                                        <div
-                                            class="return-request-container px-3 py-2 border-start border-4 border-danger">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div class="d-flex align-items-center">
-                                                    <span class="badge bg-danger me-2">Return Requested</span>
-                                                    <span class="text-warning fw-bold">
-                                                        <%= returnRequestItems.length %> item(s) pending return approval
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <button class="btn btn-sm btn-outline-info view-return-details"
-                                                        data-order-id="<%= order.orderId %>">
-                                                        <i class="fas fa-box-open me-1"></i> View Return Details
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <% } %>
-                                    <% }) %>
-                </tbody>
-
-
+                <tbody id="body"></tbody>
             </table>
-
 
             <div class="d-flex justify-content-center align-items-center mt-4">
                 <span class="me-4">SHOWING <%= currentPage %> OF <%= totalPages %></span>
@@ -258,145 +112,424 @@
                         <li id="previous" class="page-item <%= currentPage === 1 ? 'disabled' : '' %> me-4">
                             <a class="page-link" href="?page=<%= currentPage - 1 %>">«</a>
                         </li>
-
                         <li id="pagenumber" class="page-item active">
                             <a class="page-link" href="#">
                                 <%= currentPage %>
                             </a>
                         </li>
-
                         <li id="next" class="page-item <%= currentPage === totalPages ? 'disabled' : '' %> ms-4">
                             <a class="page-link" href="?page=<%= currentPage + 1 %>">»</a>
                         </li>
                     </ul>
                 </nav>
             </div>
-
         </div>
 
         <!-- Bootstrap JS and jQuery -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <!-- Custom JS -->
-        <!-- Bootstrap JS Bundle with Popper -->
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.all.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
+            const statuses = ["Pending", "Shipped", "Delivered", "Cancelled", "Confirmed", "Returned"];
+            const statusFlow = ["Pending", "Confirmed", "Shipped", "Delivered", "Returned"];
 
+            // Show loading spinner
+            function showLoading() {
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('ordersTable').style.opacity = '0.5';
+            }
 
+            // Hide loading spinner
+            function hideLoading() {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                document.getElementById('ordersTable').style.opacity = '1';
+            }
+
+            // Centralized table rendering function
+            function renderTable(orders) {
+                const tableBody = document.getElementById('body');
+                tableBody.innerHTML = '';
+
+                orders.forEach(order => {
+                    let allReturnUndefined = true;
+                    let hasReturnRequest = false;
+                    let hasReturnApproved = false;
+                    let hasReturnRejected = false;
+                    let hasReturnCompleted = false;
+                    let returnRequestItems = [];
+
+                    if (order.orderedItems && order.orderedItems.length > 0) {
+                        order.orderedItems.forEach(item => {
+                            if (item.returnStatus && item.returnStatus !== '') {
+                                allReturnUndefined = false;
+                                if (item.returnStatus === 'Requested' || item.returnStatus === 'returnRequest') {
+                                    hasReturnRequest = true;
+                                    returnRequestItems.push(item);
+                                } else if (item.returnStatus === 'Approved' || item.returnStatus === 'Returned') {
+                                    hasReturnApproved = true;
+                                    hasReturnCompleted = true;
+                                } else if (item.returnStatus === 'Rejected') {
+                                    hasReturnRejected = true;
+                                }
+                            }
+                        });
+                    }
+
+                    const currentIndex = statusFlow.indexOf(order.status);
+                    let statusHtml = '';
+
+                    if (order.status === "Returned") {
+                        statusHtml = `<span class="badge bg-success">Returned</span>`;
+                    } else if (allReturnUndefined) {
+                        statusHtml = `
+                        <select class="form-select status-dropdown bg-dark text-white">
+                            <option selected disabled>${order.status}</option>
+                            ${order.status === "Return Request" ? `
+                                <option value="Returned">Returned</option>
+                                <option value="ReturnCancelled">Return Cancelled</option>
+                            ` : (order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Cancelled") ? `
+                                <option disabled>No further actions</option>
+                            ` : `
+                                ${statuses
+                                .filter(status => statusFlow.indexOf(status) > currentIndex)
+                                .map(status => `<option value="${status}">${status}</option>`).join('')}
+                            `}
+                        </select>`;
+                    } else {
+                        const returnStatuses = new Set();
+                        order.orderedItems.forEach(item => {
+                            if (item.returnStatus && item.returnStatus !== '') {
+                                returnStatuses.add(item.returnStatus);
+                            }
+                        });
+
+                        const returnStatusArray = [...returnStatuses];
+                        const isMixedOrReturned = returnStatusArray.includes("Returned") || returnStatuses.size > 1;
+
+                        if (isMixedOrReturned) {
+                            statusHtml = `<span class="badge bg-info text-dark">Mixed Return Status</span>`;
+                        } else {
+                            const status = returnStatusArray[0];
+                            if (status === "Requested") {
+                                statusHtml = `<span class="badge bg-warning text-dark">Return In Progress</span>`;
+                            } else if (status === "Rejected") {
+                                statusHtml = `<span class="badge bg-danger">Return Rejected</span>`;
+                            } else {
+                                statusHtml = `<span class="badge bg-secondary">Return: ${status}</span>`;
+                            }
+                        }
+                    }
+
+                    const row = document.createElement('tr');
+                    row.classList.add('order-row');
+                    row.innerHTML = `
+                    <td>
+                        <a class="text-decoration-none text-white order-link" href="javascript:void(0)" data-order-id="${order.orderId}">
+                            ${order.userId.name}
+                        </a>
+                    </td>
+                    <td>${order.orderId}</td>
+                    <input type="hidden" class="id" value="${order.orderId}">
+                    <td>₹${((order.totalPrice - (order.discount + order.couponDiscount))).toLocaleString('en-IN')}</td>
+                    <td>${new Date(order.invoiceDate).toLocaleDateString()}</td>
+                    <td>${statusHtml}</td>
+                    <td><button type="button" class="btn btn-primary updatebutton">Update</button></td>
+                    <td><i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="${order.orderId}"></i></td>
+                `;
+                    tableBody.appendChild(row);
+
+                    if (hasReturnRequest) {
+                        const returnRow = document.createElement('tr');
+                        returnRow.classList.add('return-request-row');
+                        returnRow.innerHTML = `
+                        <td colspan="8" class="p-0">
+                            <div class="return-request-container px-3 py-2 border-start border-4 border-danger">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge bg-danger me-2">Return Requested</span>
+                                        <span class="text-warning fw-bold">${returnRequestItems.length} item(s) pending return approval</span>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-info view-return-details" data-order-id="${order.orderId}">
+                                            <i class="fas fa-box-open me-1"></i> View Return Details
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>`;
+                        tableBody.appendChild(returnRow);
+                    }
+                });
+            }
+
+            // Date Filter
             document.getElementById('DateFilter').addEventListener('change', async function () {
                 const selectedValue = this.value;
-
+                showLoading();
                 try {
                     const response = await fetch('/admin/Datefilter', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ DateFilter: selectedValue })
                     });
-
                     const result = await response.json();
-                    const data = result.data;
-                    const tableBody = document.getElementById('body');
-                    tableBody.innerHTML = '';
-
-                    data.forEach(order => {
-                        const row = document.createElement('tr');
-                        const statuses = ["Pending", "Shipped", "Delivered", "Cancelled", "Confirmed", "Returned"];
-
-                        let allReturnUndefined = true;
-                        let hasReturnRequest = false;
-                        let hasReturnApproved = false;
-                        let hasReturnRejected = false;
-                        let hasReturnCompleted = false;
-
-                        if (order.orderedItems && order.orderedItems.length > 0) {
-                            order.orderedItems.forEach(item => {
-                                if (item.returnStatus && item.returnStatus !== '') {
-                                    allReturnUndefined = false;
-
-                                    if (item.returnStatus === 'Requested') {
-                                        hasReturnRequest = true;
-                                    } else if (item.returnStatus === 'Approved' || item.returnStatus === 'Returned') {
-                                        hasReturnApproved = true;
-                                        hasReturnCompleted = true;
-                                    } else if (item.returnStatus === 'Rejected') {
-                                        hasReturnRejected = true;
-                                    }
-                                }
-                            });
-                        }
-
-                        let returnBadge = '';
-                        if (!allReturnUndefined) {
-                            if ((hasReturnCompleted && hasReturnRejected) ||
-                                (hasReturnRequest && (hasReturnCompleted || hasReturnRejected))) {
-                                returnBadge = `<span class="badge bg-info text-dark">Mixed Return Status</span>`;
-                            } else if (hasReturnRequest) {
-                                returnBadge = `<span class="badge bg-warning text-dark">Return In Progress</span>`;
-                            } else if (hasReturnCompleted) {
-                                returnBadge = `<span class="badge bg-success">Returned</span>`;
-                            } else if (hasReturnRejected) {
-                                returnBadge = `<span class="badge bg-danger">Return Rejected</span>`;
-                            } else {
-                                returnBadge = `<span class="badge bg-secondary">Return Status</span>`;
-                            }
-                        }
-
-                        row.innerHTML = `
-                <td>
-                    <a class="text-decoration-none text-white order-link" href="javascript:void(0)" data-order-id="${order.orderId}">
-                        ${order.userId.name}
-                    </a>
-                </td>
-                <td>${order.orderId}</td>
-                <input type="hidden" class="id" value="${order.orderId}">
-                <td>₹${(order.totalPrice - (order.discount + order.couponDiscount)).toLocaleString('en-IN')}</td>
-                <td>${new Date(order.invoiceDate).toLocaleDateString()}</td>
-                <td>
-                    ${allReturnUndefined ? `
-                        <select class="form-select status-dropdown bg-dark text-white">
-                            <option selected disabled>${order.status}</option>
-                            ${statuses
-                                    .filter(status => status !== order.status)
-                                    .map(status => `<option value="${status}">${status}</option>`)
-                                    .join('')}
-                        </select>
-                    ` : returnBadge}
-                </td>
-                <td><button type="button" class="btn btn-primary updatebutton">Update</button></td>
-                <td><i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="${order.orderId}"></i></td>
-            `;
-
-                        tableBody.appendChild(row);
-                    });
-
-                    // Rebind modal and update button events just like statusFilter
-                    bindOrderDetailModals();
-                    bindStatusUpdateButtons();
-
+                    renderTable(result.data);
                 } catch (error) {
                     console.error('Error fetching filtered data:', error);
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load orders.' });
+                } finally {
+                    hideLoading();
                 }
             });
 
-            function bindOrderDetailModals() {
-                document.querySelectorAll('.order-link').forEach(link => {
-                    link.addEventListener('click', function () {
-                        const orderId = this.getAttribute('data-order-id');
-                        fetch(`/admin/orderdetails/${orderId}`)
-                            .then(response => response.json())
-                            .then(orderDetails => {
-                                if (orderDetails) {
-                                    const modalBody = document.getElementById('modalBodyContent');
-                                    let modalContent = `
+            // Status Filter
+            document.getElementById('statusFilter').addEventListener('change', async function () {
+                const val = this.value;
+                showLoading();
+                try {
+                    const response = await fetch('/admin/statusfilter', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: val })
+                    });
+                    const result = await response.json();
+                    renderTable(result.data);
+                } catch (error) {
+                    console.error('Error fetching filtered data:', error);
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load orders.' });
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            // Search Orders
+            function order() {
+                const query = document.getElementById('searchQuery').value.trim();
+                showLoading();
+                fetch('/admin/searchorder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.data) {
+                            renderTable(data.data);
+                        } else {
+                            Swal.fire({ icon: 'info', title: 'No Results', text: 'No orders found.' });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error searching orders:', error);
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to search orders.' });
+                    })
+                    .finally(() => hideLoading());
+            }
+
+            // Event delegation for update buttons
+            document.addEventListener('click', function (event) {
+                if (event.target.closest('.updatebutton')) {
+                    const button = event.target.closest('.updatebutton');
+                    const row = button.closest('tr');
+                    const statusDropdown = row.querySelector('.status-dropdown');
+                    const orderId = row.querySelector('.id').value;
+
+                    if (!statusDropdown || !statusDropdown.value) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No status selected or status cannot be updated!',
+                        });
+                        return;
+                    }
+
+                    const newStatus = statusDropdown.value;
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: `Do you want to change the status to ${newStatus}?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Yes, update it!',
+                        cancelButtonText: 'No, cancel',
+                        reverseButtons: true,
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            showLoading();
+                            fetch('/admin/updatestatus', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ orderId, status: newStatus })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    Swal.fire({
+                                        title: 'Updated!',
+                                        text: data.message,
+                                        icon: 'success',
+                                        confirmButtonText: 'OK'
+                                    }).then(result => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/admin/orders';
+                                        }
+                                    });
+                                })
+                                .catch(error => {
+                                    console.error('Error updating status:', error);
+                                    Swal.fire({ icon: 'error', title: 'Failed', text: 'Failed to update status.' });
+                                })
+                                .finally(() => hideLoading());
+                        }
+                    });
+                }
+            });
+
+            // Event delegation for order links
+            document.addEventListener('click', function (event) {
+                if (event.target.closest('.order-link')) {
+                    const orderId = event.target.closest('.order-link').getAttribute('data-order-id');
+                    showOrderModal(orderId);
+                }
+            });
+
+            // Event delegation for view return details
+            document.addEventListener('click', function (event) {
+                if (event.target.closest('.view-return-details')) {
+                    const orderId = event.target.closest('.view-return-details').getAttribute('data-order-id');
+                    const returnModal = new bootstrap.Modal(document.getElementById('returnDetailsModal'));
+                    document.getElementById('returnDetailsModalLabel').textContent = `Return Request Details - ${orderId}`;
+                    returnModal.show();
+
+                    fetch(`/admin/orders/${orderId}/returns`)
+                        .then(response => response.json())
+                        .then(data => populateReturnModal(data, orderId))
+                        .catch(error => {
+                            console.error('Error fetching return details:', error);
+                            document.getElementById('returnItemsContainer').innerHTML =
+                                '<div class="alert alert-danger">Failed to load return details. Please try again.</div>';
+                        });
+                }
+            });
+
+            // Populate return modal
+            function populateReturnModal(data, orderId) {
+                const container = document.getElementById('returnItemsContainer');
+                if (!data.returnItems || data.returnItems.length === 0) {
+                    container.innerHTML = '<div class="alert alert-info">No return requests found for this order.</div>';
+                    return;
+                }
+
+                let html = '<div class="table-responsive">';
+                html += '<table class="table table-dark table-striped">';
+                html += '<thead><tr><th>Product</th><th>Return Reason</th><th>Status</th><th>Actions</th></tr></thead>';
+                html += '<tbody>';
+
+                data.returnItems.forEach(item => {
+                    html += `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="${item.product.productImage[0] || '/assets/img/placeholder.jpg'}" 
+                                     alt="${item.product.name}" 
+                                     class="img-thumbnail me-2" 
+                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                <div>
+                                    <div class="fw-bold">${item.product.productName}</div>
+                                    <small class="text-muted">SKU: ${item.product.sku || 'N/A'}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${item.returnReason || 'No reason provided'}</td>
+                        <td><span class="badge bg-warning">${item.returnStatus}</span></td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button class="btn btn-success approve-return" data-order-id="${orderId}" data-item-id="${item._id}">
+                                    <i class="fas fa-check me-1"></i> Approve
+                                </button>
+                                <button class="btn btn-danger reject-return" data-order-id="${orderId}" data-item-id="${item._id}">
+                                    <i class="fas fa-times me-1"></i> Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+
+                document.querySelectorAll('.approve-return').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const itemId = this.getAttribute('data-item-id');
+                        const ordId = this.getAttribute('data-order-id');
+                        updateReturnStatus(ordId, itemId, 'Returned');
+                    });
+                });
+
+                document.querySelectorAll('.reject-return').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const itemId = this.getAttribute('data-item-id');
+                        const ordId = this.getAttribute('data-order-id');
+                        updateReturnStatus(ordId, itemId, 'Rejected');
+                    });
+                });
+            }
+
+            // Update return status
+            function updateReturnStatus(orderId, itemId, status) {
+                const btn = document.querySelector(`button[data-item-id="${itemId}"]`);
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+                btn.disabled = true;
+
+                fetch(`/admin/orders/${orderId}/returns/${itemId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const row = btn.closest('tr');
+                            row.innerHTML = `<td colspan="4" class="text-center">
+                            <div class="alert alert-success">
+                                Return request has been ${status.toLowerCase()}. Refreshing...
+                            </div>
+                        </td>`;
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Failed!',
+                                text: data.message || 'Failed to update return status.'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating return status:', error);
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to update return status.' });
+                    });
+            }
+
+            // Show order details modal
+            function showOrderModal(orderId) {
+                fetch(`/admin/orderdetails/${orderId}`)
+                    .then(response => response.json())
+                    .then(orderDetails => {
+                        if (orderDetails) {
+                            const modalBody = document.getElementById('modalBodyContent');
+                            let modalContent = `
                             <div class="row mb-3">
                                 <div class="col-8">
                                     <h5 class="mb-1">Order ${orderDetails.order.orderId}</h5>
                                     <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
                                 </div>
                                 <div class="col-4 text-end">
-                                    <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+                                    ${orderDetails.order.orderedItems.map(item => `
+                                        <span class="badge ${item.returnStatus === 'Shipped' ? 'bg-success' : 'bg-warning'}">${item.returnStatus || orderDetails.order.status}</span>
+                                    `).join('')}
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -412,17 +545,18 @@
                                                     <div class="col-7">
                                                         <p class="mb-0 fw-bold">${item.product?.productName || 'Product name not available'}</p>
                                                         <small>${item.quantity} x ₹${item.product?.salePrice?.toLocaleString('en-IN') || 0}</small>
-                                                        <div>
-                                                            ${item.returnStatus ? `
+                                                        ${item.returnStatus ? `
+                                                            <div>
                                                                 <span class="badge ${item.returnStatus === 'Requested' ? 'bg-warning' :
-                                                item.returnStatus === 'Approved' || item.returnStatus === 'Returned' ? 'bg-success' :
-                                                    item.returnStatus === 'Rejected' ? 'bg-danger' : 'bg-secondary'}">
+                                        item.returnStatus === 'Approved' || item.returnStatus === 'Returned' ? 'bg-success' :
+                                            item.returnStatus === 'Rejected' ? 'bg-danger' : 'bg-secondary'}">
                                                                     ${item.returnStatus}
-                                                                </span>` : ''}
-                                                        </div>
-                                                        <div class="mt-1">
-                                                            <small class="text-warning"><strong>Reason:</strong> ${item.returnReason}</small>
-                                                        </div>
+                                                                </span>
+                                                            </div>
+                                                            <div class="mt-1">
+                                                                <small class="text-warning"><strong>Reason:</strong> ${item.returnReason || 'N/A'}</small>
+                                                            </div>
+                                                        ` : ''}
                                                     </div>
                                                     <div class="col-3 text-end">
                                                         <p class="mb-0 fw-bold">₹${(item.quantity * item.product?.salePrice || 0).toLocaleString('en-IN')}</p>
@@ -431,6 +565,36 @@
                                             </div>
                                         </div>
                                     `).join('')}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body bg-dark">
+                                            <h6 class="mb-2">Order Summary</h6>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>Subtotal:</span>
+                                                <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>Shipping:</span>
+                                                <span>₹0</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>Discount:</span>
+                                                <span>₹${(orderDetails.order.discount || 0).toLocaleString('en-IN')}</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>Coupon Discount:</span>
+                                                <span>₹${(orderDetails.order.couponDiscount || 0).toLocaleString('en-IN')}</span>
+                                            </div>
+                                            <hr class="my-2">
+                                            <div class="d-flex justify-content-between fw-bold">
+                                                <span>Total:</span>
+                                                <span>₹${((orderDetails.order.totalPrice - (orderDetails.order.discount + orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="row">
@@ -455,1029 +619,31 @@
                                     </div>
                                 </div>
                             </div>
+                            ${orderDetails.order.ReturnReason ? `
+                                <hr class="text-light">
+                                <h6 class="card-title">Return Reason</h6>
+                                <p class="card-text text-warning mb-0">${orderDetails.order.ReturnReason}</p>
+                            ` : ''}
                         `;
-                                    modalBody.innerHTML = modalContent;
-                                    var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                                    myModal.show();
-                                } else {
-                                    alert('Order not found');
-                                }
-                            });
-                    });
-                });
-            }
-
-            function bindStatusUpdateButtons() {
-                const updatebutton = document.querySelectorAll('.updatebutton');
-                updatebutton.forEach((button, index) => {
-                    button.addEventListener('click', function () {
-                        const currentValue = document.querySelectorAll('.status-dropdown')[index]?.value;
-                        const currentOrderId = document.querySelectorAll('.id')[index]?.value;
-
-                        if (!currentValue) {
-                            Swal.fire({
-                                icon: "error",
-                                title: "Oops...",
-                                text: "No Data selected!",
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Are you sure?',
-                                text: `Do you want to change the status to ${currentValue}?`,
-                                icon: 'warning',
-                                showCancelButton: true,
-                                confirmButtonText: 'Yes, update it!',
-                                cancelButtonText: 'No, cancel',
-                                reverseButtons: true
-                            }).then((result) => {
-                                if (result.isConfirmed) {
-                                    fetch('/admin/updatestatus', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            orderId: currentOrderId,
-                                            status: currentValue,
-                                        })
-                                    })
-                                        .then(response => response.json())
-                                        .then(data => {
-                                            return Swal.fire({
-                                                title: 'Updated!',
-                                                text: data.message,
-                                                icon: 'success',
-                                                confirmButtonText: 'OK'
-                                            });
-                                        })
-                                        .then((result) => {
-                                            if (result.isConfirmed) {
-                                                window.location.href = '/admin/orders';
-                                            }
-                                        })
-                                        .catch(error => console.error('Error:', error));
-                                }
-                            });
-                        }
-                    });
-                });
-            }
-            // Handle view return details button clicks
-            document.addEventListener('DOMContentLoaded', function () {
-                const viewReturnButtons = document.querySelectorAll('.view-return-details');
-                const returnModal = new bootstrap.Modal(document.getElementById('returnDetailsModal'));
-
-                viewReturnButtons.forEach(button => {
-                    button.addEventListener('click', function () {
-                        const orderId = this.getAttribute('data-order-id');
-                        document.getElementById('returnDetailsModalLabel').textContent = `Return Request Details -${orderId}`;
-
-                        // Show modal first with loading spinner
-                        returnModal.show();
-
-                        // Then fetch the data
-                        fetch(`/admin/orders/${orderId}/returns`)
-                            .then(response => response.json())
-                            .then(data => {
-                                populateReturnModal(data, orderId);
-                            })
-                            .catch(error => {
-                                console.error('Error fetching return details:', error);
-                                document.getElementById('returnItemsContainer').innerHTML =
-                                    '<div class="alert alert-danger">Failed to load return details. Please try again.</div>';
-                            });
-                    });
-                });
-            });
-
-            function populateReturnModal(data, orderId) {
-                console.log(data.returnItems, 'data')
-                const container = document.getElementById('returnItemsContainer');
-                if (!data.returnItems || data.returnItems.length === 0) {
-                    container.innerHTML = '<div class="alert alert-info">No return requests found for this order.</div>';
-                    return;
-                }
-
-                let html = '<div class="table-responsive">';
-                html += '<table class="table table-dark table-striped">';
-                html += '<thead><tr><th>Product</th><th>Return Reason</th><th>Status</th><th>Actions</th></tr></thead>';
-                html += '<tbody>';
-
-                data.returnItems.forEach(item => {
-                    html += `<tr>
-            <td>
-                <div class="d-flex align-items-center">
-                    <img src="${item.product.productImage[0] || '/assets/img/placeholder.jpg'}" 
-                         alt="${item.product.name}" 
-                         class="img-thumbnail me-2" 
-                         style="width: 50px; height: 50px; object-fit: cover;">
-                    <div>
-                        <div class="fw-bold">${item.product.productName}</div>
-                        <small class="text-muted">SKU: ${item.product.sku || 'N/A'}</small>
-                    </div>
-                </div>
-            </td>
-            <td>${item.returnReason || 'No reason provided'}</td>
-            <td><span class="badge bg-warning">${item.returnStatus}</span></td>
-            <td>
-                <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-success approve-return" data-order-id="${orderId}" data-item-id="${item._id}">
-                        <i class="fas fa-check me-1"></i> Approve
-                    </button>
-                    <button class="btn btn-danger reject-return" data-order-id="${orderId}" data-item-id="${item._id}">
-                        <i class="fas fa-times me-1"></i> Reject
-                    </button>
-                </div>
-            </td>
-        </tr>`;
-                });
-
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
-
-                // Add event listeners for approve/reject buttons
-                document.querySelectorAll('.approve-return').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const itemId = this.getAttribute('data-item-id');
-                        const ordId = this.getAttribute('data-order-id');
-                        updateReturnStatus(ordId, itemId, 'Returned');
-                    });
-                });
-
-                document.querySelectorAll('.reject-return').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const itemId = this.getAttribute('data-item-id');
-                        const ordId = this.getAttribute('data-order-id');
-                        updateReturnStatus(ordId, itemId, 'Rejected');
-                    });
-                });
-            }
-
-            function updateReturnStatus(orderId, itemId, status) {
-                // Show loading indicator
-                const btn = document.querySelector(`button[data-item-id="${itemId}"]`);
-                const originalHtml = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
-                btn.disabled = true;
-
-                fetch(`/admin/orders/${orderId}/returns/${itemId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ status })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Show success message and reload page after 1.5 seconds
-                            const row = btn.closest('tr');
-                            row.innerHTML = `<td colspan="4" class="text-center">
-                            <div class="alert alert-success">
-                                Return request has been ${status.toLowerCase()}. Refreshing...
-                            </div>
-                        </td>`;
-
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
-                            btn.innerHTML = originalHtml;
-                        btn.disabled = false;
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Failed!',
-                            text: data.message || 'Failed to update return status.'
-                        });
-                   }
-                 })
-                    .catch(error => {
-                        console.error('Error updating return status:', error);
-                        btn.innerHTML = originalHtml;
-                        btn.disabled = false;
-                        alert('Failed to update return status. Please try again.');
-                    });
-            }
-
-
-
-            const pageSize = 5;
-            let currentPage = 1;
-            let totalCount = 50;
-            let totalPages = Math.ceil(totalCount / pageSize);
-
-            document.getElementById('previous').addEventListener('click', function () {
-
-            })
-            document.getElementById('next').addEventListener('click', function () {
-
-            })
-
-            document.getElementById('statusFilter').addEventListener('change', function () {
-                const val = document.getElementById('statusFilter').value;
-                console.log(val);
-
-                fetch('/admin/statusfilter', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ status: val })
-                })
-                    .then((response) => response.json())
-                    .then((data) => {
-                        console.log(data);
-                        const tableBody = document.getElementById('body');
-                        tableBody.innerHTML = '';  // Clear existing rows
-
-                        data.data.forEach(order => {
-                            const row = document.createElement('tr');
-                            const statuses = ["Pending", "Shipped", "Delivered", "Cancelled", "Confirmed", "Returned"];
-                            const statusFlow = ["Pending", "Confirmed", "Shipped", "Delivered", "Returned"];
-
-                            let allReturnUndefined = true;
-                            let hasReturnRequest = false;
-                            let hasReturnApproved = false;
-                            let hasReturnRejected = false;
-                            let hasReturnCompleted = false;
-
-                            if (order.orderedItems && order.orderedItems.length > 0) {
-                                order.orderedItems.forEach(item => {
-                                    if (item.returnStatus && item.returnStatus !== '') {
-                                        allReturnUndefined = false;
-
-                                        if (item.returnStatus === 'Requested') {
-                                            hasReturnRequest = true;
-                                        } else if (item.returnStatus === 'Approved' || item.returnStatus === 'Returned') {
-                                            hasReturnApproved = true;
-                                            hasReturnCompleted = true;
-                                        } else if (item.returnStatus === 'Rejected') {
-                                            hasReturnRejected = true;
-                                        }
-                                    }
-                                });
-                            }
-
-                            // Return badge logic
-                            let returnBadge = '';
-                            if (!allReturnUndefined) {
-                                if ((hasReturnCompleted && hasReturnRejected) ||
-                                    (hasReturnRequest && (hasReturnCompleted || hasReturnRejected))) {
-                                    returnBadge = `<span class="badge bg-info text-dark">Mixed Return Status</span>`;
-                                } else if (hasReturnRequest) {
-                                    returnBadge = `<span class="badge bg-warning text-dark">Return In Progress</span>`;
-                                } else if (hasReturnCompleted) {
-                                    returnBadge = `<span class="badge bg-success">Returned</span>`;
-                                } else if (hasReturnRejected) {
-                                    returnBadge = `<span class="badge bg-danger">Return Rejected</span>`;
-                                } else {
-                                    returnBadge = `<span class="badge bg-secondary">Return Status</span>`;
-                                }
-                            }
-
-                            row.innerHTML = `
-                <td>
-                    <a class="text-decoration-none text-white order-link" href="javascript:void(0)" data-order-id="${order.orderId}">
-                        ${order.userId.name}
-                    </a>
-                </td>
-                <td>${order.orderId}</td>
-                <input type="hidden" class="id" value="${order.orderId}">
-                <td>₹${(order.totalPrice - (order.discount + order.couponDiscount)).toLocaleString('en-IN')}</td>
-                <td>${new Date(order.invoiceDate).toLocaleDateString()}</td>
-                <td>
-                    ${allReturnUndefined ? `
-                        <select class="form-select status-dropdown bg-dark text-white">
-                            <option selected disabled>${order.status}</option>
-                            ${statuses
-                                        .filter(status => status !== order.status)
-                                        .map(status => `<option value="${status}">${status}</option>`)
-                                        .join('')}
-                        </select>
-                    ` : returnBadge}
-                </td>
-                <td><button type="button" class="btn btn-primary updatebutton">Update</button></td>
-                <td><i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="${order.orderId}"></i></td>
-            `;
-
-                            tableBody.appendChild(row);
-                        });
-
-                        // Bind order detail modals
-                        document.querySelectorAll('.order-link').forEach(link => {
-                            link.addEventListener('click', function () {
-                                const orderId = this.getAttribute('data-order-id');
-                                fetch(`/admin/orderdetails/${orderId}`)
-                                    .then(response => response.json())
-                                    .then(orderDetails => {
-                                        if (orderDetails) {
-                                            console.log(orderDetails, 'orderDetails')
-                                            const modalBody = document.getElementById('modalBodyContent');
-                                            let modalContent = `
-                                <div class="row mb-3">
-                                    <div class="col-8">
-                                        <h5 class="mb-1">Order${orderDetails.order.orderId}</h5>
-                                        <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
-                                    </div>
-                                    <div class="col-4 text-end">
-                                        <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-12">
-                                        <h6 class="mb-2">Order Items</h6>
-                                ${orderDetails.order.orderedItems.map(item => `
-                                    <div class="card mb-2">
-                                        <div class="card-body py-2 bg-dark">
-                                            <div class="row align-items-center">
-                                                <div class="col-2">
-                                                    <img src="${item.product?.productImage?.[0] || '/default.jpg'}" alt="Product" class="img-fluid rounded">
-                                                </div>
-                                                <div class="col-7">
-                                                    <p class="mb-0 fw-bold">${item.product?.productName || 'Product name not available'}</p>
-                                                    <small>${item.quantity} x ₹${item.product?.salePrice?.toLocaleString('en-IN') || 0}</small>
-                                                    <div>
-                                                        ${item.returnStatus ? `
-                                                            <span class="badge ${item.returnStatus === 'Requested' ? 'bg-warning' :
-                                                        item.returnStatus === 'Approved' || item.returnStatus === 'Returned' ? 'bg-success' :
-                                                            item.returnStatus === 'Rejected' ? 'bg-danger' : 'bg-secondary'}">
-                                                                ${item.returnStatus}
-                                                            </span>` : ''}
-                                                    </div>
-
-                                                  <div class="mt-1">
-                                                    <small class="text-warning"><strong>Reason:</strong> ${item.returnReason}</small>
-                                                  </div>
-
-                                                </div>
-                                                <div class="col-3 text-end">
-                                                    <p class="mb-0 fw-bold">₹${(item.quantity * item.product?.salePrice || 0).toLocaleString('en-IN')}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-
-
-
-                                      
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body bg-dark">
-                                                <h6 class="card-title">Shipping Address</h6>
-                                                <p class="card-text mb-0">
-                                                    ${orderDetails.order.address[0].name}<br>
-                                                    ${orderDetails.order.address[0].addressType}<br>
-                                                    ${orderDetails.order.address[0].city}, ${orderDetails.order.address[0].state} ${orderDetails.order.address[0].pincode}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card h-100">
-                                            <div class="card-body bg-dark">
-                                                <h6 class="card-title">Payment Method</h6>
-                                                <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                                            modalBody.innerHTML = modalContent;
-                                            var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                                            myModal.show();
-                                        } else {
-                                            alert('Order not found');
-                                        }
-                                    });
-                            });
-                        });
-
-                        // Bind update button
-                        const updatebutton = document.querySelectorAll('.updatebutton');
-                        updatebutton.forEach((button, index) => {
-                            button.addEventListener('click', function () {
-                                const currentValue = document.querySelectorAll('.status-dropdown')[index]?.value;
-                                const currentOrderId = document.querySelectorAll('.id')[index]?.value;
-
-                                if (!currentValue) {
-                                    Swal.fire({
-                                        icon: "error",
-                                        title: "Oops...",
-                                        text: "No Data selected!",
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        title: 'Are you sure?',
-                                        text: `Do you want to change the status to ${currentValue}?`,
-                                        icon: 'warning',
-                                        showCancelButton: true,
-                                        confirmButtonText: 'Yes, update it!',
-                                        cancelButtonText: 'No, cancel',
-                                        reverseButtons: true
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            fetch('/admin/updatestatus', {
-                                                method: 'POST',
-                                                headers: {
-                                                    'Content-Type': 'application/json'
-                                                },
-                                                body: JSON.stringify({
-                                                    orderId: currentOrderId,
-                                                    status: currentValue,
-                                                })
-                                            })
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    return Swal.fire({
-                                                        title: 'Updated!',
-                                                        text: data.message,
-                                                        icon: 'success',
-                                                        confirmButtonText: 'OK'
-                                                    });
-                                                })
-                                                .then((result) => {
-                                                    if (result.isConfirmed) {
-                                                        window.location.href = '/admin/orders';
-                                                    }
-                                                })
-                                                .catch(error => console.error('Error:', error));
-                                        }
-                                    });
-                                }
-                            });
-                        });
-                    });
-            });
-
-
-
-
-
-            function order() {
-                console.log('hi')
-                const query = document.getElementById('searchQuery').value.trim();
-                fetch('/admin/searchorder', {
-                    method: 'POST',
-                    headers: {
-                        'content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: query })
-                })
-                    .then((response => response.json()))
-                    .then((data) => {
-                        if (data) {
-                            const tableBody = document.getElementById('body');
-                            tableBody.innerHTML = '';  // Clear existing rows
-
-                            data.data.forEach(order => {
-                                const row = document.createElement('tr');
-                                const statuses = ["Pending", "Shipped", "Delivered", "Cancelled", "Confirmed", "Returned"];
-                                const statusFlow = ["Pending", "Confirmed", "Shipped", "Delivered", "Returned"];
-
-                                let allReturnUndefined = true;
-                                let hasReturnRequest = false;
-                                let hasReturnApproved = false;
-                                let hasReturnRejected = false;
-                                let hasReturnCompleted = false;
-
-                                if (order.orderedItems && order.orderedItems.length > 0) {
-                                    order.orderedItems.forEach(item => {
-                                        if (item.returnStatus && item.returnStatus !== '') {
-                                            allReturnUndefined = false;
-
-                                            if (item.returnStatus === 'Requested') {
-                                                hasReturnRequest = true;
-                                            } else if (item.returnStatus === 'Approved' || item.returnStatus === 'Returned') {
-                                                hasReturnApproved = true;
-                                                hasReturnCompleted = true;
-                                            } else if (item.returnStatus === 'Rejected') {
-                                                hasReturnRejected = true;
-                                            }
-                                        }
-                                    });
-                                }
-
-                                // Return badge logic
-                                let returnBadge = '';
-                                if (!allReturnUndefined) {
-                                    if ((hasReturnCompleted && hasReturnRejected) ||
-                                        (hasReturnRequest && (hasReturnCompleted || hasReturnRejected))) {
-                                        returnBadge = `<span class="badge bg-info text-dark">Mixed Return Status</span>`;
-                                    } else if (hasReturnRequest) {
-                                        returnBadge = `<span class="badge bg-warning text-dark">Return In Progress</span>`;
-                                    } else if (hasReturnCompleted) {
-                                        returnBadge = `<span class="badge bg-success">Returned</span>`;
-                                    } else if (hasReturnRejected) {
-                                        returnBadge = `<span class="badge bg-danger">Return Rejected</span>`;
-                                    } else {
-                                        returnBadge = `<span class="badge bg-secondary">Return Status</span>`;
-                                    }
-                                }
-
-                                row.innerHTML = `
-                <td>
-                    <a class="text-decoration-none text-white order-link" href="javascript:void(0)" data-order-id="${order.orderId}">
-                        ${order.userId.name}
-                    </a>
-                </td>
-                <td>${order.orderId}</td>
-                <input type="hidden" class="id" value="${order.orderId}">
-                <td>₹${(order.totalPrice - (order.discount + order.couponDiscount)).toLocaleString('en-IN')}</td>
-                <td>${new Date(order.invoiceDate).toLocaleDateString()}</td>
-                <td>
-                    ${allReturnUndefined ? `
-                        <select class="form-select status-dropdown bg-dark text-white">
-                            <option selected disabled>${order.status}</option>
-                            ${statuses
-                                            .filter(status => status !== order.status)
-                                            .map(status => `<option value="${status}">${status}</option>`)
-                                            .join('')}
-                        </select>
-                    ` : returnBadge}
-                </td>
-                <td><button type="button" class="btn btn-primary updatebutton">Update</button></td>
-                <td><i class="fas fa-eye action-btn order-link" title="View Details" data-order-id="${order.orderId}"></i></td>
-            `;
-
-                                tableBody.appendChild(row);
-                            });
-
-
-                            document.querySelectorAll('.order-link').forEach(link => {
-                                link.addEventListener('click', function () {
-                                    const orderId = this.getAttribute('data-order-id');
-                                    fetch(`/admin/orderdetails/${orderId}`)
-                                        .then(response => response.json())
-                                        .then(orderDetails => {
-                                            console.log(orderDetails.order, orderDetails.address)
-                                            // Check if we got the correct data
-                                            if (orderDetails) {
-                                                // Get the modal body element by ID
-                                                const modalBody = document.getElementById('modalBodyContent');
-
-                                                // Build the HTML content for the modal
-                                                let modalContent = `
-                                                 <!-- Order Header -->
-                                                 <div class="row mb-3">
-                                                    <div class="col-8">
-                                                        <h5 class="mb-1">Order ${orderDetails.order.orderId}</h5>
-                                                        <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
-                                                    </div>
-                                                    <div class="col-4 text-end">
-                                                        ${orderDetails.order.orderedItems.map(item => `
-                                                            <span class="badge ${item.returnStatus === 'Shipped' ? 'bg-success' : 'bg-warning'}">${item.returnStatus || orderDetails.order.status}</span>
-                                                        `).join('')}
-                                                    </div>
-
-                                                 </div>
-
-                                                <!-- Order Items -->
-                                                 <div class="row mb-3">
-                                                    <div class="col-12">
-                                                        <h6 class="mb-2">Order Items</h6>
-                                                        
-                                            ${orderDetails.order.orderedItems.map(item => `
-                                            <div class="card mb-2">
-                                                <div class="card-body py-2 bg-dark">
-                                                    <div class="row align-items-center">
-                                                        <div class="col-2">
-                                                            <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
-                                                        </div>
-                                                        <div class="col-7">
-                                                            <p class="mb-0 fw-bold">${item.product.productName}</p>
-                                                            <small >${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
-                                                        </div>
-                                                        <div class="col-3 text-end">
-                                                            <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        `).join('')}
-                                    
-                                                    </div>
-                                                </div>
-
-                                                <!-- Order Summary -->
-                                                <div class="row mb-3">
-                                                    <div class="col-12">
-                                                        <div class="card">
-                                                            <div class="card-body bg-dark">
-                                                                <h6 class="mb-2">Order Summary</h6>
-                                                                <div class="d-flex justify-content-between mb-1">
-                                                                    <span>Subtotal:</span>
-                                                                    <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
-                                                                </div>
-                                                                <div class="d-flex justify-content-between mb-1">
-                                                                    <span>Shipping:</span>
-                                                                    <span>₹0</span>
-                                                                </div>
-                                                                <div class="d-flex justify-content-between mb-1">
-                                                                    <span>Discount:</span>
-                                                                    <span>₹${(orderDetails.order.discount).toLocaleString('en-IN')}</span>
-                                                                </div>
-                                                                <div class="d-flex justify-content-between mb-1">
-                                                                    <span>CouponDiscount:</span>
-                                                                    <span>₹${(orderDetails.order.couponDiscount).toLocaleString('en-IN')}</span>
-                                                                </div>
-                                                                <hr class="my-2">
-                                                                <div class="d-flex justify-content-between fw-bold">
-                                                                    <span>Total:</span>
-                                                                    <span>₹${((orderDetails.order.totalPrice - (orderDetails.order.discount + orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Shipping Information -->
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-2 mb-md-0">
-                                                        <div class="card h-100"> 
-                                                            <div class="card-body bg-dark">
-                                                                <h6 class="card-title">Shipping Address</h6>
-                                                                <p class="card-text mb-0">
-                                                                    ${orderDetails.order.address[0].name}<br>
-                                                                    ${orderDetails.order.address[0].addressType}<br>
-                                                                    ${orderDetails.order.address[0].city}, ${orderDetails.order.address[0].state} ${orderDetails.order.address[0].pincode}<br>
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="card h-100">
-                                                            <div class="card-body bg-dark">
-                                                                <h6 class="card-title">Payment Method</h6>
-                                                                <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    ${orderDetails.order.ReturnReason ? `
-                                                                <hr class="text-light">
-                                                                <h6 class="card-title">Return Reason</h6>
-                                                                <p class="card-text text-warning mb-0">${orderDetails.order.ReturnReason}</p>
-                                                                ` : ''}
-
-                                                </div>
-                                                 ${orderDetails.order.orderedItems.some(item => item.returnStatus && item.returnStatus !== '') ? `
-                                            <hr class="text-light mt-3">
-                                            <h6 class="card-title">Return Status</h6>
-                                            ${orderDetails.order.orderedItems
-                                                            .filter(item => item.returnStatus && item.returnStatus !== undefined)
-                                                            .map(item => `
-                                                    <div class="d-flex flex-column border p-2 rounded bg-dark text-light mb-2">
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <strong>${item.product.productName}</strong>
-                                                                <div class="small text-muted">${item.quantity} × ₹${item.price.toLocaleString('en-IN')}</div>
-                                                            </div>
-                                                            <span class="badge ${item.returnStatus === 'Requested' ? 'bg-warning text-dark'
-                                                                    : item.returnStatus === 'Approved' ? 'bg-info'
-                                                                        : item.returnStatus === 'Rejected' ? 'bg-danger'
-                                                                            : item.returnStatus === 'Returned' ? 'bg-success'
-                                                                                : 'bg-secondary'}">${item.returnStatus}</span>
-                                                        </div>
-                                                        ${item.returnReason ? `<div class="mt-1 small text-warning"><strong>Reason:</strong> ${item.returnReason}</div>` : ''}
-                                                    </div>
-                                                `).join('')}
-                                        ` : ''}
-                                    `;
-
-
-                                                // Insert the modal content into the modal body
-                                                modalBody.innerHTML = modalContent;
-
-                                                // Show the modal
-                                                var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                                                myModal.show();
-                                            } else {
-                                                // Handle error, if no order details are found
-                                                alert('Order not found');
-                                            }
-                                        })
-                                });
-                            });
-
-                            const updatebutton = document.querySelectorAll('.updatebutton')
-                            updatebutton.forEach((button, index) => {
-                                button.addEventListener('click', function () {
-                                    const currentvalue = document.querySelectorAll('.status-dropdown')[index].value
-                                    const currentcartId = document.querySelectorAll('.id')[index].value
-                                    console.log(currentcartId)
-                                    const Update = document.getElementById('okbutton')
-                                    if (!currentvalue) {
-                                        Swal.fire({
-                                            icon: "error",
-                                            title: "Oops...",
-                                            text: "NO Data selected!",
-                                        });
-
-                                    }
-                                    else {
-
-                                        Swal.fire({
-                                            title: 'Are you sure?',
-                                            text: `Do you want to change the status to ${currentvalue}?`,
-                                            icon: 'warning',  // This sets the icon to a warning
-                                            showCancelButton: true,
-                                            confirmButtonText: 'Yes, update it!',
-                                            cancelButtonText: 'No, cancel',
-                                            reverseButtons: true
-                                        }).then((result) => {
-                                            dataToSend = {
-                                                orderId: currentcartId,
-                                                status: currentvalue,
-                                            }
-                                            if (result.isConfirmed) {
-                                                fetch('/admin/updatestatus', {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json'
-                                                    },
-                                                    body: JSON.stringify(dataToSend)
-                                                })
-                                                    .then(response => response.json())
-                                                    .then(data => {
-                                                        return Swal.fire({
-                                                            title: 'Updated!',
-                                                            text: data.message,
-                                                            icon: 'success',
-                                                            confirmButtonText: 'OK'
-                                                        });
-                                                    }).then((result) => {
-                                                        console.log(result)
-                                                        if (result.isConfirmed) {
-                                                            window.location.href = '/admin/orders'
-                                                        }
-                                                    })
-                                                    .catch(error => console.error('Error:', error));
-                                            }
-                                        })
-                                    }
-
-                                });
-
-
-                            })
-
-
-
-                        }
-                    })
-            }
-
-            function showModal(userName) {
-                var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                myModal.show();
-            }
-
-
-
-            const updatebutton = document.querySelectorAll('.updatebutton')
-            updatebutton.forEach((button, index) => {
-                button.addEventListener('click', function () {
-                    const currentvalue = document.querySelectorAll('.status-dropdown')[index].value
-                    const currentcartId = document.querySelectorAll('.id')[index].value
-                    console.log(currentcartId)
-                    const Update = document.getElementById('okbutton')
-                    if (!currentvalue) {
-                        Swal.fire({
-                            icon: "error",
-                            title: "Oops...",
-                            text: "NO Data selected!",
-                        });
-
-                    }
-                    else {
-                        Swal.fire({
-                            title: 'Are you sure?',
-                            text: `Do you want to change the status to ${currentvalue}?`,
-                            icon: 'warning',  // This sets the icon to a warning
-                            showCancelButton: true,
-                            confirmButtonText: 'Yes, update it!',
-                            cancelButtonText: 'No, cancel',
-                            reverseButtons: true
-                        }).then((result) => {
-                            dataToSend = {
-                                orderId: currentcartId,
-                                status: currentvalue,
-                            }
-                            if (result.isConfirmed) {
-                                fetch('/admin/updatestatus', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(dataToSend)
-                                })
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        return Swal.fire({
-                                            title: 'Updated!',
-                                            text: data.message,
-                                            icon: 'success',
-                                            confirmButtonText: 'OK'
-                                        });
-                                    }).then((result) => {
-                                        console.log(result)
-                                        if (result.isConfirmed) {
-                                            window.location.href = '/admin/orders'
-                                        }
-                                    })
-                                    .catch(error => console.error('Error:', error));
-                            }
-                        })
-                    }
-
-                });
-
-
-            })
-
-
-
-            function showOrderModal(orderId) {
-                console.log(orderId, 'order')
-                // Fetch the order details from the server
-                fetch(`/admin/orderdetails/${orderId}`)
-                    .then(response => response.json())
-                    .then(orderDetails => {
-                        console.log(orderDetails.order, orderDetails.address)
-                        // Check if we got the correct data
-                        if (orderDetails) {
-                            // Get the modal body element by ID
-                            const modalBody = document.getElementById('modalBodyContent');
-
-                            // Build the HTML content for the modal
-                            let modalContent = `
-                    <!-- Order Header -->
-                    <div class="row mb-3">
-                        <div class="col-8">
-                            <h5 class="mb-1">Order ${orderDetails.order.orderId}</h5>
-                            <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
-                        </div>
-                        <div class="col-4 text-end">
-                        ${orderDetails.order.orderedItems.map(item => `
-                            <span class="badge ${item.returnStatus === 'Shipped' ? 'bg-success' : 'bg-warning'}">${item.returnStatus || orderDetails.order.status}</span>
-                        `).join('')}
-                    </div>
-                    </div>
-
-                    <!-- Order Items -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <h6 class="mb-2">Order Items</h6>
-                            
-                 ${orderDetails.order.orderedItems.map(item => `
-                <div class="card mb-2">
-                    <div class="card-body py-2 bg-dark">
-                        <div class="row align-items-center">
-                            <div class="col-2">
-                                <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
-                            </div>
-                            <div class="col-7">
-                                <p class="mb-0 fw-bold">${item.product.productName}</p>
-                                <small >${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
-                            </div>
-                            <div class="col-3 text-end">
-                                <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-             `).join('')}
-        
-                        </div>
-                    </div>
-
-                    <!-- Order Summary -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body bg-dark">
-                                    <h6 class="mb-2">Order Summary</h6>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span>Subtotal:</span>
-                                        <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span>Shipping:</span>
-                                        <span>₹0</span>
-                                    </div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span>Discount:</span>
-                                        <span>₹${(orderDetails.order.discount).toLocaleString('en-IN')}</span>
-                                    </div>
-                                     <div class="d-flex justify-content-between mb-1">
-                                        <span>CouponDiscount:</span>
-                                        <span>₹${(orderDetails.order.couponDiscount).toLocaleString('en-IN')}</span>
-                                    </div>
-                                    <hr class="my-2">
-                                    <div class="d-flex justify-content-between fw-bold">
-                                        <span>Total:</span>
-                                        <span>₹${((orderDetails.order.totalPrice - (orderDetails.order.discount + orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Shipping Information -->
-                    <div class="row">
-                        <div class="col-md-6 mb-2 mb-md-0">
-                            <div class="card h-100"> 
-                                <div class="card-body bg-dark">
-                                    <h6 class="card-title">Shipping Address</h6>
-                                    <p class="card-text mb-0">
-                                        ${orderDetails.order.address[0].name}<br>
-                                        ${orderDetails.order.address[0].addressType}<br>
-                                        ${orderDetails.order.address[0].city}, ${orderDetails.order.address[0].state} ${orderDetails.order.address[0].pincode}<br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body bg-dark">
-                                    <h6 class="card-title">Payment Method</h6>
-                                    <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                       ${orderDetails.order.ReturnReason ? `
-    <hr class="text-light">
-    <h6 class="card-title">Return Reason</h6>
-    <p class="card-text text-warning mb-0">${orderDetails.order.ReturnReason}</p>
-` : ''}
-
-                    </div>
-                `;
-                            // Add Return Reasons if available
-                            if (orderDetails.order.orderedItems.some(item => item.returnReason)) {
-                                modalContent += `
-        <div class="row mt-3">
-            <div class="col-12">
-                <div class="card border-warning shadow">
-                    <div class="card-header bg-warning text-dark fw-bold">
-                        <i class="bi bi-arrow-counterclockwise me-2"></i>Return Details
-                    </div>
-                    <div class="card-body bg-dark">
-                        ${orderDetails.order.orderedItems
-                                        .filter(item => item.returnReason)
-                                        .map(item => `
-                                <div class="mb-3 pb-2 border-bottom border-secondary">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <p class="mb-1 fw-bold text-light">${item.product.productName}</p>
-                                        <span class="badge ${item.returnStatus === 'Approved' ? 'bg-success' :
-                                                item.returnStatus === 'Rejected' ? 'bg-danger' : 'bg-warning text-dark'
-                                            }">${item.returnStatus}</span>
-                                    </div>
-                                    <p class="mb-0 text-light"><span class="text-muted fst-italic">Reason:</span> ${item.returnReason}</p>
-                                </div>
-                            `).join('')}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-                            }
-
-
-
-                            // Insert the modal content into the modal body
                             modalBody.innerHTML = modalContent;
-
-                            // Show the modal
-                            var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                            myModal.show();
+                            new bootstrap.Modal(document.getElementById("myModal")).show();
                         } else {
-                            // Handle error, if no order details are found
-                            alert('Order not found');
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Order not found.' });
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching order details:', error);
-                        alert('Something went wrong!');
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to load order details.' });
                     });
             }
 
-
-
-
-
-
-            document.querySelectorAll('.order-link').forEach(link => {
-                link.addEventListener('click', function () {
-                    const orderId = this.getAttribute('data-order-id');
-                    showOrderModal(orderId);
-                });
+            // Initial table render
+            document.addEventListener('DOMContentLoaded', () => {
+                const ordersElement = document.getElementById('orders-data');
+                const ordersData = JSON.parse(ordersElement.dataset.orders);
+                renderTable(ordersData);
             });
+
         </script>
     </body>
 

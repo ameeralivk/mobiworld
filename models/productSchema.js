@@ -52,7 +52,7 @@ const productSchema = new Schema({
     isDeleted:{
         type:Boolean,
         default:false,
-    }
+    },
     // status:{
     //     type:String,
     //     enum:["Available","out of stock","Discountinued"],

@@ -722,7 +722,7 @@ const deleteaddress = async (req, res) => {
               if (parsedQuantity > product.quantity) {
                 return res.status(400).json({ errormessage: 'Out of Stock' });
               }
-
+              const bestOffer = await getBestOfferForProducts(product);
               cart = new cartSchema({
                 userId: user._id,
                 items: [{
@@ -732,6 +732,7 @@ const deleteaddress = async (req, res) => {
                   gstPercentage: product.Tax,
                   totalPriceWithGST: (product.salePrice * parsedQuantity) + (product.salePrice * parsedQuantity * product.Tax / 100),
                   totalPrice: product.salePrice * parsedQuantity,
+                  bestOffer:bestOffer,
                 }]
               });
             } else {
@@ -755,14 +756,15 @@ const deleteaddress = async (req, res) => {
                 if (parsedQuantity > product.quantity) {
                   return res.status(400).json({ errormessage: 'Out of Stock' });
                 }
-
+                const bestOffer = await getBestOfferForProducts(product);
                 cart.items.push({
                   productId: product._id,
                   quantity: parsedQuantity,
                   price: product.salePrice,
                   gstPercentage: product.Tax,
                   totalPrice: product.salePrice * parsedQuantity,
-                  totalPriceWithGST: (product.salePrice * parsedQuantity) + (product.salePrice * parsedQuantity * product.Tax / 100)
+                  totalPriceWithGST: (product.salePrice * parsedQuantity) + (product.salePrice * parsedQuantity * product.Tax / 100),
+                  bestOffer:bestOffer,
                 });
               }
             }
@@ -1211,6 +1213,9 @@ const checkoutpage = async (req, res) => {
   }
   const cart = await cartSchema.findOne({ userId: userid._id })
   try {
+    const orderDate = new Date()
+    const estimatedDelivery = new Date(orderDate);
+    estimatedDelivery.setDate(orderDate.getDate() + 7);
     if(!cart){
       req.session.message = "order Placed No more orderes Remaining"
       return res.redirect('/user/getcart')
@@ -1278,7 +1283,7 @@ const checkoutpage = async (req, res) => {
         const addresses = address.map(address => address.address)
         const offerPrice = req.session.offerprice
         console.log(offerPrice, 'offerameer')
-        return res.render('checkoutpage', { product, total, totalGST, address: addresses, message, offerPrice, coupon });
+        return res.render('checkoutpage', { product, total, totalGST, address: addresses, message, offerPrice, coupon ,estimatedDelivery });
       }
       const cart = await cartSchema.findOne({ userId: userid._id }).populate('items.productId')
       const product = cart.items.map(item => item.productId)
@@ -1288,7 +1293,7 @@ const checkoutpage = async (req, res) => {
       const addresses = address.map(address => address.address)
       const offerPrice = req.session.offerprice
       console.log(offerPrice, 'offerameer')
-      return res.render('checkoutpage', { product, total, totalGST, address: addresses, offerPrice, coupon });
+      return res.render('checkoutpage', { product, total, totalGST, address: addresses, offerPrice, coupon , estimatedDelivery });
 
 
     }
@@ -1468,6 +1473,21 @@ const getpaymentpage = async (req, res) => {
   const user = req.session.User
   try {
     const cart = await cartSchema.findOne({userId:user._id})
+    let coupons = 0;
+    if (req.session.appliedCoupon) {
+      const appliedCoupon = req.session.appliedCoupon;
+      const effectiveTotal = cart.totalPrice;
+
+      if (effectiveTotal >= appliedCoupon.minimumPrice) {
+        coupons = appliedCoupon.couponDiscount;
+      } else {
+        coupons = 0;
+        req.session.message = "The coupon was removed as minimum price is not met."
+        return res.redirect('/user/getcart')
+      }
+    }
+    const offerPrice = req.session.offerprice
+    const subtotal = cart.totalPrice
     if(!cart){
       req.session.message = "There is no cart to Proceed"
       return res.redirect('/user/getcart')
@@ -1475,9 +1495,9 @@ const getpaymentpage = async (req, res) => {
     if (req.session.message) {
       const message = req.session.message
       req.session.message = null
-      return res.render('paymentpage', { message })
+      return res.render('paymentpage', { message,offerPrice,subtotal,coupon:coupons })
     }
-    return res.render('paymentpage')
+    return res.render('paymentpage',{offerPrice,subtotal,coupon:coupons})
   } catch (error) {
 
   }
@@ -1511,11 +1531,24 @@ const orderplacedpage = async (req, res) => {
                 const address = await addressSchema.Address.findOne({'address._id':addressId });
                 console.log(address.address,'addresdaf +++++')
                 req.session.address = null
-                const orderedItems = orderededuser.items.map(item => ({
-                  product: item.productId,
-                  quantity: item.quantity,
-                  price: item.price,
-                }))
+                // const orderedItems = orderededuser.items.map(item => ({
+                //   product: item.productId,
+                //   quantity: item.quantity,
+                //   price: item.price,
+                // }))
+                const orderedItems = await Promise.all(
+                  orderededuser.items.map(async (item) => {
+                    const productDoc = await Product.findById(item.productId || item.product);
+                    const bestOffer = await getBestOfferForProducts(productDoc);
+                    return {
+                      product: productDoc._id,
+                      quantity: item.quantity,
+                      price: item.price,
+                      bestOffer: bestOffer || 0,
+                    };
+                  })
+                );
+                
                 const newOrder = new orderSchema({
                   userId: user._id,
                   paymentMethod: 'Cash ON Delivery',
@@ -1527,6 +1560,7 @@ const orderplacedpage = async (req, res) => {
                   status: "Pending", // Default status is 'Pending' if not provided
                   invoiceDate: new Date(),
                   couponApplied:!!req.session.appliedCoupon ,
+                  couponId:req.session.appliedCoupon?.couponId,
                   discount: req.session.offerprice,
                   couponDiscount: req.session.appliedCoupon?.couponDiscount || 0|| 0,
                 });
@@ -1551,11 +1585,24 @@ const orderplacedpage = async (req, res) => {
             const address = await addressSchema.Address.findOne({'address._id':addressId });
             console.log(address.address,'addresdaf +++++')
             req.session.address = null
-            const orderedItems = orderededuser.items.map(item => ({
-              product: item.productId,
-              quantity: item.quantity,
-              price: item.price,
-            }))
+            // const orderedItems = orderededuser.items.map(item => ({
+            //   product: item.productId,
+            //   quantity: item.quantity,
+            //   price: item.price,
+            // }))
+            const orderedItems = await Promise.all(
+              orderededuser.items.map(async (item) => {
+                const productDoc = await Product.findById(item.productId || item.product);
+                const bestOffer = await getBestOfferForProducts(productDoc);
+                return {
+                  product: productDoc._id,
+                  quantity: item.quantity,
+                  price: item.price,
+                  bestOffer: bestOffer || 0,
+                };
+              })
+            );
+            
             const newOrder = new orderSchema({
               userId: user._id,
               paymentMethod: 'Cash ON Delivery',
@@ -1567,6 +1614,7 @@ const orderplacedpage = async (req, res) => {
               status: "Pending", // Default status is 'Pending' if not provided
               invoiceDate: new Date(),
               couponApplied:!!req.session.appliedCoupon ,
+              couponId:req.session.appliedCoupon?.couponId,
               discount: req.session.offerprice,
               couponDiscount: req.session.appliedCoupon?.couponDiscount || 0|| 0,
             });
@@ -1604,11 +1652,24 @@ const orderplacedpage = async (req, res) => {
           req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
-          const orderedItems = orderededuser.items.map(item => ({
-            product: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          }))
+          // const orderedItems = orderededuser.items.map(item => ({
+          //   product: item.productId,
+          //   quantity: item.quantity,
+          //   price: item.price,
+          // }))
+          const orderedItems = await Promise.all(
+            orderededuser.items.map(async (item) => {
+              const productDoc = await Product.findById(item.productId || item.product);
+              const bestOffer = await getBestOfferForProducts(productDoc);
+              return {
+                product: productDoc._id,
+                quantity: item.quantity,
+                price: item.price,
+                bestOffer: bestOffer || 0,
+              };
+            })
+          );
+          
           const newOrder = new orderSchema({
             userId: user._id,
             orderedItems: orderedItems,
@@ -1619,6 +1680,7 @@ const orderplacedpage = async (req, res) => {
             status: "Pending",
             invoiceDate: new Date(),
             couponApplied:!!req.session.appliedCoupon,
+            couponId:req.session.appliedCoupon?.couponId,
             discount: req.session.offerprice,
             couponDiscount:req.session.appliedCoupon?.couponDiscount || 0,
           });
@@ -1649,11 +1711,24 @@ const orderplacedpage = async (req, res) => {
           const orderededuser = await cartSchema.findOne({ userId: user._id })
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
-          const orderedItems = orderededuser.items.map(item => ({
-            product: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          }))
+          // const orderedItems = orderededuser.items.map(item => ({
+          //   product: item.productId,
+          //   quantity: item.quantity,
+          //   price: item.price,
+          // }))
+          const orderedItems = await Promise.all(
+            orderededuser.items.map(async (item) => {
+              const productDoc = await Product.findById(item.productId || item.product);
+              const bestOffer = await getBestOfferForProducts(productDoc);
+              return {
+                product: productDoc._id,
+                quantity: item.quantity,
+                price: item.price,
+                bestOffer: bestOffer || 0,
+              };
+            })
+          );
+          
           const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0)
           const findwallet = await walletSchema.findOne({ userId: user._id })
           console.log(req.session.address,'address sdfa')
@@ -1673,6 +1748,7 @@ const orderplacedpage = async (req, res) => {
               status: "Pending", // Default status is 'Pending' if not provided
               invoiceDate: new Date(),
               couponApplied:!!req.session.appliedCoupon,
+              couponId:req.session.appliedCoupon?.couponId,
               discount: req.session.offerprice,
               couponDiscount:req.session.appliedCoupon?.couponDiscount || 0,
             });
@@ -1718,12 +1794,25 @@ const orderplacedpage = async (req, res) => {
           req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
-          const orderedItems = orderededuser.items.map(item => ({
-            product: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          }))
-          const totalAmount = (totalPrice + totalGST) - (req.session.offerprice ? req.session.offerprice : 0)
+          // const orderedItems = orderededuser.items.map(item => ({
+          //   product: item.productId,
+          //   quantity: item.quantity,
+          //   price: item.price,
+          // }))
+          const orderedItems = await Promise.all(
+            orderededuser.items.map(async (item) => {
+              const productDoc = await Product.findById(item.productId || item.product);
+              const bestOffer = await getBestOfferForProducts(productDoc);
+              return {
+                product: productDoc._id,
+                quantity: item.quantity,
+                price: item.price,
+                bestOffer: bestOffer || 0,
+              };
+            })
+          );
+          
+          const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0)
           const findwallet = await walletSchema.findOne({ userId: user._id })
           if (findwallet && findwallet.WalletTotal >= totalAmount) {
           const newOrder = new orderSchema({
@@ -2153,6 +2242,64 @@ const createRazorpayOrder = async (req, res) => {
 
 };
 
+const getBestOfferForProducts = async (product) => {
+  console.log("hakeem brototype")
+  if (!product || (!product.category && !product.brand)) return null;
+
+  const filterConditions = [];
+
+  if (product.category != null) {
+    filterConditions.push({ categoryId: new mongoose.Types.ObjectId(product.category) });
+  }
+  if (product.brand != null) {
+    filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+  }
+  if (product._id != null) {
+    filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
+  }
+
+  console.log('Filter conditions:', filterConditions);
+
+  const offers = await offerschema.find({
+    $or: filterConditions,
+    status: true,
+    startDate: { $lte: new Date() },
+    expiredOn: { $gte: new Date() },
+  });
+
+  console.log('Fetched offers:', offers);
+
+  if (!offers || offers.length === 0) return null;
+
+  let bestOffer = null;
+  let maxDiscountValue = 0;
+  const price = product.salePrice || product.price || 0;
+  console.log('Product price:', price);
+
+  offers.forEach((offer) => {
+    let discountValue =
+      offer.discountType === "percentage"
+        ? (offer.discountValue / 100) * price
+        : offer.discountValue;
+
+    console.log('Offer discount value:', discountValue);
+
+    if (offer.maxDiscount) {
+      discountValue = Math.min(discountValue, offer.maxDiscount);
+    }
+
+    console.log('Discount after max discount:', discountValue);
+
+    if (discountValue > maxDiscountValue) {
+      maxDiscountValue = discountValue;
+      bestOffer = discountValue;
+    }
+  });
+  console.log(bestOffer,'bestOffer')
+  return bestOffer || null;
+};
+
+
 const verifypayment = async (req, res) => {
   const user = req.session.User
   try {
@@ -2182,7 +2329,17 @@ const verifypayment = async (req, res) => {
           discount: req.session.offerprice,
           paymentMethod: 'Online Payment',
           totalGST: orderDetails.totalGST,
-          orderedItems: orderDetails.orderedItems,
+          // orderedItems: orderDetails.orderedItems,
+          orderedItems: await Promise.all(orderDetails.orderedItems.map(async (item) => {
+            const productDoc = await Product.findById(item.product._id || item.product);
+            const bestOffer = await getBestOfferForProducts(productDoc);
+            return {
+              product: productDoc._id,
+              quantity: item.quantity,
+              price: item.price,
+              bestOffer: bestOffer|| 0
+            };
+          })),
           totalPrice: orderDetails.amount,
           finalAmount: orderDetails.amount,
           address: address.address[0],
@@ -2190,6 +2347,7 @@ const verifypayment = async (req, res) => {
           invoiceDate: new Date(),
           couponApplied: couponApplied,
           couponDiscount: couponDiscountValue,
+          couponId:req.session.appliedCoupon?.couponId,
           discount: req.session.offerprice
   
         });
@@ -2249,7 +2407,17 @@ const verifypayment = async (req, res) => {
           discount: req.session.offerprice,
           paymentMethod: 'Online Payment',
           totalGST: orderDetails.totalGST,
-          orderedItems: orderDetails.orderedItems,
+          // orderedItems: orderDetails.orderedItems,
+          orderedItems: await Promise.all(orderDetails.orderedItems.map(async (item) => {
+            const productDoc = await Product.findById(item.product._id || item.product);
+            const bestOffer = await getBestOfferForProducts(productDoc);
+            return {
+              product: productDoc._id,
+              quantity: item.quantity,
+              price: item.price,
+              bestOffer: bestOffer || 0,
+            };
+          })),
           totalPrice: orderDetails.amount,
           finalAmount: orderDetails.amount,
           address:address.address[0],
@@ -2257,6 +2425,7 @@ const verifypayment = async (req, res) => {
           invoiceDate: new Date(),
           couponApplied: couponApplied,
           couponDiscount: couponDiscountValue,
+          couponId:req.session.appliedCoupon?.couponId,
           discount: req.session.offerprice
   
         });

@@ -315,6 +315,7 @@ const SalesReport = async (req, res) => {
         const totalPages = Math.ceil(totalOrders / limit);
 
         const orders = await orderschema.find(filter)
+            .sort({ createdOn: -1 })
             .skip(skip)
             .limit(limit)
             .populate("userId")
@@ -761,175 +762,471 @@ const deleteOffer = async (req, res) => {
 }
 
 
+// const getChartData = async (req, res) => {
+//   const filter = req.params.filter;
+
+//   let startDate;
+//   const endDate = new Date();
+//   const year = endDate.getFullYear();
+
+//   // Set start date based on filter
+//   switch (filter) {
+//     case 'daily':
+//       startDate = new Date();
+//       startDate.setDate(endDate.getDate() - 6); // Last 7 days including today
+//       break;
+//     case 'weekly':
+//       startDate = new Date();
+//       startDate.setDate(endDate.getDate() - 7);
+//       break;
+//     case 'monthly':
+//       startDate = new Date();
+//       startDate.setMonth(endDate.getMonth() - 1);
+//       break;
+//     default:
+//       startDate = new Date(0); // all data
+//   }
+
+//   try {
+//     const orders = await orderschema.find({
+//         createdOn: { $gte: startDate, $lte: endDate },
+//         status: { $nin: ['Cancelled', 'Returned'] }
+//       }).populate('userId').populate({
+//         path: 'orderedItems.product',
+//         populate: [
+//           { path: 'category', select: 'name' },
+//           { path: 'brand', select: 'brandName' }
+//         ]
+//       });
+      
+
+//     // Sales Overview: build daily map
+//     let salesLabels = [];
+//     let salesData = [];
+
+
+//     // if (filter === 'daily') {
+//     //   const tempDate = new Date(startDate);
+//     //   while (tempDate <= endDate) {
+//     //     const dateKey = tempDate.toLocaleDateString('en-GB'); // format: dd/mm/yyyy
+//     //     salesMap[dateKey] = 0;
+//     //     dateLabels.push(dateKey);
+//     //     tempDate.setDate(tempDate.getDate() + 1);
+//     //   }
+
+//     //   orders.forEach(order => {
+//     //     if (order.status !== "Returned" && order.status !== "Cancelled") {
+//     //       const key = new Date(order.createdOn).toLocaleDateString('en-GB');
+//     //       if (salesMap[key] !== undefined) {
+//     //         salesMap[key] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+//     //       }
+//     //     }
+//     //   });
+//     // } 
+//     // else {
+//     //   orders.forEach(order => {
+//     //     if (order.status !== "Returned" && order.status !== "Cancelled") {
+//     //       const key = filter === 'weekly'
+//     //         ? new Date(order.createdOn).toLocaleDateString('en-GB')
+//     //         : order.createdOn.toLocaleString('default', { month: 'short' });
+
+//     //       salesMap[key] = (salesMap[key] || 0) + order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+//     //     }
+//     //   });
+
+//     //   dateLabels.push(...Object.keys(salesMap));
+//     // }
+
+//     // const salesLabels = dateLabels;
+//     // const salesData = dateLabels.map(label => salesMap[label] || 0);
+
+
+//     if (filter === 'daily') {
+//         const today = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+//         const yesterday = new Date();
+//         yesterday.setDate(now.getDate() - 1);
+//         const yest = yesterday.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+  
+//         const dayMap = { [yest]: 0, [today]: 0 };
+  
+//         orders.forEach(order => {
+//           const d = new Date(order.createdOn).toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+//           if (dayMap[d] !== undefined) {
+//             dayMap[d] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+//           }
+//         });
+  
+//         salesLabels = Object.keys(dayMap);
+//         salesData = Object.values(dayMap);
+//       }
+  
+//       else if (filter === 'weekly' || filter === 'monthly') {
+//         const days = filter === 'weekly' ? 7 : 30;
+//         const dayMap = {};
+//         for (let i = days - 1; i >= 0; i--) {
+//           const d = new Date();
+//           d.setDate(endDate.getDate() - i);
+//           const label = d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+//           dayMap[label] = 0;
+//         }
+  
+//         orders.forEach(order => {
+//           const d = new Date(order.createdOn).toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+//           if (dayMap[d] !== undefined) {
+//             dayMap[d] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+//           }
+//         });
+  
+//         salesLabels = Object.keys(dayMap);
+//         salesData = Object.values(dayMap);
+//       }
+  
+//       else if (filter === 'yearly') {
+//         const monthMap = {};
+//         for (let i = 0; i < 12; i++) {
+//           const month = new Date(year, i).toLocaleString('en-US', { month: 'short' });
+//           monthMap[month] = 0;
+//         }
+  
+//         orders.forEach(order => {
+//           const d = new Date(order.createdOn);
+//           if (d.getFullYear() === year) {
+//             const label = d.toLocaleString('en-US', { month: 'short' });
+//             if (monthMap[label] !== undefined) {
+//               monthMap[label] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+//             }
+//           }
+//         });
+  
+//         salesLabels = Object.keys(monthMap);
+//         salesData = Object.values(monthMap);
+//       }
+  
+
+//     // Best Selling Products
+//     const productMap = {};
+//     const productDetails = {};
+//     for (const order of orders) {
+//       for (const item of order.orderedItems) {
+//         const product = item.product;
+//         const productId = product._id.toString();
+
+//         productMap[productId] = (productMap[productId] || 0) + item.quantity;
+
+//         if (!productDetails[productId]) {
+//           productDetails[productId] = {
+//             name: product.productName,
+//             salePrice: product.salePrice,
+//             category: product.category?.name || 'Unknown',
+//             brand: product.brand,
+//             image: product.productImage[0]
+//           };
+//         }
+//       }
+//     }
+
+//     const productIds = Object.keys(productMap);
+//     const productDocs = await productschema.find({ _id: { $in: productIds } }).limit(10);
+//     const productLabels = productDocs.map(p => p.productName);
+//     const productData = productDocs.map(p => productMap[p._id]);
+
+//     // Categories
+//     const categoryMap = {};
+//     orders.forEach(order => {
+//       order.orderedItems.forEach(item => {
+//         const categoryName = item.product?.category?.name;
+//         if (categoryName) {
+//           categoryMap[categoryName] = (categoryMap[categoryName] || 0) + 1;
+//         }
+//       });
+//     });
+
+//     const sortedCategories = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+//     const categoryLabels = sortedCategories.map(([label]) => label);
+//     const categoryData = sortedCategories.map(([_, value]) => value);
+
+//     // Brands
+//     const brandMap = {};
+//     orders.forEach(order => {
+//       order.orderedItems.forEach(item => {
+//         const brandname = item.product?.brand?.brandName;
+//         if (brandname) {
+//           brandMap[brandname] = (brandMap[brandname] || 0) + 1;
+//         }
+//       });
+//     });
+
+//     const sortedBrands = Object.entries(brandMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+//     const brandLabels = sortedBrands.map(([label]) => label);
+//     const brandData = sortedBrands.map(([_, value]) => value);
+
+//     // Order Status
+//     const statusMap = {};
+//     orders.forEach(order => {
+//       statusMap[order.status] = (statusMap[order.status] || 0) + 1;
+//     });
+//     const statusLabels = Object.keys(statusMap);
+//     const statusData = Object.values(statusMap);
+
+//     // Recent Orders
+//     const lastorders = await orderschema.find({
+//       createdOn: { $gte: startDate, $lte: endDate },
+//       status: { $ne: 'Cancelled' },
+//     }).populate('userId').populate({
+//       path: 'orderedItems.product',
+//       populate: [
+//         { path: 'category', select: 'name' },
+//         { path: 'brand', select: 'brandName' }
+//       ]
+//     }).limit(10);
+
+//     const recentOrders = lastorders.map(order => ({
+//       order: order.orderId,
+//       orderId: order._id,
+//       customerName: order.userId?.name || 'Unknown',
+//       email: order.userId?.email || '',
+//       createdOn: order.createdOn,
+//       amount: order.totalPrice - (order.discount + order.couponDiscount),
+//       status: order.status
+//     }));
+
+//     res.json({
+//       labels: {
+//         salesOverview: salesLabels,
+//         products: productLabels,
+//         categories: categoryLabels,
+//         brands: brandLabels,
+//         orderStatus: statusLabels
+//       },
+//       datasets: {
+//         sales: salesData,
+//         products: productData,
+//         categories: categoryData,
+//         brands: brandData,
+//         orderStatus: statusData
+//       },
+//       recentOrders
+//     });
+
+//   } catch (error) {
+//     console.error("Error fetching chart data:", error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// };
+
 const getChartData = async (req, res) => {
     const filter = req.params.filter;
-
+  
     let startDate;
     const endDate = new Date();
-
+    const year = endDate.getFullYear();
+  
     // Set start date based on filter
     switch (filter) {
-        case 'daily':
-            startDate = new Date();
-            startDate.setDate(endDate.getDate() - 1);
-            break;
-        case 'weekly':
-            startDate = new Date();
-            startDate.setDate(endDate.getDate() - 7);
-            break;
-        case 'monthly':
-            startDate = new Date();
-            startDate.setMonth(endDate.getMonth() - 1);
-            break;
-        default:
-            startDate = new Date(0); // all data
+      case 'daily':
+        startDate = new Date();
+        startDate.setDate(endDate.getDate() - 6); // Last 7 days
+        break;
+      case 'weekly':
+        startDate = new Date();
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      case 'monthly':
+        startDate = new Date();
+        startDate.setMonth(endDate.getMonth() - 1);
+        break;
+      default:
+        startDate = new Date(0); // All data
     }
+  
+    // Helper function for date label formatting
+    const formatDateLabel = (date) =>
+      date.toLocaleDateString('en-US', { day: '2-digit', month: 'short' });
+  
     try {
-        const orders = await orderschema.find({ 
-            createdOn: { $gte: startDate, $lte: endDate } ,
-            status: { $ne: 'Cancelled' },
-          }).populate('userId') .populate({
-            path: 'orderedItems.product',
-            populate: [
-              { path: 'category', select: 'name' },
-              { path: 'brand', select: 'brandName' }
-            ]
-          });
-          console.log(orders,'orders')
-        // Sales Overview by Month or Date
-        console.log("Hi")
-        const salesMap = {};
-        orders.forEach(order => {
-            if (order.status !== "Returned" && order.status !== "Cancelled") {
-                const key = filter === 'daily'
-                    ? order.createdOn.toLocaleDateString()
-                    : order.createdOn.toLocaleString('default', { month: 'short' });
-            
-                salesMap[key] = (salesMap[key] || 0) + order.totalPrice - (order.discount + order.couponDiscount) -(order.returnAmound);
-            }
-            
+      const orders = await orderschema.find({
+        createdOn: { $gte: startDate, $lte: endDate },
+        status: { $ne: 'Cancelled' },
+      })
+        .populate('userId')
+        .populate({
+          path: 'orderedItems.product',
+          populate: [
+            { path: 'category', select: 'name' },
+            { path: 'brand', select: 'brandName' },
+          ],
         });
-        const salesLabels = Object.keys(salesMap);
-        const salesData = Object.values(salesMap);
-
-        // Best Selling Products
-        const productMap = {};
-        const productDetails = {};
-        for (const order of orders) {
-            for (const item of order.orderedItems) {
-              const product = item.product;
-              const productId = product._id.toString();
-          
-              productMap[productId] = (productMap[productId] || 0) + item.quantity;
-          
-              // Save details only once
-              if (!productDetails[productId]) {
-                productDetails[productId] = {
-                  name: product.productName,
-                  salePrice: product.salePrice,
-                  category: product.category?.name || 'Unknown',
-                  brand: product.brand, // you can also populate brand if needed
-                  image: product.productImage[0] // just for display
-                };
-              }
+  
+      let salesLabels = [];
+      let salesData = [];
+  
+      if (filter === 'daily') {
+        const today = formatDateLabel(endDate);
+        const yesterday = new Date();
+        yesterday.setDate(endDate.getDate() - 1);
+        const yest = formatDateLabel(yesterday);
+  
+        const dayMap = { [yest]: 0, [today]: 0 };
+  
+        orders.forEach((order) => {
+          const d = formatDateLabel(new Date(order.createdOn));
+          if (dayMap[d] !== undefined) {
+            dayMap[d] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+          }
+        });
+  
+        salesLabels = Object.keys(dayMap);
+        salesData = Object.values(dayMap);
+      } else if (filter === 'weekly' || filter === 'monthly') {
+        const days = filter === 'weekly' ? 7 : 30;
+        const dayMap = {};
+        for (let i = days - 1; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(endDate.getDate() - i);
+          const label = formatDateLabel(d);
+          dayMap[label] = 0;
+        }
+  
+        orders.forEach((order) => {
+          const d = formatDateLabel(new Date(order.createdOn));
+          if (dayMap[d] !== undefined) {
+            dayMap[d] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
+          }
+        });
+  
+        salesLabels = Object.keys(dayMap);
+        salesData = Object.values(dayMap);
+      } else if (filter === 'yearly') {
+        const monthMap = {};
+        for (let i = 0; i < 12; i++) {
+          const month = new Date(year, i).toLocaleString('en-US', { month: 'short' });
+          monthMap[month] = 0;
+        }
+  
+        orders.forEach((order) => {
+          const d = new Date(order.createdOn);
+          if (d.getFullYear() === year) {
+            const label = d.toLocaleString('en-US', { month: 'short' });
+            if (monthMap[label] !== undefined) {
+              monthMap[label] += order.totalPrice - (order.discount + order.couponDiscount + order.returnAmound);
             }
           }
-        console.log(productMap,'map')
-        const productIds = Object.keys(productMap);
-        const productDocs = await productschema.find({ _id: { $in: productIds } }).limit(10);
-        const productLabels = productDocs.map(p => p.productName);
-        const productData = productDocs.map(p => productMap[p._id]);
-        console.log(productData,'data')
-        // Categories
-        const categoryMap = {};
-        orders.forEach(order => {
-            order.orderedItems.forEach(item => {
-              const categoryName = item.product?.category?.name;
-              if (categoryName) {
-                categoryMap[categoryName] = (categoryMap[categoryName] || 0) + 1;
-              }
-            });
-          });
-         console.log(categoryMap,'categorymap')
-         const sortedCategories = Object.entries(categoryMap)
-         .sort((a, b) => b[1] - a[1]) // Sort by count descending
-         .slice(0, 10); // Top 10
-       
-       const categoryLabels = sortedCategories.map(([label]) => label);
-       const categoryData = sortedCategories.map(([_, value]) => value);
-       
-
-        // Brands
-        const brandMap = {};
-        orders.forEach(order => {
-            order.orderedItems.forEach(item => {
-              const brandname = item.product?.brand?.brandName;
-              if (brandname) {
-                brandMap[brandname] = (brandMap[brandname] || 0) + 1;
-              }
-            });
-          });
-         console.log(brandMap,'brandmap')
-         const sortedBrands = Object.entries(brandMap)
-  .sort((a, b) => b[1] - a[1]) // Sort by count descending
-  .slice(0, 10); // Top 10
-
-const brandLabels = sortedBrands.map(([label]) => label);
-const brandData = sortedBrands.map(([_, value]) => value);
-
-        console.log(brandLabels,brandData)
-
-        // Order Status
-        const statusMap = {};
-        orders.forEach(order => {
-            statusMap[order.status] = (statusMap[order.status] || 0) + 1;
         });
-         console.log(statusMap,'status map')
-        const statusLabels = Object.keys(statusMap);
-        const statusData = Object.values(statusMap);
-        const lastorders = await orderschema.find({ 
-            createdOn: { $gte: startDate, $lte: endDate },
-            status: { $ne: 'Cancelled' },
-          }).populate('userId') .populate({
-            path: 'orderedItems.product',
-            populate: [
-              { path: 'category', select: 'name' },
-              { path: 'brand', select: 'brandName' }
-            ]
-          }).limit(10);
-        const recentOrders = lastorders.map(order => ({
-            order:order.orderId,
-            orderId: order._id,
-            customerName: order.userId?.name || 'Unknown',
-            email: order.userId?.email || '',
-            createdOn: order.createdOn,
-            amount: (order.totalPrice-(order.discount+order.couponDiscount)),
-            status: order.status
-          }));
-        
-          console.log(recentOrders,'recent ore')
-        res.json({
-            labels: {
-                salesOverview: salesLabels,
-                products: productLabels,
-                categories: categoryLabels,
-                brands: brandLabels,
-                orderStatus: statusLabels
-            },
-            datasets: {
-                sales: salesData,
-                products: productData,
-                categories: categoryData,
-                brands: brandData,
-                orderStatus: statusData
-            },
-            recentOrders,
+  
+        salesLabels = Object.keys(monthMap);
+        salesData = Object.values(monthMap);
+      }
+  
+      // Best Selling Products
+      const productMap = {};
+      const productDetails = {};
+  
+      for (const order of orders) {
+        for (const item of order.orderedItems) {
+          const product = item.product;
+          const productId = product._id.toString();
+  
+          productMap[productId] = (productMap[productId] || 0) + item.quantity;
+  
+          if (!productDetails[productId]) {
+            productDetails[productId] = {
+              name: product.productName,
+              salePrice: product.salePrice,
+              category: product.category?.name || 'Unknown',
+              brand: product.brand,
+              image: product.productImage[0],
+            };
+          }
+        }
+      }
+  
+      const productIds = Object.keys(productMap);
+      const productDocs = await productschema.find({ _id: { $in: productIds } }).limit(10);
+      const productLabels = productDocs.map(p => p.productName);
+      const productData = productDocs.map(p => productMap[p._id]);
+  
+      // Categories
+      const categoryMap = {};
+      orders.forEach(order => {
+        order.orderedItems.forEach(item => {
+          const categoryName = item.product?.category?.name;
+          if (categoryName) {
+            categoryMap[categoryName] = (categoryMap[categoryName] || 0) + 1;
+          }
         });
-
+      });
+      const sortedCategories = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const categoryLabels = sortedCategories.map(([label]) => label);
+      const categoryData = sortedCategories.map(([_, value]) => value);
+  
+      // Brands
+      const brandMap = {};
+      orders.forEach(order => {
+        order.orderedItems.forEach(item => {
+          const brandname = item.product?.brand?.brandName;
+          if (brandname) {
+            brandMap[brandname] = (brandMap[brandname] || 0) + 1;
+          }
+        });
+      });
+      const sortedBrands = Object.entries(brandMap).sort((a, b) => b[1] - a[1]).slice(0, 10);
+      const brandLabels = sortedBrands.map(([label]) => label);
+      const brandData = sortedBrands.map(([_, value]) => value);
+  
+      // Order Status
+      const statusMap = {};
+      orders.forEach(order => {
+        statusMap[order.status] = (statusMap[order.status] || 0) + 1;
+      });
+      const statusLabels = Object.keys(statusMap);
+      const statusData = Object.values(statusMap);
+  
+      // Recent Orders
+      const lastorders = await orderschema.find({
+        createdOn: { $gte: startDate, $lte: endDate },
+        status: { $ne: 'Cancelled' },
+      }).populate('userId').populate({
+        path: 'orderedItems.product',
+        populate: [
+          { path: 'category', select: 'name' },
+          { path: 'brand', select: 'brandName' }
+        ]
+      }).limit(10);
+  
+      const recentOrders = lastorders.map(order => ({
+        order: order.orderId,
+        orderId: order._id,
+        customerName: order.userId?.name || 'Unknown',
+        email: order.userId?.email || '',
+        createdOn: order.createdOn,
+        amount: order.totalPrice - (order.discount + order.couponDiscount),
+        status: order.status
+      }));
+  
+      res.json({
+        labels: {
+          salesOverview: salesLabels,
+          products: productLabels,
+          categories: categoryLabels,
+          brands: brandLabels,
+          orderStatus: statusLabels
+        },
+        datasets: {
+          sales: salesData,
+          products: productData,
+          categories: categoryData,
+          brands: brandData,
+          orderStatus: statusData
+        },
+        recentOrders
+      });
+  
     } catch (error) {
-
+      console.error("Error fetching chart data:", error);
+      res.status(500).json({ error: 'Internal Server Error' });
     }
-}
+  };
+  
 
 const returnProduct = async(req,res)=>{
     try {
@@ -1170,22 +1467,36 @@ const updateReturnStatus = async (req, res) => {
 
             offerDiscount = discountPerItem * item.quantity;
 
-            // ✅ Store only the discount applied to this item
-            item.bestOffer = offerDiscount;
-            order.discount -= offerDiscount
-
+          
         }
 
         // Calculate proportional coupon deduction
-        let couponAdjustment = 0;
-        if (order.couponDiscount && order.totalPrice) {
-            const itemValue = item.quantity * item.price;
-            const proportion = itemValue / order.totalPrice;
-            couponAdjustment = Math.round(order.couponDiscount * proportion);
+        // let  = order.couponDiscount;
+        // if (order.couponDiscount && order.totalPrice) {
+        //     const itemValue = item.quantity * item.price;
+        //     const proportion = itemValue / order.totalPrice;
+        //     couponAdjustment = Math.round(order.couponDiscount * proportion);
+        // }
+        const itemTotal = item.quantity * item.price;
+        const remainingTotal = (order.totalPrice - order.discount) - itemTotal;
+        let couponDiscount = order.couponDiscount
+        if (order.couponId) {
+            const coupon = await CouponSchema.findById(order.couponId);
+        
+            if (coupon) {
+                if (remainingTotal < coupon.minimumPrice) {
+                    order.couponId = null;
+                    order.couponRevoked = couponDiscount;
+                }
+                else{
+                    couponDiscount = 0 ;
+                }
+                 
+            }
         }
-          order.couponDiscount = couponAdjustment
+        //   order.couponDiscount = couponAdjustment
         // Wallet refund calculation
-        const refundAmount = (item.quantity * item.price) - offerDiscount - couponAdjustment;
+        const refundAmount = (item.quantity * item.price) - offerDiscount - couponDiscount;
 
         const transactionEntry = {
             Total: refundAmount,

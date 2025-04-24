@@ -132,9 +132,19 @@ const orderSchema = new Schema({
         type:Boolean,
         default:false,
     },
+    couponRevoked:{
+        type:Number,
+        default:0,
+        required:false,
+    },
     couponDiscount:{
         type:Number,
         default:0,
+    },
+    couponId:{
+        type:Schema.Types.ObjectId,
+        ref:'Coupon',
+        required:false,          
     },
     ReturnReason:{
         type:String,

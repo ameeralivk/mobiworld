@@ -7,166 +7,227 @@
     <title>Payment Page</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href='\css\paymentpage.css'>
-    <link rel="stylesheet" href="\css\shoppage_header.css">
-
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <link rel="stylesheet" href="\css\shoppage_header.css">
+    <link rel="stylesheet" href="\css\paymentpage.css">
 </head>
 
 <body>
     <%- include("../../views/partials/user/shoppage_header") %>
-        <!-- Payment Header -->
 
-        <% if (typeof message !=='undefined' && message) { %>
-            <p id="mess" class="error-message">
-                <%= message %>
-            </p>
-            <% } %>
-                <div class="payment-header">
-                    <h1>PAYMENTS</h1>
+    <% if (typeof message !=='undefined' && message) { %>
+    <p id="mess" class="error-message">
+        <%= message %>
+    </p>
+    <% } %>
+
+    <div class="payment-header">
+        <h1>COMPLETE YOUR PURCHASE</h1>
+    </div>
+
+    <div class="payment-container">
+        <!-- Checkout Steps -->
+        <div class="checkout-steps">
+            <div class="step completed">
+                <div class="step-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.06l-3.9 4.2a.75.75 0 0 1-1.08.02L4.324 7.3a.75.75 0 1 1 1.06-1.061l2.094 2.02 3.473-3.89a.75.75 0 0 1 1.02-.039z"/>
+                    </svg>
                 </div>
-
-                <div class="payment-container">
-                    <!-- Payment Form -->
-                    <div class="payment-method-title">CHOOSE PAYMENT METHOD</div>
-
-                    <form action="/user/orderplacedpage" method="post">
-                        <!-- Cash on Delivery Option -->
-                        <div class="payment-option">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery"
-                                    value="cash" checked>
-                                <label class="form-check-label ms-2" for="cashOnDelivery">
-                                    Cash on delivery
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Credit/Debit Card Option -->
-                        <div class="payment-option">
-                            <div class="form-check d-flex align-items-center">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="upiPayment"
-                                    value="razorpay">
-                                <label class="form-check-label ms-2" for="upiPayment">
-                                    Online Payment (Razorpay)
-                                </label>
-                            </div>
-
-                            <!-- Card Details (visible when card payment is selected) -->
-
-                        </div>
-
-                        <!-- Wallet Option -->
-                        <div class="payment-option">
-                            <div class="form-check d-flex align-items-center">
-                                <input class="form-check-input" type="radio" name="paymentMethod" id="walletPayment"
-                                    value="wallet">
-                                <label class="form-check-label ms-2" for="walletPayment">
-                                    Wallet
-                                </label>
-                                <div class="wallet-icon">W</div>
-                            </div>
-                        </div>
-
-                        <!-- UPI Option -->
-                        <div class="payment-option">
-
-
-                            <!-- UPI Details (visible when UPI payment is selected) -->
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-grid gap-2 mt-4">
-                            <button id="pay-btn" class="btn btn-primary complete-btn" type="submit">Complete
-                                Payment</button>
-                        </div>
-                    </form>
+                <div class="step-label">Cart</div>
+            </div>
+            <div class="step completed">
+                <div class="step-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16">
+                        <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.06l-3.9 4.2a.75.75 0 0 1-1.08.02L4.324 7.3a.75.75 0 1 1 1.06-1.061l2.094 2.02 3.473-3.89a.75.75 0 0 1 1.02-.039z"/>
+                    </svg>
                 </div>
+                <div class="step-label">Address</div>
+            </div>
+            <div class="step active">
+                <div class="step-icon">3</div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step">
+                <div class="step-icon">4</div>
+                <div class="step-label">Confirmation</div>
+            </div>
+        </div>
 
-                <!-- Bootstrap JS and dependencies -->
-                <script
-                    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Address Confirmation Banner -->
+        <div class="address-confirmed">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span>Shipping address confirmed. Please select your payment method to continue.</span>
+        </div>
 
-                <script>
-                  const messageElement = document.getElementById('mess');
+        <!-- Payment Summary -->
+        <div class="payment-summary">
+            <h5 class="mb-3">Order Summary</h5>
+            <div class="summary-row">
+                <span>Subtotal</span>
+                <span>₹<%= subtotal.toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+                <span>Discount</span>
+                <span>₹<%= offerPrice.toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+                <span>couponDiscount</span>
+                <span>₹<%= coupon.toLocaleString('en-IN') %></span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping</span>
+                <span>Free</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total</span>
+                <span>₹<%= (subtotal-offerPrice-coupon).toLocaleString('en-IN') %></span>
+            </div>
+        </div>
 
-                    if (messageElement) {
-                        setTimeout(() => {
-                            messageElement.style.display = "none";
-                        }, 3000);
-                    }
+        <!-- Payment Form -->
+        <div class="payment-method-title">CHOOSE PAYMENT METHOD</div>
 
+        <form action="/user/orderplacedpage" method="post" id="payment-form">
+            <!-- Cash on Delivery Option -->
+            <div class="payment-option" onclick="selectPaymentMethod('cashOnDelivery')">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="cashOnDelivery" value="cash" checked>
+                    <label class="form-check-label ms-2" for="cashOnDelivery">
+                        <strong>Cash on Delivery</strong>
+                        <div class="text-muted small mt-1">Pay when your order arrives</div>
+                    </label>
+                </div>
+            </div>
 
-                    document.getElementById("pay-btn").addEventListener("click", async function () {
-                        const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
-                        console.log(selectedPayment)
-                        if (selectedPayment === "cash") {
-                            // Submit the form normally for Cash on Delivery
-                            document.getElementById("payment-form").submit();
-                        } else if (selectedPayment === "razorpay") {
-                            // Call backend to create Razorpay order
-                            try {
-                                console.log('hi')
-                                const response = await fetch("/user/create-razorpay-order", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ paymentMethod: "razorpay" })
-                                });
+            <!-- Online Payment Option (Razorpay) -->
+            <div class="payment-option" onclick="selectPaymentMethod('upiPayment')">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="upiPayment" value="razorpay">
+                    <label class="form-check-label ms-2" for="upiPayment">
+                        <strong>Online Payment (Razorpay)</strong>
+                        <div class="text-muted small mt-1">Pay securely with Credit/Debit card, UPI, or Net Banking</div>
+                    </label>
+                </div>
+            </div>
 
-                                const data = await response.json();
-                                console.log(data.phone,data.email,data.name)
-                                if (!data.razorpayOrder) {
-                                    alert("Failed to create Razorpay order.");
-                                    return;
-                                }
+            <!-- Wallet Option -->
+            <div class="payment-option" onclick="selectPaymentMethod('walletPayment')">
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="walletPayment" value="wallet">
+                    <label class="form-check-label ms-2" for="walletPayment">
+                        <strong>Wallet</strong>
+                        <div class="text-muted small mt-1">Pay using your wallet balance</div>
+                    </label>
+                    <div class="wallet-icon">W</div>
+                </div>
+            </div>
 
-                                // Initialize Razorpay Checkout
-                                const options = {
-                                    key: data.secretekey, // Replace with your Razorpay Key
-                                    amount: data.razorpayOrder.amount,
-                                    currency: "INR",
-                                    order_id: data.razorpayOrder.id,
-                                    name: "My E-Commerce",
-                                    description: "Order Payment",
-                                    prefill: {
-                                        name:data.name,
-                                        email: data.email,
-                                        contact: data.phone, // Pass mobile number here
-                                    },
-                                    handler: async function (response) {
-                                        console.log(response, 'response')
-                                        const verifyResponse = await fetch("/user/verify-payment", {
-                                            method: "POST",
-                                            headers: { "Content-Type": "application/json" },
-                                            body: JSON.stringify({
-                                                razorpay_payment_id: response.razorpay_payment_id,
-                                                razorpay_order_id: response.razorpay_order_id,
-                                                razorpay_signature: response.razorpay_signature,
-                                            }),
+            <!-- Submit Button -->
+            <div class="d-grid gap-2 mt-4">
+                <button id="pay-btn" class="btn btn-primary complete-btn" type="submit">
+                    Complete Payment
+                </button>
+            </div>
+        </form>
+    </div>
 
-                                        });
-                                        // Redirect after successful payment
-                                        window.location.href = "/user/paymentsuccesspage";
-                                    },
-                                    theme: { color: "#3399cc" },
-                                    modal: {
-                                        ondismiss: function () {
-                                            window.location.href = "/user/paymentfailedpage"
-                                        }
-                                    }
-                                };
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-                                const rzp = new Razorpay(options);
-                                rzp.open();
-                            } catch (error) {
-                                console.error("Payment error:", error);
-                            }
-                        }
+    <script>
+        const messageElement = document.getElementById('mess');
+        if (messageElement) {
+            setTimeout(() => {
+                messageElement.style.display = "none";
+            }, 3000);
+        }
+
+        // Payment option selection highlighting
+        function selectPaymentMethod(id) {
+            document.querySelectorAll('.payment-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById(id).closest('.payment-option').classList.add('selected');
+            document.getElementById(id).checked = true;
+        }
+
+        // Initialize selected state based on default checked radio
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkedRadio = document.querySelector('input[name="paymentMethod"]:checked');
+            if (checkedRadio) {
+                selectPaymentMethod(checkedRadio.id);
+            }
+        });
+
+        document.getElementById("pay-btn").addEventListener("click", async function(event) {
+            event.preventDefault();
+            const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
+            
+            if (selectedPayment === "cash") {
+                // Submit the form normally for Cash on Delivery
+                document.getElementById("payment-form").submit();
+            } else if (selectedPayment === "razorpay") {
+                // Call backend to create Razorpay order
+                try {
+                    const response = await fetch("/user/create-razorpay-order", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ paymentMethod: "razorpay" })
                     });
 
+                    const data = await response.json();
+                    if (!data.razorpayOrder) {
+                        alert("Failed to create Razorpay order.");
+                        return;
+                    }
 
+                    // Initialize Razorpay Checkout
+                    const options = {
+                        key: data.secretekey,
+                        amount: data.razorpayOrder.amount,
+                        currency: "INR",
+                        order_id: data.razorpayOrder.id,
+                        name: "My E-Commerce",
+                        description: "Order Payment",
+                        prefill: {
+                            name: data.name,
+                            email: data.email,
+                            contact: data.phone,
+                        },
+                        handler: async function(response) {
+                            const verifyResponse = await fetch("/user/verify-payment", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: response.razorpay_payment_id,
+                                    razorpay_order_id: response.razorpay_order_id,
+                                    razorpay_signature: response.razorpay_signature,
+                                }),
+                            });
+                            // Redirect after successful payment
+                            window.location.href = "/user/paymentsuccesspage";
+                        },
+                        theme: { color: "#4461F2" },
+                        modal: {
+                            ondismiss: function() {
+                                window.location.href = "/user/paymentfailedpage"
+                            }
+                        }
+                    };
 
-                </script>
+                    const rzp = new Razorpay(options);
+                    rzp.open();
+                } catch (error) {
+                    console.error("Payment error:", error);
+                }
+            } else if (selectedPayment === "wallet") {
+                // Handle wallet payment
+                document.getElementById("payment-form").submit();
+            }
+        });
+    </script>
 </body>
-
 </html>

@@ -234,129 +234,174 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>
        function showOrderModal(orderId) {
-            // Fetch the order details from the server
-            fetch(`/admin/orderdetails/${orderId}`)
-                .then(response => response.json())
-                .then(orderDetails => {
-                    console.log(orderDetails.order, orderDetails.address)
-                    // Check if we got the correct data
-                    if (orderDetails) {
-                        // Get the modal body element by ID
-                        const modalBody = document.getElementById('modalBodyContent');
+    fetch(`/admin/orderdetails/${orderId}`)
+        .then(response => response.json())
+        .then(orderDetails => {
+            if (orderDetails) {
+                const modalBody = document.getElementById('modalBodyContent');
+                const returnedItems = orderDetails.order.orderedItems.filter(item => item.returnStatus === 'Returned');
 
-                        // Build the HTML content for the modal
-                        let modalContent = `
-                    <!-- Order Header -->
-                    <div class="row mb-3">
-                        <div class="col-8">
-                            <h5 class="mb-1 ">Order #ORD-${orderDetails.order.orderId}</h5>
-                            <p class="text-white mb-0 ">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
-                        </div>
-                        <div class="col-4 text-end">
-                            <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
-                        </div>
+                let modalContent = `
+                <!-- Order Header -->
+                <div class="row mb-3">
+                    <div class="col-8">
+                        <h5 class="mb-1">Order #ORD-${orderDetails.order.orderId}</h5>
+                        <p class="text-muted mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
                     </div>
+                    <div class="col-4 text-end">
+                        <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>
+                    </div>
+                </div>
 
-                    <!-- Order Items -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <h6 class="mb-2">Order Items</h6>
-                            
-                 ${orderDetails.order.orderedItems.map(item => `
-                <div class="card mb-2">
-                    <div class="card-body py-2 bg-dark">
-                        <div class="row align-items-center bg-dark">
-                            <div class="col-2">
-                                <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                <!-- Order Items -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <h6 class="mb-2">Order Items</h6>
+                        ${orderDetails.order.orderedItems.map(item => `
+                            <div class="card mb-2">
+                                <div class="card-body bg-dark py-2">
+                                    <div class="row align-items-center">
+                                        <div class="col-2">
+                                            <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-7">
+                                            <p class="mb-0 fw-bold">${item.product.productName}</p>
+                                            <small class="text-muted">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                                        </div>
+                                        <div class="col-3 text-end">
+                                            <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-7">
-                                <p class="mb-0 fw-bold">${item.product.productName}</p>
-                                <small class="text-muted">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
-                            </div>
-                            <div class="col-3 text-end">
-                                <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body bg-dark">
+                                <h6 class="mb-2">Order Summary</h6>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Subtotal:</span>
+                                    <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Shipping:</span>
+                                    <span>₹0</span>
+                                </div>
+                                ${orderDetails.order.couponRevoked > 0 ? `
+                                <div class="d-flex justify-content-between mb-1 text-danger">
+                                    <span>Coupon Revoked:</span>
+                                    <span>- ₹${orderDetails.order.couponRevoked.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="text-danger small mb-2">Coupon was revoked as cart value did not meet the minimum requirement.</div>
+                                ` : ''}
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Discount:</span>
+                                    <span>₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Coupon Discount:</span>
+                                    <span>₹${orderDetails.order.couponDiscount.toLocaleString('en-IN')}</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Total:</span>
+                                    <span>₹${((orderDetails.order.totalPrice - (orderDetails.order.discount + orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-             `).join('')}
-        
-                        </div>
-                    </div>
 
-                    <!-- Order Summary -->
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <div class="card">
-                                <div class="card-body bg-dark">
-                                    <h6 class="mb-2">Order Summary</h6>
-                                    <div class="d-flex justify-content-between mb-1 bg-dark">
-                                        <span>Subtotal:</span>
-                                        <span>₹${orderDetails.order.totalPrice.toLocaleString('en-IN')}</span>
+                <!-- Returned Items -->
+                ${returnedItems.length > 0 ? `
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card border-danger">
+                            <div class="card-body bg-dark">
+                                <h6 class="mb-3 text-danger">Returned Items</h6>
+                               ${returnedItems.map(item => {
+                                const actualPrice = item.price || item.product.salePrice;
+                                const offer = item.bestOffer || 0;
+                                const subtotal = actualPrice * item.quantity;
+                                const afterDiscount = subtotal - (offer * item.quantity);
+
+                                // Check if couponRevoked exists and apply it
+                                const couponRevoked = orderDetails.order.couponRevoked || 0;  // Assuming couponRevoked is available in orderDetails
+
+                                // If couponRevoked exists, subtract it from the refund value
+                                const finalRefundValue = couponRevoked > 0 ? afterDiscount - couponRevoked : afterDiscount;
+
+                                return `
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold">${item.product.productName}</span>
+                                        <span>Qty: ${item.quantity}</span>
                                     </div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span>Shipping:</span>
-                                        <span>₹0</span>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Price: ₹${actualPrice.toLocaleString('en-IN')} x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}</span>
+                                        <span>Discount: ₹${(offer * item.quantity).toLocaleString('en-IN')}</span>
                                     </div>
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span>Discount:</span>
-                                        <span>₹${orderDetails.order.discount.toLocaleString('en-IN')}</span>
-                                    </div>
-                                     <div class="d-flex justify-content-between mb-1">
-                                        <span>Coupon Discount:</span>
-                                        <span>₹${orderDetails.order.couponDiscount.toLocaleString('en-IN')}</span>
+                                    ${couponRevoked > 0 ? `
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Coupon Revoked:</span>
+                                        <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
+                                    </div>` : ''}
+                                    <div class="text-end fw-semibold ${couponRevoked > 0 ? 'text-danger' : ''}">
+                                        Final Refund Value: ₹${finalRefundValue.toLocaleString('en-IN')}
                                     </div>
                                     <hr class="my-2">
-                                    <div class="d-flex justify-content-between fw-bold">
-                                        <span>Total:</span>
-                                        <span>₹${((orderDetails.order.totalPrice-(orderDetails.order.discount+orderDetails.order.couponDiscount))).toLocaleString('en-IN')}</span>
-                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                                `;
+                            }).join('')}
 
-                    <!-- Shipping Information -->
-                    <div class="row">
-                        <div class="col-md-6 mb-2 mb-md-0">
-                            <div class="card h-100"> 
-                                <div class="card-body bg-dark">
-                                    <h6 class="card-title">Shipping Address</h6>
-                                    <p class="card-text mb-0">
-                                        ${orderDetails.order.address[0].name}<br>
-                                        ${orderDetails.order.address[0].addressType}<br>
-                                        ${orderDetails.order.address[0].city}, ${orderDetails.order.address[0].state} ${orderDetails.order.address[0].pincode}<br>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body bg-dark">
-                                    <h6 class="card-title">Payment Method</h6>
-                                    <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
-                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
+                ` : ''}
+
+                <!-- Shipping Information -->
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <div class="card h-100"> 
+                            <div class="card-body bg-dark">
+                                <h6 class="card-title">Shipping Address</h6>
+                                <p class="card-text mb-0">
+                                    ${orderDetails.order.address[0].name}<br>
+                                    ${orderDetails.order.address[0].addressType}<br>
+                                    ${orderDetails.order.address[0].city}, ${orderDetails.order.address[0].state} ${orderDetails.order.address[0].pincode}<br>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body bg-dark">
+                                <h6 class="card-title">Payment Method</h6>
+                                <p class="card-text mb-1">${orderDetails.order.paymentMethod}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 `;
 
-                        // Insert the modal content into the modal body
-                        modalBody.innerHTML = modalContent;
-
-                        // Show the modal
-                        var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                        myModal.show();
-                    } else {
-                        // Handle error, if no order details are found
-                        alert('Order not found');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching order details:', error);
-                    alert('Something went wrong!');
-                });
-        }
+                modalBody.innerHTML = modalContent;
+                var myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                myModal.show();
+            } else {
+                alert('Order not found');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching order details:', error);
+            alert('Something went wrong!');
+        });
+}
       function abc(orderid){
         console.log(orderid,'orderid')
         if(!orderid){

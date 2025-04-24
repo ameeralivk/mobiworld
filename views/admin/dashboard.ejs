@@ -63,9 +63,9 @@
       <div class="chart-container">
         <canvas id="salesChart"></canvas>
       </div>
-    </div>
+     </div>
 
-    <div class="charts-container">
+     <div class="charts-container">
       <div class="chart-card">
         <div class="chart-header">
           <div>
@@ -395,62 +395,123 @@
       safeDestroy(statusChart);
 
       // Sales Overview Chart
-      const salesCtx = document.getElementById('salesChart');
-      if (salesCtx) {
-        updateSalesTotal(data.sales);
+      // const salesCtx = document.getElementById('salesChart');
+      // if (salesCtx) {
+      //   updateSalesTotal(data.sales);
         
-        salesChart = new Chart(salesCtx, {
-          type: 'bar',
-          data: {
-            labels: labels.salesOverview,
-            datasets: [{
-              label: 'Revenue',
-              data: data.sales,
-              backgroundColor: 'rgba(67, 97, 238, 0.7)',
-              borderColor: 'rgba(67, 97, 238, 1)',
-              borderWidth: 1,
-              borderRadius: 4,
-              barThickness: 20,
-              maxBarThickness: 30
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: false
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    return formatCurrency(context.raw);
-                  }
+      //   salesChart = new Chart(salesCtx, {
+      //     type: 'bar',
+      //     data: {
+      //       labels: labels.salesOverview,
+      //       datasets: [{
+      //         label: 'Revenue',
+      //         data: data.sales,
+      //         backgroundColor: 'rgba(67, 97, 238, 0.7)',
+      //         borderColor: 'rgba(67, 97, 238, 1)',
+      //         borderWidth: 1,
+      //         borderRadius: 4,
+      //         barThickness: 20,
+      //         maxBarThickness: 30
+      //       }]
+      //     },
+      //     options: {
+      //       responsive: true,
+      //       maintainAspectRatio: false,
+      //       plugins: {
+      //         legend: {
+      //           display: false
+      //         },
+      //         tooltip: {
+      //           callbacks: {
+      //             label: function(context) {
+      //               return formatCurrency(context.raw);
+      //             }
+      //           }
+      //         }
+      //       },
+      //       scales: {
+      //         y: {
+      //           beginAtZero: true,
+      //           grid: {
+      //             drawBorder: false,
+      //             color: 'rgba(0, 0, 0, 0.05)'
+      //           },
+      //           ticks: {
+      //             callback: function(value) {
+      //               return formatCurrency(value);
+      //             }
+      //           }
+      //         },
+      //         x: {
+      //           grid: {
+      //             display: false
+      //           }
+      //         }
+      //       }
+      //     }
+      //   });
+      // }
+
+      const salesCtx = document.getElementById('salesChart');
+                if (salesCtx) {
+                  console.log(data)
+                    updateSalesTotal(data.sales);
+
+                    salesChart = new Chart(salesCtx, {
+                        type: 'line',
+                        data: {
+                            labels: labels.salesOverview,
+                            datasets: [{
+                                label: 'Revenue',
+                                data: data.sales,
+                                fill: false, // no area below the line
+                                borderColor: 'rgba(67, 97, 238, 1)',
+                                backgroundColor: 'rgba(67, 97, 238, 0.2)',
+                                tension: 0.3, // curve of the line, 0 for straight lines
+                                pointRadius: 4,
+                                pointBackgroundColor: 'rgba(67, 97, 238, 1)',
+                                pointBorderColor: '#fff',
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function (context) {
+                                            return formatCurrency(context.raw);
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        drawBorder: false,
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    },
+                                    ticks: {
+                                        callback: function (value) {
+                                            return formatCurrency(value);
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        }
+                    });
+
                 }
-              }
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: {
-                  drawBorder: false,
-                  color: 'rgba(0, 0, 0, 0.05)'
-                },
-                ticks: {
-                  callback: function(value) {
-                    return formatCurrency(value);
-                  }
-                }
-              },
-              x: {
-                grid: {
-                  display: false
-                }
-              }
-            }
-          }
-        });
-      }
 
       // Best Selling Products Chart
       const productsCtx = document.getElementById('productsChart');

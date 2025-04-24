@@ -10,6 +10,35 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="\css\admin css\salesReportPage.css">
+    <style>
+        /* Loading spinner styles */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .table-container {
+            position: relative;
+            min-height: 300px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -69,18 +98,6 @@
             <!-- Products section -->
             <div class="row mb-4">
                 <div class="col-12">
-                    <!-- <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5>sold Products</h5>
-                    <div class="d-flex">
-                        <input type="text" class="date-input me-2" placeholder="From">
-                        <span class="me-2">To</span>
-                        <input type="text" class="date-input me-3" placeholder="To">
-                        <button class="download-btn">
-                            Download report
-                            <span class="badge bg-danger ms-2">PDF</span>
-                        </button>
-                    </div>
-                </div> -->
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5>Sold Products</h5>
                         <div class="d-flex">
@@ -113,46 +130,48 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>PRODUCT IMAGE</th>
-                                    <th>PRODUCT NAME</th>
-                                    <th>BRAND</th>
-                                    <th>AMOUNT</th>
-                                    <th>Discount</th>
-                                    <th>TOTAL <i class="bi bi-caret-down-fill small"></i></th>
-                                    <th>QTY SOLD <i class="bi bi-caret-down-fill small"></i></th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablebody">
-                                <% orders.forEach(order => { %>
-                                    <% order.orderedItems.forEach(item => { %>
-                                      <% if (item.returnStatus !== "Returned") { %>
+                    <div class="table-container">
+                        <!-- Loading overlay -->
+                        <div id="loadingOverlay" class="loading-overlay hidden">
+                            <div class="spinner-border text-light" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>ID</th>
+                                        <th>AMOUNT</th>
+                                        <th>Discount</th>
+                                        <th>CouponDiscount</th>
+                                        <th>TOTAL <i class="bi bi-caret-down-fill small"></i></th>
+                                        <th>RETURNED</th>
+                                        <th>FINAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tablebody">
+                                    <% orders.forEach(order => { %>
                                         <tr>
-                                          <td><%= order.orderId %></td>
-                                          <td><img src="<%= item.product.productImage[0] %>" alt="<%= item.product.productName %>" class="product-image"></td>
-                                          <td><%= item.product.productName %></td>
-                                          <td><%= item.product.brand.brandName %></td>
-                                          <td>₹<%= item.price %></td>
-                                          <td>₹<%= item.bestOffer ? item.bestOffer.toFixed(2) : (order.discount + order.couponDiscount).toFixed(2) %></td>
-
-                                          <td>₹<%= (order.totalPrice-order.discount-order.couponDiscount) %></td>
-                                          <td><%= item.quantity %></td>
+                                            <td><%= order.createdOn.toLocaleDateString() %></td>
+                                            <td><%= order.orderId %></td>
+                                            <td>₹<%= (order.totalPrice) %></td>
+                                            <td><%= order.discount %></td>
+                                            <td><%= order.couponDiscount || 0 %></td>
+                                            <td><%= (order.totalPrice-order.discount-order.couponDiscount) %></td>
+                                            <td><%=(order.returnAmound) %></td>
+                                            <td><%= (order.totalPrice-order.discount-order.couponDiscount)-(order.returnAmound) %></td>
                                         </tr>
-                                      <% } %>
                                     <% }) %>
-                                  <% }) %>
-                                  
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <nav class="d-flex justify-content-center">
                         <ul class="pagination align-items-center">
-                    
                             <% if (page > 1) { %>
                                 <li class="page-item">
                                     <a class="page-link" href="?page=<%= page - 1 %>" aria-label="Previous">
@@ -182,12 +201,8 @@
                                     <span class="page-link" aria-hidden="true">&rsaquo;</span>
                                 </li>
                             <% } %>
-                    
                         </ul>
                     </nav>
-                    
-                    
-
                 </div>
             </div>
         </div>
@@ -195,15 +210,26 @@
         <!-- Bootstrap JS -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         <script>
-            function excelldownload() {
-                window.location.href = "/admin/download-excel"
+            // Helper functions for showing/hiding loading state
+            function showLoading() {
+                document.getElementById('loadingOverlay').classList.remove('hidden');
             }
+            
+            function hideLoading() {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }
+            
+            function excelldownload() {
+                window.location.href = "/admin/download-excel";
+            }
+            
             function downloadPDF() {
                 window.open("/admin/downloadSalesReport", "_blank");
             }
 
-
             function fetchSalesData(range) {
+                showLoading(); // Show loading overlay
+                
                 fetch('/admin/sales-report-filter', {
                     method: 'POST',
                     headers: {
@@ -211,82 +237,89 @@
                     },
                     body: JSON.stringify({ range })
                 })
-                    .then(response => response.json())
-                    .then(data => {
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    const tbody = document.getElementById('tablebody');
+                    tbody.innerHTML = ''; // Clear old rows
 
-                        console.log(data);
-                        const tbody = document.getElementById('tablebody');
-                        tbody.innerHTML = ''; // Clear old rows
-
-                        data.orders.forEach(order => {
-                            order.orderedItems.forEach(item => {
-                                const row = document.createElement('tr');
-                                row.innerHTML = `
-                    <td>${order.orderId}</td>
-                    <td><img src="${item.product.productImage[0]}" class="product-image" alt=""></td>
-                    <td>${item.product.productName}</td>
-                    <td>${item.product.brand.brandName}</td>
-                    <td>₹${item.price}</td>
-                    <td>₹${(order.discount+order.couponDiscount)}</td>
-                    <td>₹${(order.totalPrice-order.discount-order.couponDiscount) }</td>
-                    <td>${item.quantity}</td>
-                `;
-                                tbody.appendChild(row);
-                            });
-                        });
-                    })
-
-                    .catch (error => {
-                console.error('Error fetching sales data:', error);
-            });
+                    data.orders.forEach(order => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${new Date(order.createdOn).toLocaleDateString()}</td>
+                            <td>${order.orderId}</td>
+                            <td>₹${order.totalPrice}</td>
+                            <td>${order.discount}</td>
+                            <td>${order.couponDiscount || 0}</td>
+                            <td>${(order.totalPrice-order.discount-order.couponDiscount)}</td>
+                            <td>${order.returnAmound || 0}</td>
+                            <td>${(order.totalPrice-order.discount-order.couponDiscount)-(order.returnAmound || 0)}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    hideLoading(); // Hide loading overlay
+                })
+                .catch(error => {
+                    console.error('Error fetching sales data:', error);
+                    hideLoading(); // Make sure to hide loading on error too
+                });
             }
 
             function filter() {
-                const from = document.getElementById('from').value
-                const to = document.getElementById('to').value
+                const from = document.getElementById('from').value;
+                const to = document.getElementById('to').value;
+                
+                if (!from || !to) {
+                    alert('Please select both from and to dates');
+                    return;
+                }
+                
+                showLoading(); // Show loading overlay
+                
                 fetch('/admin/filterSalesReport', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        from: from, to,
+                        from: from, 
+                        to: to
                     })
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            console.log(data)
-                            renderOrders(data.orders);
-                        } else {
-                            console.error('No data returned');
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log(data);
+                        renderOrders(data.orders);
+                    } else {
+                        console.error('No data returned');
+                    }
+                    hideLoading(); // Hide loading overlay
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    hideLoading(); // Make sure to hide loading on error too
+                });
             }
 
             function renderOrders(orders) {
-                console.log('hi')
                 const tbody = document.getElementById('tablebody');
                 tbody.innerHTML = ''; // Clear existing rows
 
                 orders.forEach(order => {
-                    order.orderedItems.forEach(item => {
-                        const row = document.createElement('tr');
-
-                        row.innerHTML = `
-                    <td>${order.orderId}</td>
-                    <td><img src="${item.product.productImage[0]}" alt="${item.product.productName}" class="product-image" /></td>
-                    <td>${item.product.productName}</td>
-                    <td>${item.product.brand.brandName}</td>
-                    <td>₹${item.price}</td>
-                    <td>₹${(order.discount+order.couponDiscount)}</td>
-                    <td>₹${(order.totalPrice-order.discount-order.couponDiscount) }</td>
-                    <td>${item.quantity}</td>
-                `;
-
-                        tbody.appendChild(row);
-                    });
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(order.createdOn).toLocaleDateString()}</td>
+                        <td>${order.orderId}</td>
+                        <td>₹${order.totalPrice}</td>
+                        <td>${order.discount}</td>
+                        <td>${order.couponDiscount || 0}</td>
+                        <td>${(order.totalPrice-order.discount-order.couponDiscount)}</td>
+                        <td>${order.returnAmound || 0}</td>
+                        <td>${(order.totalPrice-order.discount-order.couponDiscount)-(order.returnAmound || 0)}</td>
+                    `;
+                    tbody.appendChild(row);
                 });
             }
         </script>

@@ -1,4 +1,4 @@
-.payment-header {
+/* .payment-header {
     background-color: #3498db;
     padding: 50px 0;
     text-align: center;
@@ -107,4 +107,222 @@
     padding: 10px;
     border-radius: 5px;
     text-align: center;
+} */
+
+
+:root {
+    --primary-color: #4461F2;
+    --secondary-color: #F5F7FF;
+    --text-color: #333;
+    --light-gray: #f8f9fa;
+    --border-color: #e0e0e0;
+    --success-color: #28a745;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafb;
+    color: var(--text-color);
+}
+
+.payment-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    margin-bottom: 40px;
+}
+
+.payment-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 20px 0;
+}
+
+.payment-header h1 {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 28px;
+    margin-bottom: 0;
+}
+
+.checkout-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.checkout-steps::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--border-color);
+    z-index: 1;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.step-icon {
+    width: 33px;
+    height: 33px;
+    border-radius: 50%;
+    background-color: white;
+    border: 3px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.step.completed .step-icon {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+}
+
+.step.active .step-icon {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.step-label {
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.payment-method-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--primary-color);
+}
+
+.payment-option {
+    padding: 16px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.payment-option:hover {
+    border-color: var(--primary-color);
+    background-color: var(--secondary-color);
+}
+
+.payment-option.selected {
+    border-color: var(--primary-color);
+    background-color: var(--secondary-color);
+}
+
+.form-check-label {
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.wallet-icon {
+    width: 24px;
+    height: 24px;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.complete-btn {
+    background-color: var(--primary-color);
+    border: none;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.complete-btn:hover {
+    background-color: #3651d3;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(68, 97, 242, 0.3);
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 90%;
+    animation: fadeInOut 3s forwards;
+}
+
+.payment-summary {
+    background-color: var(--light-gray);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.summary-total {
+    font-weight: 700;
+    color: var(--primary-color);
+    font-size: 18px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.address-confirmed {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+}
+
+.address-confirmed svg {
+    margin-right: 10px;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
 }

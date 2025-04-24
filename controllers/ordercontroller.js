@@ -184,7 +184,7 @@ const searchorder = async (req, res) => {
 
 const statusfilter = async (req, res) => {
     const { status } = req.body;
-  
+     console.log(status,'status')
     try {
       let orders = [];
   
@@ -202,20 +202,21 @@ const statusfilter = async (req, res) => {
           .populate('userId')
           .populate('orderedItems.product');
           console.log(orders,'2')
-      } 
+      }
       else if (status === "return-mixed") {
+        console.log('reaydaf')
         const allOrders = await orderSchema.find({})
           .populate('userId')
           .populate('orderedItems.product');
-          console.log(orders,'3')
-  
-        orders = allOrders.filter(order => {
-          const returnStatuses = new Set();
-          order.orderedItems.forEach(item => {
-            if (item.returnStatus) returnStatuses.add(item.returnStatus);
+         console.log(allOrders,'order')
+         orders = allOrders.filter(order => {
+            const totalItems = order.orderedItems.length;
+            const itemsWithReturnStatus = order.orderedItems.filter(item => item.returnStatus).length;
+          
+            return itemsWithReturnStatus > 0 && itemsWithReturnStatus < totalItems;
           });
-          return returnStatuses.size > 1; // Mixed if more than one unique status
-        });
+          
+        console.log(orders,'orders')
       } 
       else {
         let baseOrders = await orderSchema.find({ status: status })
