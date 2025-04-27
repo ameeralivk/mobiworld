@@ -8,6 +8,8 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/user/userlogin.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 </head>
 <body>
     <input id="mes" type="hidden" value="<%= message %>">
@@ -32,7 +34,7 @@
                     <input type="tel" class="form-control" id="phone" name="phone"  pattern="[0-9]{10}" placeholder="Enter the phone">
                     <p id="phoneerror" class="error-message" style="display: none" ></p>
                 </div>
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="password">Password</label>
                     <input type="password" class="form-control" name="password" id="password" placeholder="Enter your password">
                     <p id="passworderror" class="error-message" style="display: none" ></p>
@@ -41,6 +43,23 @@
                     <label for="confirmpassword">Confirm Password</label>
                     <input type="password" class="form-control" id="confirmpass" placeholder="Enter your password">
                     <p id="confirmpasserror" class="error-message" style="display: none" ></p>
+                </div> -->
+                <div class="form-group position-relative">
+                    <label for="password">Password</label>
+                    <div style="position: relative;">
+                        <input type="password" class="form-control" name="password" id="password" placeholder="Enter your password">
+                        <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                    </div>
+                    <p id="passworderror" class="error-message" style="display: none"></p>
+                </div>
+                
+                <div class="form-group position-relative">
+                    <label for="confirmpassword">Confirm Password</label>
+                    <div style="position: relative;">
+                        <input type="password" class="form-control" id="confirmpass" placeholder="Enter your password">
+                        <i class="fa-solid fa-eye" id="toggleConfirmPassword" style="position: absolute; top: 50%; right: 15px; transform: translateY(-50%); cursor: pointer;"></i>
+                    </div>
+                    <p id="confirmpasserror" class="error-message" style="display: none"></p>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Register</button>
                 <p>If you have an account, please <a href="/user/login" class="custom-link">sign in</a>.
@@ -84,7 +103,27 @@
         //     }
         // }
 
-          
+        const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPasswordInput = document.getElementById('confirmpass');
+
+    toggleConfirmPassword.addEventListener('click', function () {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+
         let message = document.getElementById('mes').value;
         if (message) {
             Swal.fire(message);
@@ -153,7 +192,16 @@
                     document.getElementById('confirmpasserror').style.display = 'none';
                 }, 3000);
             }
-
+            if(valid){
+                Swal.fire({
+                    title: 'Sending OTP...',
+                    text: 'Please wait while we send your OTP.',
+                    allowOutsideClick: false,  // Disable outside clicks
+                    didOpen: () => {
+                        Swal.showLoading();  // Show the loading spinner
+                    }
+                });
+            }
             return valid;
         }
 

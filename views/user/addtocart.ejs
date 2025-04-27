@@ -110,7 +110,11 @@
                                 <% coupons.forEach(c => { %>
                                     <li class="coupon-item">
                                         <div class="coupon-name">
-                                            <%= c.name %>
+                                            <span id="coupon-code-<%= c._id %>"><%= c.name %></span>
+                                            <button class="btn btn-sm btn-outline-secondary ms-2" 
+                                                    onclick="copyToClipboard('<%= c.name %>')">
+                                                <i class="bi bi-clipboard"></i> Copy
+                                            </button>
                                             <span class="ms-2">
                                                 <%= c.discountType === 'percentage' ? `${c.discountValue}% OFF` : `₹${c.discountValue} OFF` %>
                                             </span>
@@ -223,6 +227,27 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        function copyToClipboard(elementId) {
+            console.log(elementId,'id')
+    const text = elementId
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            // Optional: Show a success message or change button text temporarily
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Coupon copied!',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                background: '#e6ffed'
+            });
+        })
+        .catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+}
         document.addEventListener('DOMContentLoaded', function () {
             // Select all rows with the class "cart-item"
             const cartRows = document.querySelectorAll('.cart-item');

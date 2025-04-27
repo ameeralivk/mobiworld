@@ -135,79 +135,72 @@
 </head>   -->
 <nav class="navbar navbar-expand-lg navbar-light">
   <div class="container head">
-      <!-- Brand Logo -->
-      <a class="navbar-brand" href="#">
-          <!-- <img  src="g" alt="Mobi World"> -->
-           <p>MObi World</p>
-      </a>
-      
-      <!-- Mobile Toggle Button -->
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-      </button>
-      
-      <!-- Navbar Content -->
-      <div class="collapse navbar-collapse" id="navbarContent">
-          <!-- Search Form -->
-          <form class="search-form mx-lg-auto">
-              <input type="search" placeholder="Search" aria-label="Search">
-              <button class="search-button" type="submit">
-                  <i class="fas fa-search"></i>
-              </button>           
-          </form>
-         
-          <!-- Main Navigation -->
-          <ul class="navbar-nav me-auto ms-lg-4">
-              <li class="nav-item">
-                  <a class="nav-link" href="#">Home</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="/user/shoppage">Shop</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="#">About</a>
-              </li>
-              <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
-              </li>
-              <li class="nav-item">
-          <li class="nav-item dropdown">
-            <% if(user) { %>
-              <a class="nav-link dropdown-toggle user-dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <%= user.name %>
-              </a>
-              <ul class="dropdown-menu user-dropdown-menu" aria-labelledby="userDropdown">
-                <li><a class="dropdown-item" href="/userProfile">My Profile</a></li>
-                <li><a class="dropdown-item" href="/user/orders">My Orders</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="/user/logout">Logout</a></li>
-              </ul>
+    <!-- Brand Logo -->
+    <a class="navbar-brand" href="#">
+      <!-- <img  src="g" alt="Mobi World"> -->
+      <p>MObi World</p>
+    </a>
+
+    <!-- Mobile Toggle Button -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Content -->
+    <div class="collapse navbar-collapse" id="navbarContent">
+      <!-- Main Navigation -->
+      <ul class="navbar-nav ms-auto">  <!-- Using ms-auto to push to the right -->
+        <li class="nav-item">
+          <a class="nav-link" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/user/shoppage">Shop</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/user/aboutus">About</a>
+        </li>
+        <!-- <li class="nav-item">
+            <a class="nav-link" href="#">Contact</a>
+        </li> -->
+        <li class="nav-item dropdown">
+          <% if(user) { %>
+            <a class="nav-link dropdown-toggle user-dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <%= user.name %>
+            </a>
+            <ul class="dropdown-menu user-dropdown-menu" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="/user/Profile">My Profile</a></li>
+              <li><a class="dropdown-item" href="/user/order">My Orders</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="/user/logout">Logout</a></li>
+            </ul>
           </li>
-            <% } else { %>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/user/register">Sign Up</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/user/login">Login</a>
-              </li>
-            <% } %>
+          <% } else { %>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/user/register">Sign Up</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/user/login">Login</a>
+            </li>
+          <% } %>
           
+          <!-- Nav icons -->
           <div class="d-flex nav-icon-group">
-              <a class="nav-link nav-icon" href="#">
-                  <i class="fas fa-shopping-cart"></i>
-              </a>
-              <a class="nav-link nav-icon" href="#">
-                  <i class="far fa-heart"></i>
-              </a>
-              <a class="nav-link nav-icon" href="#">
-                  <i class="fas fa-cog"></i>
-              </a>
-              <a class="nav-link nav-icon" href="#">
-                  <i class="fas fa-user"></i>
-              </a>
-              
+            <a class="nav-link nav-icon" href="#">
+              <i class="fas fa-shopping-cart"></i>
+            </a>
+            <a class="nav-link nav-icon" href="#">
+              <i class="far fa-heart"></i>
+            </a>
+            <a class="nav-link nav-icon" href="#">
+              <i class="fas fa-cog"></i>
+            </a>
+            <a class="nav-link nav-icon" href="#">
+              <i class="fas fa-user"></i>
+            </a>
           </div>
-      </div>
+        </li>
+      </ul> 
+    </div>
   </div>
 </nav>

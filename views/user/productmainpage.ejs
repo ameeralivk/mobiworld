@@ -141,9 +141,20 @@
 
                 <!-- Price Section -->
                 <div class="price-section mb-4">
-                    <span class="original-price me-2"></span>
-                    <span class="sale-price fw-bold">₹<%= product.salePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
-
+                    <!-- Original Price (Striked through) -->
+                    <% if (product.salePrice > bestOffer.maxDiscount && bestOffer.maxDiscount != null) { %>
+                    <span class="original-price me-2 text-muted text-decoration-line-through">₹<%= product.salePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                    <% } %>
+                
+                    <!-- Sale Price (Bold, Green) -->
+                    <span class="sale-price fw-bold text-success">₹<%= (product.salePrice - bestOffer.maxDiscount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                
+                    <!-- Discount Price (Red with a label) -->
+                    <% if (product.salePrice > bestOffer.maxDiscount && bestOffer.maxDiscount != null) { %>
+                        <span class="discount-price text-danger ms-2 fw-bold">
+                            <i class="fas fa-tag"></i> Discount: ₹<%= (bestOffer.maxDiscount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                        </span>
+                    <% } %>
                 </div>
                 <% if (allOffers && allOffers.length > 0) { %>
                     <!-- Available Offers Section -->
@@ -220,7 +231,7 @@
                   </button>
                   
 
-                    <button id="buynow" class="btn btn-dark">Buy Now</button>
+                    <!-- <button id="buynow" class="btn btn-dark">Buy Now</button> -->
                 </div>
             </div>
         </div>
@@ -501,6 +512,17 @@
                 const currentValue = parseInt(quantityInput.value);
                 // Make sure we don't exceed available stock or max of 3
                 const maxAllowed = Math.min(maxStock,);
+                if(currentValue == 5){
+                 return   Swal.fire({
+                    icon: 'warning',
+                    title: 'Action Blocked',
+                    text: "5 product is Allowed at a time",
+                    toast: true,
+                    position: 'top-end',
+                    timer: 2500,
+                    showConfirmButton: false,
+                    });
+                }
                 if (currentValue < maxAllowed) {
                     quantityInput.value = currentValue + 1;
                 }

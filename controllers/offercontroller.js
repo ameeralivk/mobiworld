@@ -47,7 +47,7 @@ const addOffer = async(req,res)=>{
         console.log(productId,'productId')
           if(offerType === "category"){
             const products = await productSchema.find({category:categoryId})
-            if(products.length == 0){
+            if(products.length> 0){
                 let isDiscountTooHigh = false;
 
                 for (let product of products) {

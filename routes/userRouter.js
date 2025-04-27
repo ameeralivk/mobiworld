@@ -30,8 +30,6 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
     });
 module.exports = router;
 
-
-
 //home routes
 router.get('/productmainpage/:id',homecontroller.getproductmainpage)
 router.get('/getfilterpage',homecontroller.getfilterpage)
@@ -73,8 +71,12 @@ router.get('/deleteaddress/:id',userAuth,homecontroller.deleteaddress)
 //wallet routes
 router.get('/getwallet',userAuth,homecontroller.getwallet)
 router.get('/wallet/filter',homecontroller.walletfilter)
+
+
 //add offer
 router.post('/addoffer',userAuth,homecontroller.addOffer)
 
 router.post('/toggle-wishlist',fetchAuth,homecontroller.toggleWishlist)
 router.delete('/remove-from-wishlist', userAuth, homecontroller.removeFromWishlist);
+
+router.get('/aboutus',homecontroller.aboutUs)

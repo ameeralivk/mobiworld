@@ -335,7 +335,7 @@ const SalesReport = async (req, res) => {
             let orderItemTotal = 0;
 
             order.orderedItems.forEach(item => {
-                if (item.returnStatus !== "Returned" && order.status !== "Cancelled") {
+                if (item.returnStatus !== "Returned" && order.status !== "Cancelled" && item.cancelledStatus !== "Cancelled") {
                     totalPurchasedItems += item.quantity;
                 }
             });
@@ -1480,7 +1480,13 @@ const updateReturnStatus = async (req, res) => {
         const itemTotal = item.quantity * item.price;
         const remainingTotal = (order.totalPrice - order.discount) - itemTotal;
         let couponDiscount = order.couponDiscount
-        if (order.couponId) {
+        if(order.couponRevoked == 0){
+            couponDiscount = order.couponDiscount
+        }
+        else{
+            couponDiscount = 0
+        }
+        if (order.couponId && order.couponRevoked == 0) {
             const coupon = await CouponSchema.findById(order.couponId);
         
             if (coupon) {
@@ -1494,8 +1500,6 @@ const updateReturnStatus = async (req, res) => {
                  
             }
         }
-        //   order.couponDiscount = couponAdjustment
-        // Wallet refund calculation
         const refundAmount = (item.quantity * item.price) - offerDiscount - couponDiscount;
 
         const transactionEntry = {
@@ -1518,18 +1522,12 @@ const updateReturnStatus = async (req, res) => {
             newWallet.calculateWalletTotal();
             await newWallet.save();
         }
-
-        // Update item return status
         item.returnStatus = status;
-
-        // Check if all items are returned
         const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
         if (allReturned) {
             order.couponCode = null;
             order.status = "Returned";
         }
-
-        // Update return amount in the order
         order.returnAmound += refundAmount;
 
         await order.save();

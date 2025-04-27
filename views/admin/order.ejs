@@ -528,7 +528,7 @@
                                 </div>
                                 <div class="col-4 text-end">
                                     ${orderDetails.order.orderedItems.map(item => `
-                                        <span class="badge ${item.returnStatus === 'Shipped' ? 'bg-success' : 'bg-warning'}">${item.returnStatus || orderDetails.order.status}</span>
+                                        <span class="badge ${item.returnStatus === 'Shipped' ? 'bg-success' : 'bg-warning'}">${item.returnStatus || item.cancelledStatus || orderDetails.order.status}</span>
                                     `).join('')}
                                 </div>
                             </div>
@@ -541,6 +541,9 @@
                                                 <div class="row align-items-center">
                                                     <div class="col-2">
                                                         <img src="${item.product?.productImage?.[0] || '/default.jpg'}" alt="Product" class="img-fluid rounded">
+                                                          <div class="mt-2">
+                                                                <small class="badge bg-primary">${item.cancelledStatus || item.returnStatus || item.status || orderDetails.order.status || 'Status Unknown'}</small>
+                                                            </div>
                                                     </div>
                                                     <div class="col-7">
                                                         <p class="mb-0 fw-bold">${item.product?.productName || 'Product name not available'}</p>

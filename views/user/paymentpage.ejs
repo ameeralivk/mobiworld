@@ -114,7 +114,7 @@
             </div>
 
             <!-- Wallet Option -->
-            <div class="payment-option" onclick="selectPaymentMethod('walletPayment')">
+            <!-- <div class="payment-option" onclick="selectPaymentMethod('walletPayment')">
                 <div class="form-check d-flex align-items-center">
                     <input class="form-check-input" type="radio" name="paymentMethod" id="walletPayment" value="wallet">
                     <label class="form-check-label ms-2" for="walletPayment">
@@ -123,7 +123,21 @@
                     </label>
                     <div class="wallet-icon">W</div>
                 </div>
+            </div> -->
+            <div class="payment-option" onclick="selectPaymentMethod('walletPayment')">
+                <div class="form-check d-flex align-items-center">
+                    <input class="form-check-input" type="radio" name="paymentMethod" id="walletPayment" value="wallet">
+                    <label class="form-check-label ms-2" for="walletPayment">
+                        <strong>Wallet</strong>
+                        <div class="text-muted small mt-1">Pay using your wallet balance</div>
+                        <div class="text-success small fw-bold mt-1">
+                            Wallet Balance: ₹<%=walletbalance%>
+                        </div>
+                    </label>
+                    <div class="wallet-icon ms-auto">W</div>
+                </div>
             </div>
+            
 
             <!-- Submit Button -->
             <div class="d-grid gap-2 mt-4">

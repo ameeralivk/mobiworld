@@ -6,7 +6,7 @@ const userAuth = (req,res,next)=>{
        user.findById(req.session.User)
         .then(data=>{
             if(data){
-            
+               
                 next()
             }
             else{

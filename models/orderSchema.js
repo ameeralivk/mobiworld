@@ -55,6 +55,11 @@ const orderSchema = new Schema({
             default:0,
             required:false,
         },
+        cancelledStatus:{
+            type:String,
+            enum:["Cancelled"],
+            default:undefined,
+        },
         returnStatus: {
             type: String,
             enum: ['NotRequested', 'Requested', 'Approved', 'Rejected', 'Returned'],

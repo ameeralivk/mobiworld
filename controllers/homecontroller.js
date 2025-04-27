@@ -539,7 +539,6 @@ const editaddress = async (req, res) => {
   const { id } = req.params
   console.log(id)
   const address = await addressSchema.Address.findOne({ _id: id })
-  console.log(address)
   try {
     res.render('editaddress', { address: address.address[0] })
   } catch (error) {
@@ -1472,6 +1471,9 @@ const paymentpage = async (req, res) => {
 const getpaymentpage = async (req, res) => {
   const user = req.session.User
   try {
+    console.log('hi al')
+    const wallet = await walletSchema.findOne({userId:user._id})
+    const walletbalance = wallet?.WalletTotal
     const cart = await cartSchema.findOne({userId:user._id})
     let coupons = 0;
     if (req.session.appliedCoupon) {
@@ -1495,11 +1497,11 @@ const getpaymentpage = async (req, res) => {
     if (req.session.message) {
       const message = req.session.message
       req.session.message = null
-      return res.render('paymentpage', { message,offerPrice,subtotal,coupon:coupons })
+      return res.render('paymentpage', { message,offerPrice,subtotal,coupon:coupons ,walletbalance : walletbalance || 0 })
     }
-    return res.render('paymentpage',{offerPrice,subtotal,coupon:coupons})
+    return res.render('paymentpage',{offerPrice,subtotal,coupon:coupons ,walletbalance : walletbalance || 0})
   } catch (error) {
-
+     console.log('error from getpayment page',error)
   }
 }
 const orderplacedpage = async (req, res) => {
@@ -2710,6 +2712,8 @@ const addOffer = async (req, res) => {
 }
 
 
+
+
 const walletfilter = async(req,res)=>{
   try {
     console.log('hi')
@@ -2805,6 +2809,14 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
+const aboutUs = async(req,res)=>{
+  try {
+    console.log('hi')
+    res.render('Aboutus')
+  } catch (error) {
+    
+  }
+}
 
 module.exports = {
   getproductmainpage,
@@ -2843,4 +2855,5 @@ module.exports = {
   walletfilter,
   toggleWishlist,
   removeFromWishlist,
+  aboutUs,
 }

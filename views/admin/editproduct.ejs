@@ -399,7 +399,13 @@ function cropImage() {
                                 isValid = false;
                                 stockerror.innerText = 'Stock is required';
                                 stockerror.style.display = 'block';
-                            } else if (isNaN(stock)) {
+                            }
+                            else if (parseInt(stock.trim()) <= 0) {
+                                isValid = false;
+                                stockerror.innerText = 'Stock must be above zero';
+                                stockerror.style.display = 'block';
+                            }
+                             else if (isNaN(stock)) {
                                 isValid = false;
                                 stockerror.innerText = 'Stock must be a valid number';
                                 stockerror.style.display = 'block';

@@ -203,7 +203,7 @@
                                 orderRow.classList.add('row', 'order-row', 'align-items-center');
                                 let downloadBtnHTML = '';
                                 let cancell = '';
-                                if (order.status === 'Delivered'  && item.returnStatus !== "Requested" && item.returnStatus !== "Returned" && item.returnStatus !== "Rejected") {
+                                if (order.status === 'Delivered'  && item.returnStatus !== "Requested" && item.returnStatus !== "Returned" && item.returnStatus !== "Rejected" && item.cancelledStatus != "Cancelled") {
                                  downloadBtnHTML = `
                                  <a href="/download-invoice/${order._id}" download class="download-btn">
                                  <span>PDF</span>
@@ -214,7 +214,7 @@
                                  </a>
                                  `;
                                  } 
-                                let isDisabled = (order.status === "Delivered" || order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Shipped" || order.status === "Cancelled") ? 'disabled' : '';
+                                let isDisabled = (order.status === "Delivered" || order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Shipped" || order.status === "Cancelled" || item.cancelledStatus === "Cancelled") ? 'disabled' : '';
 
                                 cancell = `<button type="button"
                                 class="btn btn-danger btn-sm "
@@ -229,7 +229,7 @@
                                 <div class="col-3">${item.quantity}</div>
                                 <div class="col-3">${new Date(order.createdOn).toLocaleString('en-IN')}</div>
                                 <div class="col-2">
-                                    <span class="delivered-badge">${item.returnStatus || order.status}</span>
+                                    <span class="delivered-badge">${item.returnStatus || item.cancelledStatus || order.status}</span>
                                 </div>
                                 <div class="col-1">
                                     <img src="${item.product.productImage[0]}" alt="Product" class="product-image">
@@ -333,11 +333,11 @@
                                                 text: 'This order was already cancelled earlier.',
                                                 confirmButtonText: 'OK'
                                             });
-                                        } else if (data.message === "Order cancelled successfully") {
+                                        } else if (data.message === "Selected items cancelled successfully") {
                                             Swal.fire({
                                                 icon: 'success',
                                                 title: 'Cancelled!',
-                                                text: 'The order has been cancelled successfully.',
+                                                text: 'Selected items cancelled successfully',
                                                 showConfirmButton: false,
                                                 timer: 1500
                                             }).then(() => {
@@ -380,6 +380,8 @@ function modalopen(id) {
                         if (orderDetails) {
                             // Get the modal body element by ID
                             const modalBody = document.getElementById('modalBodyContent');
+                            const returnedItems = orderDetails.order.orderedItems.filter(item => item.returnStatus === 'Returned');
+                            const cancelledItems = orderDetails.order.orderedItems.filter(item => item.cancelledStatus === 'Cancelled');
 
                             // Build the HTML content for the modal
                             let modalContent = `
@@ -405,6 +407,9 @@ function modalopen(id) {
                         <div class="row align-items-center">
                             <div class="col-2">
                                 <img src="${item.product.productImage[0]}" alt="Product" class="img-fluid rounded">
+                                <div class="mt-2">
+                                    <small class="badge bg-primary">${item.cancelledStatus || item.returnStatus || item.status || orderDetails.order.status || 'Status Unknown'}</small>
+                                </div>
                             </div>
                             <div class="col-7">
                                 <p class="mb-0 fw-bold text-white">${item.product.productName}</p>
@@ -452,6 +457,101 @@ function modalopen(id) {
                             </div>
                         </div>
                     </div>
+                     
+                     <!-- Returned Items -->
+                ${returnedItems.length >= 1? `
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card border-danger">
+                            <div class="card-body bg-warning">
+                                <h6 class="mb-3 text-danger">Returned Items</h6>
+                               ${returnedItems.map(item => {
+                                const actualPrice = item.price || item.product.salePrice;
+                                const offer = item.bestOffer || 0;
+                                const subtotal = actualPrice * item.quantity;
+                                const afterDiscount = subtotal - (offer * item.quantity);
+
+                                // Check if couponRevoked exists and apply it
+                                const couponRevoked = orderDetails.order.couponRevoked || 0;  // Assuming couponRevoked is available in orderDetails
+
+                                // If couponRevoked exists, subtract it from the refund value
+                                const finalRefundValue = couponRevoked > 0 ? afterDiscount - couponRevoked : afterDiscount;
+
+                                return `
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold">${item.product.productName}</span>
+                                        <span>Qty: ${item.quantity}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Price: ₹${actualPrice.toLocaleString('en-IN')} x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}</span>
+                                        <span>Discount: ₹${(offer * item.quantity).toLocaleString('en-IN')}</span>
+                                    </div>
+                                    ${couponRevoked > 0 ? `
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Coupon Revoked:</span>
+                                        <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
+                                    </div>` : ''}
+                                    <div class="text-end fw-semibold ${couponRevoked > 0 ? 'text-danger' : ''}">
+                                        Final Refund Value: ₹${finalRefundValue.toLocaleString('en-IN')}
+                                    </div>
+                                    <hr class="my-2">
+                                </div>
+                                `;
+                            }).join('')}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+                
+                 ${cancelledItems.length >=1 ? `
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="card border-danger">
+                            <div class="card-body bg-warning">
+                                <h6 class="mb-3 text-danger">Cancelled Items</h6>
+                               ${cancelledItems.map(item => {
+                                const actualPrice = item.price || item.product.salePrice;
+                                const offer = item.bestOffer || 0;
+                                const subtotal = actualPrice * item.quantity;
+                                const afterDiscount = subtotal - (offer * item.quantity);
+
+                                // Check if couponRevoked exists and apply it
+                                const couponRevoked = orderDetails.order.couponRevoked || 0;  // Assuming couponRevoked is available in orderDetails
+
+                                // If couponRevoked exists, subtract it from the refund value
+                                const finalRefundValue = couponRevoked > 0 ? afterDiscount - couponRevoked : afterDiscount;
+
+                                return `
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold">${item.product.productName}</span>
+                                        <span>Qty: ${item.quantity}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Price: ₹${actualPrice.toLocaleString('en-IN')} x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}</span>
+                                        <span>Discount: ₹${(offer * item.quantity).toLocaleString('en-IN')}</span>
+                                    </div>
+                                    ${couponRevoked > 0 ? `
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Coupon Revoked:</span>
+                                        <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
+                                    </div>` : ''}
+                                    <div class="text-end fw-semibold ${couponRevoked > 0 ? 'text-danger' : ''}">
+                                        Final Refund Value: ₹${finalRefundValue.toLocaleString('en-IN')}
+                                    </div>
+                                    <hr class="my-2">
+                                </div>
+                                `;
+                            }).join('')}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
 
                     <!-- Shipping Information -->
                     <div class="row">

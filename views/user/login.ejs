@@ -15,7 +15,9 @@
             <form id="form" action="/user/login" method="post">
                 <h2 class="text-center">Welcome back!</h2>
                 <% if (typeof message !== 'undefined' && message) { %>
-                    <p id="mess" class="error-message" ><%= message %></p>
+                    <p id="mess" class="error-message <%= message === 'password changed successfully' ? 'success-message' : 'error-message' %>">
+                        <%= message %>
+                    </p>
                 <% } %>
                 
                 <div class="form-group">

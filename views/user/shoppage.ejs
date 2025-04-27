@@ -256,7 +256,7 @@
                 </div>
                 <div class="notification-content">
                     <h4 class="notification-title">Added to Wishlist</h4>
-                    <p class="notification-message">${productName} has been added to your wishlist.</p>
+                    <p class="notification-message">${productName||"product"} has been added to your wishlist.</p>
                 </div>
             `;
             
@@ -290,7 +290,7 @@
         </div>
         <div class="notification-content">
             <h4 class="notification-title">Removed from Wishlist</h4>
-            <p class="notification-message">${productName} has been removed from your wishlist.</p>
+            <p class="notification-message">${productName||"product"} has been removed from your wishlist.</p>
         </div>
     `;
     

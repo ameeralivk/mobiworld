@@ -404,13 +404,19 @@
                         isValid = false;
                     }
                     // Validate Discount Value
-                    if (discountValue.value.trim() === "" || discountValue.value <= 0) {
+                    if (discountValue.value.trim() === "") {
+                        errorMessage += "<li>Discount Value is required.</li>";
+                        isValid = false;
+                    } else if (parseFloat(discountValue.value) <= 0) {
                         errorMessage += "<li>Discount Value must be a positive number.</li>";
                         isValid = false;
                     }
 
                     // Validate Max Discount (if entered)
-                    if (maxDiscount.value.trim() !== "" && maxDiscount.value < 0) {
+                    if (maxDiscount.value.trim() === "") {
+                        errorMessage += "<li>Max Discount is required.</li>";
+                        isValid = false;
+                    } else if (parseFloat(maxDiscount.value) <= 0) {
                         errorMessage += "<li>Max Discount must be a positive number.</li>";
                         isValid = false;
                     }

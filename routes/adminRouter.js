@@ -10,7 +10,7 @@ const offerController = require('../controllers/offercontroller')
 
 
 //admin controller and user controller
-router.get('/login',adminAuth,admincontroller.loadlogin)
+router.get('/login',admincontroller.loadlogin)
 router.post('/login',admincontroller.loginverification)
 router.get('/dashboard',adminAuth,admincontroller.dashboard)
 router.get('/users',adminAuth,admincontroller.loadusers)

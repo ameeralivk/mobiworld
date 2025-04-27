@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Your New Password - Mobi World</title>
     <link rel="stylesheet" href="/css/forgetpasswordpage.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     
 </head>
 <body>
@@ -35,7 +37,7 @@
             <p>Set a strong password to keep your account secure. Once done, you'll be ready to continue shopping with ease!</p>
             
             <form method="post" action="/user/passreset">
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="password">New Password</label>
                     <input type="password" id="password" name="password">
                 </div>
@@ -43,7 +45,19 @@
                 <div class="form-group">
                     <label for="confirm-password">Confirmation Password</label>
                     <input type="password" id="confirm-password" name="confirmpassword">
+                </div> -->
+                <div class="form-group" style="position: relative;">
+                    <label for="password">New Password</label>
+                    <input type="password" id="password" name="password" class="form-control">
+                    <i class="fa-solid fa-eye" id="togglePassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
                 </div>
+                
+                <div class="form-group" style="position: relative; margin-top: 20px;">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirmpassword" class="form-control">
+                    <i class="fa-solid fa-eye" id="toggleConfirmPassword" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+                </div>
+                <p id="error-message" style="color: red; margin-top: 10px; display: none;"></p>
                 <% if (message) { %>
                     <p class="error-message" id="mess"><%= message %></p> 
                 <% } %>
@@ -60,6 +74,72 @@
               mess.style.display = 'none'
             }
         },3000)
+        
+        const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    
+    toggleConfirmPassword.addEventListener('click', function () {
+        const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        confirmPasswordInput.setAttribute('type', type);
+        this.classList.toggle('fa-eye');
+        this.classList.toggle('fa-eye-slash');
+    });
+
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', function(e) {
+            if (!validatePassword(e)) {
+                // If validation fails, prevent the form from submitting
+                e.preventDefault();
+            }
+        });
+
+
+    // Validate password
+    function validatePassword(e) {
+    const password = passwordInput.value.trim();
+    const confirmPassword = confirmPasswordInput.value.trim();
+    const errorMessage = document.getElementById('error-message');
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^()_\-+=])[A-Za-z\d@$!%*?&#^()_\-+=]{8,}$/;
+
+    // Check for empty fields
+    if (!password || !confirmPassword) {
+        errorMessage.innerText = "Both fields are required.";
+        errorMessage.style.display = "block";
+        return false;
+    }
+
+    // Check password strength
+    if (!passwordRegex.test(password)) {
+        errorMessage.innerText = "Password must be at least 8 characters, include uppercase, lowercase, number, and special character.";
+        errorMessage.style.display = "block";
+        return false;
+    }
+
+    // Check if passwords match
+    if (password !== confirmPassword) {
+        errorMessage.innerText = "Passwords do not match.";
+        errorMessage.style.display = "block";
+        return false;
+    }
+
+    // If everything is correct
+    errorMessage.style.display = "none";
+    return true;
+}
+
+
     </script>
 </body>
 </html>

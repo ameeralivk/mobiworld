@@ -85,10 +85,12 @@
 			<h2 class="section-title">Our Bestsellers</h2>
 			<p class="section-subtitle">These are our assets that we sell without telling a client to think twice while buying</p>
 			<div class="row">
-				<% product.forEach(function(product) { %>
+				<% product.slice(0, 8).forEach(function(product) { %>
 				<div class="col-lg-3 col-md-6">
 					<div class="product-card">
-						<img src="<%= product.productImage[0] %>" alt="iPhone 14 Pro Max 5G" class="product-img">
+						<a href="/user/productmainpage/<%= product._id %>">
+							<img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="product-img">
+						</a>
 						<div class="product-rating">
 							<i class="fas fa-star"></i>
 							<i class="fas fa-star"></i>

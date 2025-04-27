@@ -393,10 +393,17 @@
         isValid = false;
     }
 
-    if (stock === '') {
-        stockerror.innerText = "Stock field is empty";
+    if (stock === '' || stock < 0) {
+        if(stock < 0 ){
+        stockerror.innerText = "Stock Must be Greater than zero";
         stockerror.style.display = "block";
         isValid = false;
+        }
+        else{
+         stockerror.innerText = "Stock field is empty";
+        stockerror.style.display = "block";
+        isValid = false;
+        }
     } else if (parseInt(stock) <= 0) {
         stockerror.innerText = "Stock should be above 0";
         stockerror.style.display = "block";
