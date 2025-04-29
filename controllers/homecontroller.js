@@ -1089,7 +1089,6 @@ const getcart = async (req, res) => {
 
     const products = await Product.find({ _id: { $in: items } });
     const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
-
     // 🧠 Build a map of productId to quantity
     const productQuantityMap = new Map();
     isexist.items.forEach(item => {
@@ -2473,7 +2472,9 @@ const verifypayment = async (req, res) => {
 
 const paymentfailedpage = async (req, res) => {
   try {
-    res.render('paymentfailedpage')
+    console.log(req.query.reason)
+    const reason = req.query.reason
+    res.render('paymentfailedpage',{reason})
   } catch (error) {
     console.error('error from homecontroler', error)
   }

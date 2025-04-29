@@ -233,6 +233,11 @@
                     };
 
                     const rzp = new Razorpay(options);
+                    rzp.on('payment.failed', function (response) {
+                        console.error("Payment Failed:", response.error);
+                        const errorMessage = encodeURIComponent(response.error.description);
+                        window.location.href = "/user/paymentfailedpage?reason="+errorMessage;  // Your custom failure page
+                    });
                     rzp.open();
                 } catch (error) {
                     console.error("Payment error:", error);

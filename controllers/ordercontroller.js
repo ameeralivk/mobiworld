@@ -367,6 +367,7 @@ const cancelorder = async (req, res) => {
                 refundAmount += afterDiscount;
         
                 item.cancelledStatus = 'Cancelled';
+                req.session.item = item.product.productName
                 await Product.updateOne(
                     { _id: item.product._id },
                     { $inc: { quantity: item.quantity } }
@@ -404,11 +405,11 @@ const cancelorder = async (req, res) => {
                 Total: refundAmount,
                 Type: "Credit",
                 description: order.couponRevoked
-                    ? "Refund for cancelled items (Coupon Revoked)"
-                    : "Refund for cancelled items",
+                    ? `Refund for cancelled item ${req.session.item}  (Coupon Revoked)`
+                    : `Refund for cancelled item ${req.session.item}`,
                 orderId: order._id,
             };
-
+            req.session.item = null
             if (!wallet) {
                 const newWallet = new walletSchema({
                     userId: user._id,

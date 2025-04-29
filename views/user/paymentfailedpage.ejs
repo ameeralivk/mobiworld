@@ -3,86 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Payment Failed</title>
+    <title>Payment Failed | YourStore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-color: #e74c3c;
+            --secondary-color: #3498db;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --card-color: #ffffff;
+            --border-color: #eeeeee;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #b0c4c4;
+            min-height: 100vh;
+            padding: 20px;
         }
+        
         .container {
+            max-width: 500px;
+            width: 100%;
+            background-color: var(--card-color);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
             text-align: center;
         }
-        .alert-icon {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            background-color: red;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            margin: 0 auto 20px;
+        
+        .header {
+            margin-bottom: 30px;
         }
-        .alert-icon::before {
-            content: '!';
-            position: absolute;
-            top: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 60px;
-            font-weight: bold;
-        }
-        .alert-icon-border {
-            position: absolute;
-            top: -10px;
-            left: -10px;
-            right: -10px;
-            bottom: -10px;
-            border: 10px solid purple;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            z-index: -1;
-        }
-        .message {
-            color: navy;
+        
+        .logo {
             font-size: 24px;
             font-weight: bold;
-            margin-bottom: 20px;
+            color: var(--text-color);
+            margin-bottom: 10px;
         }
-        .retry-btn {
-            background-color: #4CAF50;
-            border: none;
+        
+        .alert-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
             color: white;
-            padding: 15px 32px;
-            text-align: center;
+            font-size: 40px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        .failure-reason {
+            background-color: #fff8f8;
+            border: 1px solid #ffdddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        
+        .failure-reason h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+        
+        .failure-reason p {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
             text-decoration: none;
             display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
         }
-        .retry-btn:hover {
-            background-color: #45a049;
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #2980b9;
+        }
+        
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid #ddd;
+            color: var(--text-color);
+        }
+        
+        .btn-outline:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .help-section {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+        
+        .help-section p {
+            margin-bottom: 10px;
+        }
+        
+        .help-section a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+        
+        .help-section a:hover {
+            text-decoration: underline;
+        }
+        
+        .order-id {
+            font-size: 12px;
+            color: #888;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="alert-icon">
-            <div class="alert-icon-border"></div>
+        <div class="header">
+            <div class="logo">MobiWorld</div>
         </div>
-        <div class="message">order payment failed</div>
-        <button class="retry-btn" onclick="retryPayment()">Retry Payment</button>
+        
+        <div class="alert-icon">
+            <i class="fas fa-exclamation"></i>
+        </div>
+        
+        <h1>Payment Failed</h1>
+        
+        <div class="message">
+            <p>We were unable to process your payment. Please review the details below and try again.</p>
+        </div>
+        
+        <div class="failure-reason">
+            <h3>Reason for Failure:</h3>
+            <p id="failureReason"><%= reason %></p>
+        </div>
+        
+        <div class="buttons">
+            <a href="/user/getpaymentpage" class="btn btn-primary">
+                <i class="fas fa-redo"></i> Retry Payment
+            </a>
+            <a href="/" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Home
+            </a>
+        </div>
+        
+        <div class="help-section">
+            <p>Need assistance? <a href="/contact">Contact our support team</a> or call us at <strong>1-800-123-4567</strong></p>
+        </div>
+        
+        <div class="order-id">
+            Order ID: <span id="orderId">ORD-29384756</span>
+        </div>
     </div>
-
+    
     <script>
-        function retryPayment() {
-            window.location.href = "/user/getpaymentpage"
+        // Function to get URL parameters
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
         }
+        
+        // Get failure reason from URL if available
+        window.onload = function() {
+            var reason = getUrlParameter('reason');
+            if(reason) {
+                document.getElementById('failureReason').textContent = reason;
+            }
+            
+            var orderId = getUrlParameter('orderId');
+            if(orderId) {
+                document.getElementById('orderId').textContent = orderId;
+            }
+        }
+
+        // You can expand this script to handle additional functionality
     </script>
 </body>
 </html>
