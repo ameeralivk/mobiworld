@@ -193,6 +193,7 @@
                     });
 
                     const data = await response.json();
+                    console.log(data,'data')
                     if (!data.razorpayOrder) {
                         alert("Failed to create Razorpay order.");
                         return;

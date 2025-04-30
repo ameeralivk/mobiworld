@@ -163,9 +163,10 @@ const getBestOfferForProduct = async (product) => {
   const offers = await offerschema.find({
     $or: filterConditions,
     status: true,
-    startDate: { $lte: new Date() },
-    expiredOn: { $gte: new Date() },
+    startDate: { $lte: new Date().setHours(0, 0, 0, 0) }, 
+    expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) }  
   });
+  
   console.log(offers, 'offers')
   if (!offers || offers.length === 0) return null; // No offers available
 
@@ -2198,6 +2199,7 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAYX_KEY_ID,
   key_secret: process.env.RAZORPAYX_KEY_SECRET,
 });
+
 const createRazorpayOrder = async (req, res) => {
   try {
     const coupon = req.session.appliedCoupon ? req.session.appliedCoupon : 0
@@ -2215,13 +2217,16 @@ const createRazorpayOrder = async (req, res) => {
       const offer = req.session.offerprice || 0;
       const coupon = req.session.appliedCoupon || { couponDiscount: 0 };
       const totalAmount = ((cart.totalPrice  - offer - coupon.couponDiscount) * 100);
+
       const options = {
         amount: totalAmount,
         currency: "INR",
         receipt: `order_${Date.now()}`,
         payment_capture: 1,
       };
+      console.log("Creating Razorpay Order with options:", options);
       const razorpayOrder = await razorpay.orders.create(options);
+      console.log(razorpayOrder,'order')
       req.session.orderdetails = {
         orderId: razorpayOrder.id,
         amount: cart.totalPrice,
