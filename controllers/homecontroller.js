@@ -52,8 +52,8 @@ const getproductmainpage = async (req, res) => {
   }
 ],
     status: true,
-    startDate: { $lte: new Date() },
-    expiredOn: { $gte: new Date() },
+    startDate: { $lte: new Date().setHours(0, 0, 0, 0) },
+    expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) },
   })
   const bestOffer = await getBestOfferForProduct(product)
   let isWishlisted = false;
@@ -111,10 +111,10 @@ const getTotalOffers = async (product) => {
   const offerList = await offerschema.find({
     $or: filterConditions,
     status: true,
-    startDate: { $lte: new Date() },
-    expiredOn: { $gte: new Date() },
+    startDate: { $lte: new Date().setHours(0, 0, 0, 0) },
+    expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) },
   });
-
+ console.log(offerList,'list')
   if (!offerList || offerList.length === 0) return 0; // No offers available
 
   let bestOffer = null;
@@ -1133,6 +1133,7 @@ const getcart = async (req, res) => {
     });
 
     // 🛒 Render cart page
+    console.log(offerPrice,'offerpordsaofiasdjf')
     return res.render('addtocart', {
       combineddata: populatedCart.items,
       quantity,
@@ -1195,7 +1196,9 @@ const updatequantity = async (req, res) => {
     };
     const offerprice = await offerPrices();
     req.session.offerprice = offerprice
-    res.status(200).json({ success: true, total, totalGST, offerprice });
+    const coupon = req.session.appliedCoupon || '';
+    console.log(coupon,'here the coupond')
+    res.status(200).json({ success: true, total, totalGST, offerprice, coupon:coupon.couponDiscount});
   } catch (error) {
     console.error("Error from updatequantity:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
@@ -2269,8 +2272,8 @@ const getBestOfferForProducts = async (product) => {
   const offers = await offerschema.find({
     $or: filterConditions,
     status: true,
-    startDate: { $lte: new Date() },
-    expiredOn: { $gte: new Date() },
+    startDate: { $lte: new Date().setHours(0, 0, 0, 0) },
+    expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) },
   });
 
   console.log('Fetched offers:', offers);
