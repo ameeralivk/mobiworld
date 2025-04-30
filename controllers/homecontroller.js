@@ -292,7 +292,15 @@ const getfilterpage = async (req, res) => {
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    const products = await Product.find(filter)
+    // const products = await Product.find(filter)
+    //   .sort(sortOption)
+    //   .skip(skip)
+    //   .limit(parseInt(limit));
+    const products = await Product.find({
+      ...filter,
+      isDeleted: false,
+      isBlocked: false,
+    })
       .sort(sortOption)
       .skip(skip)
       .limit(parseInt(limit));
