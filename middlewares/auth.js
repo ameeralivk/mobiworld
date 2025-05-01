@@ -5,11 +5,16 @@ const userAuth = (req,res,next)=>{
         console.log('dklajfdkajfl')
        user.findById(req.session.User)
         .then(data=>{
-            if(data){
+            console.log(data ,'data ameer')
+            if(data && data.isBlocked === "false"){
                
                 next()
             }
             else{
+                if(data.isBlocked){
+                    req.session.message = "User is blocked by Admin"
+                    return res.redirect('/login')
+                }
                 res.redirect('/login')
             }
         })
