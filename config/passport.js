@@ -63,6 +63,7 @@ passport.use(new GoogleStrategy({
     let user = await User.findOne({ googleId: googleId });
     if (user) {
       if(user.isBlocked){
+        req.session.message = "user is Blocked"
         return done(null, false ,{message:"user is blocked"})
       }
       return done(null, user);
