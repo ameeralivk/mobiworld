@@ -62,6 +62,9 @@ passport.use(new GoogleStrategy({
     console.log('Google ID:', googleId); // Log the googleId to confirm its value
     let user = await User.findOne({ googleId: googleId });
     if (user) {
+      if(user.isBlocked){
+        return done(null, false ,{message:"user is blocked"})
+      }
       return done(null, user);
     } else {
       user = new User({
