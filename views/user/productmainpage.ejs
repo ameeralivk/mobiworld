@@ -142,15 +142,21 @@
                 <!-- Price Section -->
                 <div class="price-section mb-4">
                     <!-- Original Price (Striked through) -->
-                    <% if (product.salePrice > bestOffer.maxDiscount && bestOffer.maxDiscount != null) { %>
+                    <% if (bestOffer && bestOffer.maxDiscount != null && product.salePrice > bestOffer.maxDiscount) { %>
                     <span class="original-price me-2 text-muted text-decoration-line-through">₹<%= product.salePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
                     <% } %>
                 
                     <!-- Sale Price (Bold, Green) -->
-                    <span class="sale-price fw-bold text-success">₹<%= (product.salePrice - bestOffer.maxDiscount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %></span>
+                    <span class="sale-price fw-bold text-success">
+                        ₹<%= bestOffer && bestOffer.maxDiscount != null 
+                            ? (product.salePrice - bestOffer.maxDiscount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
+                            : product.salePrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
+                      </span>
+                      
                 
                     <!-- Discount Price (Red with a label) -->
-                    <% if (product.salePrice > bestOffer.maxDiscount && bestOffer.maxDiscount != null) { %>
+                    <% if (bestOffer && bestOffer.maxDiscount != null && product.salePrice > bestOffer.maxDiscount) { %>
+
                         <span class="discount-price text-danger ms-2 fw-bold">
                             <i class="fas fa-tag"></i> Discount: ₹<%= (bestOffer.maxDiscount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) %>
                         </span>
