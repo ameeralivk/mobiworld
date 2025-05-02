@@ -228,7 +228,10 @@
                         theme: { color: "#4461F2" },
                         modal: {
                             ondismiss: function() {
-                                window.location.href = "/user/paymentfailedpage"
+                                const orderId = encodeURIComponent(data.razorpayOrder.id);
+                                errorMessage = "payment Cancelled"
+                                window.location.href = `/user/paymentfailedpage?reason=${errorMessage}&orderId=${orderId}`;
+                                // window.location.href = "/user/paymentfailedpage"
                             }
                         }
                     };

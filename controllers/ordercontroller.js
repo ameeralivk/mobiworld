@@ -346,6 +346,15 @@ const cancelorder = async (req, res) => {
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
+        const alreadyCancelledItems = order.orderedItems
+        .filter(item => items.includes(item.product?._id?.toString()) && item.cancelledStatus === "Cancelled")
+        .map(item => item.product.productName);
+
+        if (alreadyCancelledItems.length > 0) {
+            return res.status(400).json({ 
+                message: `Item(s) already cancelled: ${alreadyCancelledItems.join(', ')}` 
+            });
+        }
 
         let refundAmount = 0;
 

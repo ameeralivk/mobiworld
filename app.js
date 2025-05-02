@@ -11,6 +11,7 @@ const session = require('express-session')
 const passport =require('./config/passport')
 const nocache = require('nocache')
 const axios = require('axios')
+require('./cron/deleteOldFailedOrders');
 dotenv.config()
 db()
 const RAZORPAYX_URL = "https://api.razorpay.com/v1";
