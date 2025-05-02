@@ -341,7 +341,7 @@ const SalesReport = async (req, res) => {
             });
 
             // Apply your exact logic here:
-            if (order.status !== "Returned" && order.status !== "Cancelled") {
+            if (order.status !== "Returned" && order.status !== "Cancelled" && order.status !== "Failed") {
                 totalSales += (order.totalPrice || 0) - ((order.discount || 0) + (order.couponDiscount || 0)) - (order.returnAmound || 0);
             }
         });
@@ -1046,7 +1046,7 @@ const getChartData = async (req, res) => {
     try {
       const orders = await orderschema.find({
         createdOn: { $gte: startDate, $lte: endDate },
-        status: { $ne: 'Cancelled' },
+        status: { $nin: ['Cancelled', 'Failed'] }
       })
         .populate('userId')
         .populate({

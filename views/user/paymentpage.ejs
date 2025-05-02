@@ -237,7 +237,9 @@
                     rzp.on('payment.failed', function (response) {
                         console.error("Payment Failed:", response.error);
                         const errorMessage = encodeURIComponent(response.error.description);
-                        window.location.href = "/user/paymentfailedpage?reason="+errorMessage;  // Your custom failure page
+                        const orderId = encodeURIComponent(data.razorpayOrder.id);
+                        // window.location.href = "/user/paymentfailedpage?reason="+errorMessage;
+                        window.location.href = `/user/paymentfailedpage?reason=${errorMessage}&orderId=${orderId}`;  // Your custom failure page
                     });
                     rzp.open();
                 } catch (error) {

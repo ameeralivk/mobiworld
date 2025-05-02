@@ -64,7 +64,11 @@ const addproduct = async (req,res)=>{
             const imagePaths = req.files.map(file=>`/cardimages/${file.filename}`)
             const categ = await category.findOne({name:req.body.category})
             const brand = await brandschema.findOne({brandName:req.body.brand})
-            const findProduct = await product.findOne({productName:req.body.productName.trim()})
+            // const findProduct = await product.findOne({productName:req.body.productName.trim()})
+            const findProduct = await product.findOne({
+               productName: { $regex: new RegExp(req.body.productName.trim(), "i") }
+           });
+                 
             if(findProduct){
                const prod = await Product.find({})
                const brand = await brandschema.find({})
@@ -84,6 +88,7 @@ const addproduct = async (req,res)=>{
                   category:categ._id,
                 });
                 newProduct.save()
+                req.session.msg = "product added successfully"
                 res.redirect('product')
             }
            }

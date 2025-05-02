@@ -50,8 +50,8 @@ router.get('/getwishlist',userAuth,homecontroller.getwishlist)
 router.post('/create-razorpay-order',homecontroller.createRazorpayOrder)
 router.post('/verify-payment',homecontroller.verifypayment)
 router.get('/paymentfailedpage',userAuth,homecontroller.paymentfailedpage)
-
-
+router.get('/retry-payment/:orderId',userAuth,homecontroller.retryPayment)
+router.post('/retry-verify-payment',userAuth,homecontroller.retryverify)
 //order
 router.get('/order',userAuth,homecontroller.orderpage)
 router.get('/pagination/:id',homecontroller.pagination)

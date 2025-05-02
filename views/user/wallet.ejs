@@ -271,10 +271,10 @@ function showOrderModal(orderId) {
                                         </div>
                                         <div class="col-7">
                                             <p class="mb-0 fw-bold">${item.product.productName}</p>
-                                            <small class="text-muted">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                                            <small class="text-muted">${item.quantity} x ₹${item.price.toLocaleString('en-IN')}</small>
                                         </div>
                                         <div class="col-3 text-end">
-                                            <p class="mb-0 fw-bold">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                                            <p class="mb-0 fw-bold">₹${(item.quantity * item.price).toLocaleString('en-IN')}</p>
                                         </div>
                                     </div>
                                 </div>

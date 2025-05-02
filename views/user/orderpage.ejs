@@ -14,6 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="\css\order.css">
     <link rel="stylesheet" href="\css\profilepage.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body>
@@ -216,12 +217,20 @@
                                  } 
                                 let isDisabled = (order.status === "Delivered" || order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Shipped" || order.status === "Cancelled" || item.cancelledStatus === "Cancelled") ? 'disabled' : '';
 
-                                cancell = `<button type="button"
-                                class="btn btn-danger btn-sm "
-                                 onclick="cancelorder('${order.orderId}','${item.product._id}')"
-                               ${isDisabled}>
-                                 Cancel Order
-                                </button>`;
+                                if (order.status === "Failed") {
+                                    cancell = `<button type="button"
+                                        class="btn btn-warning btn-sm retry-payment"
+                                        onclick="retryPayment('${order._id}')">
+                                        Retry Payment
+                                    </button>`;
+                                } else {
+                                    cancell = `<button type="button"
+                                        class="btn btn-danger btn-sm"
+                                        onclick="cancelorder('${order.orderId}','${item.product._id}')"
+                                        ${isDisabled}>
+                                        Cancel Order
+                                    </button>`;
+                                }
                 
                                 orderRow.innerHTML = `
                                 <!-- Close Button -->
@@ -413,10 +422,10 @@ function modalopen(id) {
                             </div>
                             <div class="col-7">
                                 <p class="mb-0 fw-bold text-white">${item.product.productName}</p>
-                                <small class="text-white">${item.quantity} x ₹${item.product.salePrice.toLocaleString('en-IN')}</small>
+                                <small class="text-white">${item.quantity} x ₹${item.price.toLocaleString('en-IN')}</small>
                             </div>
                             <div class="col-3 text-end">
-                                <p class="mb-0 fw-bold text-white d-flex">₹${(item.quantity * item.product.salePrice).toLocaleString('en-IN')}</p>
+                                <p class="mb-0 fw-bold text-white d-flex">₹${(item.quantity * item.price).toLocaleString('en-IN')}</p>
                             </div>
                         </div>
                     </div>
@@ -604,6 +613,60 @@ function modalopen(id) {
                     showOrderModal(orderId);
                 });
             });
+
+
+            async function retryPayment(orderId) {
+                    try {
+                        console.log(orderId)
+                        const res = await fetch(`/user/retry-payment/${orderId}`);
+                        const data = await res.json();
+
+                        if (!data.razorpayOrder) {
+                            alert("Retry not possible for this order.");
+                            return;
+                        }
+
+                        const options = {
+                            key: data.secretekey,
+                            amount: data.razorpayOrder.amount,
+                            currency: "INR",
+                            order_id: data.razorpayOrder.id,
+                            name: "Your Store",
+                            description: "Retry Payment",
+                            handler: async function (response) {
+                                console.log(response,'response')
+                                console.log('hidsafdas')
+                                await fetch("/user/retry-verify-payment", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                    }),
+                                });
+                                window.location.href = "/user/paymentsuccesspage";
+                            },
+                            modal: {
+                                ondismiss: function () {
+                                    window.location.href = "/user/paymentfailedpage";
+                                }
+                            },
+                            theme: { color: "#F37254" }
+                        };
+
+                        const rzp = new Razorpay(options);
+                        rzp.open();
+
+                    } catch (error) {
+                        console.error("Retry Payment Error:", error);
+                        alert("Something went wrong during retry.");
+                    }
+}
+
+
+
+
         </script>
 </body>
 

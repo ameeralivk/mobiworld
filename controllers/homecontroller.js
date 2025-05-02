@@ -2488,11 +2488,54 @@ const verifypayment = async (req, res) => {
 
 const paymentfailedpage = async (req, res) => {
   try {
-    console.log(req.query.reason)
-    const reason = req.query.reason
-    res.render('paymentfailedpage',{reason})
+    const { reason, orderId } = req.query;
+    const user = req.session.User;
+    const orderDetails = req.session.orderdetails;
+
+    if (!orderDetails) {
+      return res.render("paymentfailedpage", { reason: "Session expired. Cannot create failed order." });
+    }
+    // Prevent duplicate order creation
+    const existingOrder = await orderSchema.findOne({ razorpayOrderId: orderId });
+    if (!existingOrder) {
+      const addressId = new mongoose.Types.ObjectId(req.session.address);
+      const address = await addressSchema.Address.findOne({ 'address._id': addressId });
+
+      const failedOrder = new orderSchema({
+        razorpayOrderId: orderId,
+        userId: orderDetails.userId,
+        discount: req.session.offerprice,
+        paymentMethod: 'Online Payment',
+        totalGST: orderDetails.totalGST,
+        orderedItems: await Promise.all(orderDetails.orderedItems.map(async (item) => {
+          const productDoc = await Product.findById(item.product._id || item.product);
+          const bestOffer = await getBestOfferForProducts(productDoc);
+          return {
+            product: productDoc._id,
+            quantity: item.quantity,
+            price: item.price,
+            bestOffer: bestOffer || 0
+          };
+        })),
+        totalPrice: orderDetails.amount,
+        finalAmount: orderDetails.amount,
+        address: address.address[0],
+        status: "Failed",
+        invoiceDate: new Date(),
+        couponApplied: req.session.appliedCoupon?.couponDiscount > 0,
+        couponDiscount: req.session.appliedCoupon?.couponDiscount || 0,
+        couponId: req.session.appliedCoupon?.couponId,
+      });
+
+      await failedOrder.save();
+      await cartSchema.deleteOne({ userId: orderDetails.userId });
+    }
+
+    res.render('paymentfailedpage', { reason, orderId });
+
   } catch (error) {
-    console.error('error from homecontroler', error)
+    console.error('Error in paymentfailedpage controller:', error);
+    res.status(500).send("Something went wrong");
   }
 }
 
@@ -2835,6 +2878,81 @@ const aboutUs = async(req,res)=>{
   }
 }
 
+
+
+const retryPayment = async (req, res) => {
+  try {
+    console.log('hidsafdsafas')
+    const { orderId } = req.params;
+    console.log(orderId,'orderid')
+    const order = await orderSchema.findById(orderId);
+    console.log(order,'order')
+    if (!order || order.status !== "Failed") {
+      return res.status(400).send("Invalid or non-retryable order");
+    }
+
+    const options = {
+      amount: (order.finalAmount - order.discount - order.couponDiscount) * 100, // convert to paise
+      currency: "INR",
+      receipt: `retry_order_${Date.now()}`,
+      payment_capture: 1,
+    };
+
+    const razorpayOrder = await razorpay.orders.create(options);
+    console.log(razorpayOrder,'razorpay order')
+    // Update Razorpay ID in DB
+    order.razorpayOrderId = razorpayOrder.id;
+    await order.save();
+
+    // Store this in session so we can use it in verify-payment
+    req.session.orderdetails = {
+      orderId: razorpayOrder.id,
+      amount: order.finalAmount,
+      userId: order.userId,
+      orderedItems: order.orderedItems,
+      totalGST: order.totalGST,
+    };
+    req.session.razorpayid = razorpayOrder.id
+     console.log(razorpayOrder,process.env.RAZORPAYX_KEY_ID)
+    // Redirect or return the order
+    res.json({ razorpayOrder, secretekey: process.env.RAZORPAYX_KEY_ID });
+
+  } catch (error) {
+    console.error("Retry payment error:", error);
+    res.status(500).send("Error retrying payment");
+  }
+};
+
+
+const retryverify = async(req,res)=>{
+  try {
+    const { razorpay_order_id } = req.body;
+    const order = await orderSchema.findOne({ razorpayOrderId: razorpay_order_id });
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    if (order.status !== "Failed") {
+      return res.status(400).json({ message: "Order is not eligible for retry verification" });
+    }
+    order.status = "Pending";
+    for (const item of order.orderedItems) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.quantity -= item.quantity;
+        await product.save();
+      }
+    }
+
+    await order.save();
+    res.status(200).json({ message: "Order updated to Pending and stock adjusted" });
+
+  } catch (error) {
+    console.error("Error from retryverify:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+
 module.exports = {
   getproductmainpage,
   getfilterpage,
@@ -2873,4 +2991,6 @@ module.exports = {
   toggleWishlist,
   removeFromWishlist,
   aboutUs,
+  retryPayment,
+  retryverify,
 }
