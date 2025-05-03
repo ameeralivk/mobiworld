@@ -42,7 +42,11 @@ const addcategorypage = async(req,res)=>{
 const addcategory = async(req,res)=>{
     const {category,description} = req.body
    try {
-     const duplicate = await Category.findOne({name:category})
+    //  const duplicate = await Category.findOne({name:category})
+      const duplicate = await Category.findOne({
+        name: { $regex: `^${category}$`, $options: "i" },
+      });
+      
         if(duplicate){
             req.session.msg = 'No duplicate Category is allowed'
             res.redirect("/admin/Category")

@@ -11,9 +11,62 @@ const categories = require('../models/categorySchema')
 const brandschema =require('../models/brandSchema')
 const wishlistSchema = require('../models/wishlistSchema')
 const walletSchema = require('../models/walletSchem')
+const mongoose = require('mongoose')
+const offerschema = require('../models/offerSchema')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
+
+const getBestOfferForProduct = async (product) => {
+  // if (!product.category && !product.brand) return null;
+  if (!product || (!product.category && !product.brand)) return null;
+  const filterConditions = [];
+
+  if (product.category != null) {
+    filterConditions.push({ categoryId: new mongoose.Types.ObjectId(product.category) });
+  }
+  if (product.brand != null) {
+    filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+  }
+  if (product._id != null) {
+    filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
+  }
+  console.log(filterConditions, 'filtercondition')
+  const offers = await offerschema.find({
+    $or: filterConditions,
+    status: true,
+    startDate: { $lte: new Date().setHours(0, 0, 0, 0) }, 
+    expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) }  
+  });
+  
+  console.log(offers, 'offers')
+  if (!offers || offers.length === 0) return null; // No offers available
+
+  let bestOffer = null;
+  let maxDiscountValue = 0;
+
+  offers.forEach((offer) => {
+    let discountValue =
+      offer.discountType === "percentage"
+        ? (offer.discountValue / 100) * product.salePrice
+        : offer.discountValue;
+
+    if (offer.maxDiscount) {
+      discountValue = Math.min(discountValue, offer.maxDiscount);
+    }
+
+    if (discountValue > maxDiscountValue) {
+      maxDiscountValue = discountValue;
+      bestOffer = offer;
+    }
+  });
+  if (bestOffer && bestOffer.maxDiscount > product.salePrice * 0.25) {
+    bestOffer.discountValue = product.salePrice * 0.25; 
+    bestOffer.maxDiscount = product.salePrice * 0.25;  
+  }
+  return bestOffer;
+};
+
 const passresetpage = async (req,res)=>{
     if(req.session.message){
         const message = req.session.message
@@ -400,6 +453,7 @@ const register = async(req,res)=>{
     else{
         const otp = generateotp()
         const emailsent = await sendVerificationEmail(email,otp)
+        console.log(emailsent,'sent emails')
         if(!emailsent){
             return res.json("email error")
         }
@@ -433,6 +487,7 @@ const verifyOtp = async (req,res)=>{
                     referalCode: referralCode,
                 })
                await newUser.save()
+               console.log(req.session.referrerId,'idasfdsafa')
                if (req.session.referrerId) {
                 const referrer = await userschema.findById(req.session.referrerId);
                 if (referrer) {
@@ -446,7 +501,18 @@ const verifyOtp = async (req,res)=>{
                         wallet.calculateWalletTotal()
                         console.log(wallet.WalletTotal,'wallettotal')
                         await wallet.save();
-                    } 
+                    }else {
+                        const newReferrerWallet = new walletSchema({
+                            userId: referrer._id,
+                            transaction: [{
+                                Total: 500,
+                                Type: "Credit",
+                                description: "Referral Amount"
+                            }]
+                        });
+                        newReferrerWallet.calculateWalletTotal();
+                        await newReferrerWallet.save();
+                    }
                     const newWallet = new walletSchema({
                         userId: newUser._id,
                         transaction:[{
@@ -535,44 +601,108 @@ const logout = async (req,res)=>{
 //         res.status(500).send("Something went wrong");
 //     }
 // }
+// const shoppage = async (req, res) => {
+//     const user = req.session.User;
+//     try {
+//         const category = await brandschema.find({});
+
+//         const page = parseInt(req.query.page) || 1;
+//         const limit = 9;
+//         const skip = (page - 1) * limit;
+//         let products = await productSchema.find({ isDeleted: false, isBlocked: false })
+//             .populate('brand')
+//             .populate('category')
+//             .sort({ createdAt: -1 });
+//         products = products.filter(product => {
+//             return product.brand && !product.brand.isDeleted &&
+//                    product.category && !product.category.isDeleted;
+//         });
+
+//         const totalProducts = products.length;
+
+       
+//         const paginatedProducts = products.slice(skip, skip + limit);
+
+//         let wishlistProductIds = [];
+
+//         if (user) {
+//             const wishlist = await wishlistSchema
+//                 .findOne({ userId: user._id })
+//                 .populate("Products.productId");
+
+//             wishlistProductIds = wishlist
+//                 ? wishlist.Products.map(item => item.productId._id.toString())
+//                 : [];
+//         }
+
+//         const totalPages = Math.ceil(totalProducts / limit);
+
+//         return res.render('shoppage', {
+//             product: paginatedProducts,
+//             category,
+//             count: totalProducts,
+//             wishlistProductIds,
+//             selectedSort: '',
+//             selectedCategory: '',
+//             selectedPriceFrom: '',
+//             selectedPriceTo: '',
+//             currentPage: page,
+//             totalPages
+//         });
+
+//     } catch (error) {
+//         console.error('error from usercontroller', error);
+//         res.status(500).send("Something went wrong");
+//     }
+// }
+
 const shoppage = async (req, res) => {
     const user = req.session.User;
     try {
         const category = await brandschema.find({});
-
         const page = parseInt(req.query.page) || 1;
         const limit = 9;
         const skip = (page - 1) * limit;
+
         let products = await productSchema.find({ isDeleted: false, isBlocked: false })
             .populate('brand')
             .populate('category')
             .sort({ createdAt: -1 });
-        products = products.filter(product => {
-            return product.brand && !product.brand.isDeleted &&
-                   product.category && !product.category.isDeleted;
-        });
+
+        products = products.filter(p => p.brand && !p.brand.isDeleted && p.category && !p.category.isDeleted);
 
         const totalProducts = products.length;
+        const paginated = products.slice(skip, skip + limit);
 
-       
-        const paginatedProducts = products.slice(skip, skip + limit);
+        // Enhance products with offers
+        const enhancedProducts = await Promise.all(
+            paginated.map(async (p) => {
+                const offer = await getBestOfferForProduct(p);
+                let discount = 0;
+                if (offer) {
+                    discount = offer.discountType === "percentage"
+                        ? (offer.discountValue / 100) * p.salePrice
+                        : offer.discountValue;
 
+                    if (offer.maxDiscount) discount = Math.min(discount, offer.maxDiscount);
+                }
+                return {
+                    ...p.toObject(),
+                    bestOffer: offer,
+                    finalPrice: p.salePrice - discount
+                };
+            })
+        );
+
+        // Wishlist
         let wishlistProductIds = [];
-
         if (user) {
-            const wishlist = await wishlistSchema
-                .findOne({ userId: user._id })
-                .populate("Products.productId");
-
-            wishlistProductIds = wishlist
-                ? wishlist.Products.map(item => item.productId._id.toString())
-                : [];
+            const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+            wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
         }
 
-        const totalPages = Math.ceil(totalProducts / limit);
-
-        return res.render('shoppage', {
-            product: paginatedProducts,
+        res.render("shoppage", {
+            product: enhancedProducts,
             category,
             count: totalProducts,
             wishlistProductIds,
@@ -581,14 +711,15 @@ const shoppage = async (req, res) => {
             selectedPriceFrom: '',
             selectedPriceTo: '',
             currentPage: page,
-            totalPages
+            totalPages: Math.ceil(totalProducts / limit)
         });
 
     } catch (error) {
-        console.error('error from usercontroller', error);
+        console.error("error from usercontroller", error);
         res.status(500).send("Something went wrong");
     }
-}
+};
+
 
 
 

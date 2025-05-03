@@ -8,7 +8,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>MOBIWORLD</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="\css\shoppage_header.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -38,6 +38,7 @@
       <!-- Sidebar with Categories & Filters -->
       <div class="col-lg-3 mb-4">
         <form id="filterForm" action="/user/getfilterpage" method="GET">
+          <input type="hidden" name="search" id="leftSearch" value="<%=locals.search %>">
           <!-- Sorting -->
           <div class="sidebar">
             <div class="categories">
@@ -92,23 +93,40 @@
           <% product.forEach(function(product) { %>
             <div class="col-md-4 mb-4">
               <a href="/user/productmainpage/<%= product._id %>" style="text-decoration: none;">
-                <div class="product-card">
+                <div class="product-card position-relative">
+                  
+                  <!-- Offer Badge -->
+                  <% if (product.bestOffer) { %>
+                    <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+                      <% if (product.bestOffer.discountType === 'percentage') { %>
+                        <%= product.bestOffer.discountValue %>% OFF
+                      <% } else { %>
+                        ₹<%= product.bestOffer.discountValue %> OFF
+                      <% } %>
+                    </span>
+                  <% } %>
+            
                   <div class="product-image">
-                    <img src="<%= product.productImage[0] %>" alt="iPhone 14 5G" class="img-fluid">
+                    <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="img-fluid">
                   </div>
                   <div class="product-info">
                     <div class="star-rating">
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star-fill"></i>
-                      <i class="bi bi-star star-empty"></i>
                       <i onclick="toggleWishlist(event, this, '<%= product._id %>')" 
-                        class="bi <%= wishlistProductIds.includes(product._id.toString()) ? 'bi-heart-fill text-primary' : 'bi-heart text-muted' %> fs-6 d-flex justify-content-end">
-                     </i>
+                         class="bi <%= wishlistProductIds.includes(product._id.toString()) ? 'bi-heart-fill text-primary' : 'bi-heart text-muted' %> fs-6 d-flex justify-content-end">
+                      </i>
                     </div>
                     <h3 class="product-title"><%= product.productName %></h3>
-                    <p class="product-price">₹<%= product.salePrice %></p>
+                    
+                    <!-- Price Display -->
+                    <p class="product-price mb-0">
+                      <% if (product.bestOffer) { %>
+                        <del class="text-muted">₹<%= product.salePrice %></del>
+                        <span class="text-success ms-2 fw-bold">₹<%= product.finalPrice.toFixed(2) %></span>
+                      <% } else { %>
+                        <span class="fw-bold">₹<%= product.salePrice %></span>
+                      <% } %>
+                    </p>
+                    
                   </div>
                 </div>
               </a>
@@ -150,6 +168,8 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
  
   <script>
+
+    document.getElementById("searchval").value=document.getElementById("leftSearch").value
    async function toggleWishlist(event,icon,productId){
          event.preventDefault();
          try {
@@ -188,30 +208,46 @@
       document.getElementById('filterForm').reset();
       window.location.href = '/user/getfilterpage';
     }
-      document.getElementById('searchicon').addEventListener('click',function(){
-        console.log('hi')
-        const searchdata = document.getElementById('searchval').value
-        searchproduct(searchdata)
 
-
-        async function searchproduct(searchdata) {
-             fetch(`searchmain/search?query=${searchdata}`,{
-                method:'GET',
-                headers: {
-                         'Content-Type': 'application/json',
-                         },
-
-             })
-             .then(response=>response.json())
-             .then(data=>{
-                if(data.success){
-                    console.log(data)
-                    updateproductlist(data.products)
-                }
-             })
-
-        }
+    document.getElementById('searchval').addEventListener("input",function(){
+      document.getElementById("leftSearch").value=this.value
     })
+
+    document.getElementById('searchicon').addEventListener('click',function(){
+      document.getElementById("filterForm").submit()
+    })
+
+    document.getElementById('searchval').addEventListener("keydown",function (e){
+    if(e.key=="Enter"){
+
+      document.getElementById("filterForm").submit()
+    }
+    })
+
+    // document.getElementById('searchicon').addEventListener('click',function(){
+    //     const searchdata = document.getElementById('searchval').value
+    //     console.log('hi')
+    //     searchproduct(searchdata)
+
+
+    //     async function searchproduct(searchdata) {
+    //          fetch(`searchmain/search?query=${searchdata}`,{
+    //             method:'GET',
+    //             headers: {
+    //                      'Content-Type': 'application/json',
+    //                      },
+
+    //          })
+    //          .then(response=>response.json())
+    //          .then(data=>{
+    //             if(data.success){
+    //                 console.log(data)
+    //                 updateproductlist(data.products)
+    //             }
+    //          })
+
+    //     }
+    // })
     function updateproductlist (products){
       const productList = document.getElementById('product-list');
       productList.innerText = ''

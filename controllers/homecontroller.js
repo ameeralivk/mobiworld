@@ -137,7 +137,9 @@ const getTotalOffers = async (product) => {
   });
 
   if (!bestOffer) return 0;
-
+  if (maxDiscountValue && maxDiscountValue > product.salePrice * 0.25) {
+    maxDiscountValue = product.salePrice * 0.25 
+  } 
   console.log(bestOffer, "Selected Offer");
   console.log(maxDiscountValue, "Final Discount Value");
 
@@ -159,7 +161,7 @@ const getBestOfferForProduct = async (product) => {
   if (product._id != null) {
     filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
   }
-  console.log(filterConditions, 'filtercondition')
+  console.log(filterConditions, 'filtercondition') 
   const offers = await offerschema.find({
     $or: filterConditions,
     status: true,
@@ -184,12 +186,19 @@ const getBestOfferForProduct = async (product) => {
     }
 
     if (discountValue > maxDiscountValue) {
-      maxDiscountValue = discountValue;
+      maxDiscountValue = discountValue; 
       bestOffer = offer;
     }
   });
-  return bestOffer;
-};
+  if (
+    bestOffer &&
+    (bestOffer.maxDiscount > product.salePrice * 0.25 || bestOffer.discountValue > product.salePrice * 0.25)
+  ) {
+    bestOffer.discountValue = product.salePrice * 0.25;
+    bestOffer.maxDiscount = product.salePrice * 0.25;
+  }
+  return bestOffer;  
+}; 
 
 
 
@@ -250,6 +259,7 @@ const getBestOfferForProduct = async (product) => {
 
 const getfilterpage = async (req, res) => {
   const user = req.session.User;
+  let search=''
 
   try {
     if (!user) {
@@ -257,11 +267,14 @@ const getfilterpage = async (req, res) => {
       return res.redirect('/login');
     }
 
-    const { sort, category, priceFrom, priceTo, page = 1, limit = 6 } = req.query; // Default page=1, limit=6
+    const { sort, category, priceFrom, priceTo, page = 1, limit = 6,search } = req.query; // Default page=1, limit=6
 
     const categories = await brandschema.find({});
     let filter = {};
 
+    if (search) {
+      filter.productName = { $regex: search, $options: "i" }; // case-insensitive match
+    }
     // Brand filter
     if (category) {
       const cat = await brandschema.findOne({ brandName: category });
@@ -314,7 +327,8 @@ const getfilterpage = async (req, res) => {
       selectedPriceFrom: priceFrom || '',
       selectedPriceTo: priceTo || '',
       currentPage: parseInt(page),
-      totalPages
+      totalPages,
+      search
     });
 
   } catch (error) {
@@ -730,12 +744,13 @@ const deleteaddress = async (req, res) => {
               if (parsedQuantity > product.quantity) {
                 return res.status(400).json({ errormessage: 'Out of Stock' });
               }
+              console.log(bestOffer,'ameer bestoffer')
               const bestOffer = await getBestOfferForProducts(product);
               cart = new cartSchema({
                 userId: user._id,
                 items: [{
                   productId: product._id,
-                  quantity: parsedQuantity,
+                  quantity: parsedQuantity, 
                   price: product.salePrice,
                   gstPercentage: product.Tax,
                   totalPriceWithGST: (product.salePrice * parsedQuantity) + (product.salePrice * parsedQuantity * product.Tax / 100),
@@ -1098,13 +1113,10 @@ const getcart = async (req, res) => {
 
     const products = await Product.find({ _id: { $in: items } });
     const populatedCart = await cartSchema.findOne({ userId: user._id }).populate('items.productId');
-    // 🧠 Build a map of productId to quantity
     const productQuantityMap = new Map();
     isexist.items.forEach(item => {
       productQuantityMap.set(item.productId.toString(), item.quantity);
     });
-
-    // 💰 Offer logic
     const offerPrices = async (products, productQuantityMap) => {
       const discounts = await Promise.all(products.map(getTotalOffers));
 
@@ -2312,6 +2324,10 @@ const getBestOfferForProducts = async (product) => {
       bestOffer = discountValue;
     }
   });
+  if (bestOffer && bestOffer > product.salePrice * 0.25) {
+    bestOffer = product.salePrice * 0.25; 
+    bestOffer = product.salePrice * 0.25; 
+  }
   console.log(bestOffer,'bestOffer')
   return bestOffer || null;
 };

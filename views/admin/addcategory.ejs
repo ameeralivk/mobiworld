@@ -45,6 +45,12 @@
     const description = document.getElementById('description').value
     console.log(category)
     console.log(description)
+    const isValidName = /^[A-Za-z\s\-]+$/.test(category);
+    if(!isValidName){
+      event.preventDefault()
+      document.getElementById('categoryerror').innerText = "Category name can only contain letters, spaces, and hyphens."
+      document.getElementById('categoryerror').style.display = "block"
+    }
     if(category.trim() == '' || description.trim() == ''){
       if(category.trim() == ''){
       event.preventDefault()

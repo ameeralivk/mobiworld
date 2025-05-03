@@ -52,6 +52,15 @@ const User = require('../models/user');
 const dotenv = require('dotenv');
 dotenv.config();
 
+function generateReferralCode(length = 8) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -67,11 +76,13 @@ passport.use(new GoogleStrategy({
       }
       return done(null, user);
     } else {
+      const referralCode = generateReferralCode();
       user = new User({
         name: profile.displayName,
         email: profile.emails[0].value,
         googleId: googleId,
         isGoogleUser:true,
+        referalCode:referralCode,
       });
       await user.save();
       return done(null, user);
