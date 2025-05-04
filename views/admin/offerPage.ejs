@@ -135,7 +135,7 @@
 
                             <!-- Max Discount -->
                             <div class="mb-3">
-                                <label for="maxDiscount" class="form-label text-white">Max Discount (Optional):</label>
+                                <label id="max" for="maxDiscount" class="form-label text-white">Max Discount (Optional):</label>
                                 <input type="number" class="form-control bg-dark text-white" name="maxDiscount"
                                     id="maxDiscount">
                             </div>
@@ -290,7 +290,27 @@
             
                     async function openEditModal(button) {
                             const offerId = button.getAttribute('data-id');
+                            const discountType = document.getElementById('discountType')
+                            const max = document.getElementById('max')
+                            const maxDiscount = document.getElementById("maxDiscount");
+                            function toggleMaxDiscount(type) {
+                                    if (type === 'fixed') {
+                                        maxDiscount.style.display = 'none';
+                                        maxDiscount.value = 0
+                                        max.style.display = 'none'; 
+                                    } else if (type === 'percentage') {
+                                        maxDiscount.style.display = 'block';
+                                        max.style.display = 'block'; 
+                                    } else {
+                                        maxDiscount.style.display = 'block';
+                                        max.style.display = 'block'; 
+                                    }
+                                }
 
+                                // Run on discount type change (for Add form)
+                                discountType.addEventListener('change', function () {
+                                    toggleMaxDiscount(this.value);
+                                });
                             try {
                             const response = await fetch(`/admin/getOffer/${offerId}`);
                             const offer = await response.json();
@@ -306,7 +326,8 @@
                             document.getElementById('startDate').value = offer.startDate?.split('T')[0] || '';
                             document.getElementById('expiredOn').value = offer.expiredOn?.split('T')[0] || '';
                             document.getElementById('offerid').value = offerId
-
+                         
+                            toggleMaxDiscount(offer.discountType);
                             // Show/hide related fields
                             document.getElementById('categorySelect').style.display = 'none';
                             document.getElementById('brandSelect').style.display = 'none';
@@ -353,7 +374,16 @@
                 const maxDiscount = document.getElementById("maxDiscount");
                 const expiredOn = document.getElementById("expiredOn");
                 const discountType = document.getElementById('discountType')
-
+                const max = document.getElementById('max')
+                discountType.addEventListener('change', function () {
+                    if (this.value === 'fixed') {
+                        maxDiscount.style.display = 'none';
+                        max.style.display = "none"
+                    } else {
+                        maxDiscount.style.display = 'block';
+                        max.style.display = "block"
+                    }
+                });
                 // Show/hide category or brand dropdown based on offerType
                 offerType.addEventListener("change", function () {
                     if (offerType.value === "category") {
@@ -413,10 +443,10 @@
                     }
 
                     // Validate Max Discount (if entered)
-                    if (maxDiscount.value.trim() === "") {
+                    if (maxDiscount.value.trim() === "" && discountType === "Percentage") {
                         errorMessage += "<li>Max Discount is required.</li>";
                         isValid = false;
-                    } else if (parseFloat(maxDiscount.value) <= 0) {
+                    } else if (parseFloat(maxDiscount.value) <= 0 && discountType === "Percentage") {
                         errorMessage += "<li>Max Discount must be a positive number.</li>";
                         isValid = false;
                     }

@@ -98,7 +98,9 @@
                   <!-- Offer Badge -->
                   <% if (product.bestOffer) { %>
                     <span class="badge bg-danger position-absolute top-0 start-0 m-2">
-                      <% if (product.bestOffer.discountType === 'percentage') { %>
+                      <% if (product.bestOffer.discountType === 'percentage' && product.bestOffer.discountValue >= 100){%>
+                        <%= product.bestOffer.discountValue %> OFF
+                      <% } else if (product.bestOffer.discountType === 'percentage') { %>
                         <%= product.bestOffer.discountValue %>% OFF
                       <% } else { %>
                         ₹<%= product.bestOffer.discountValue %> OFF

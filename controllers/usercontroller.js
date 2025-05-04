@@ -64,6 +64,7 @@ const getBestOfferForProduct = async (product) => {
     bestOffer.discountValue = product.salePrice * 0.25; 
     bestOffer.maxDiscount = product.salePrice * 0.25;  
   }
+  console.log("best",bestOffer)
   return bestOffer;
 };
 
@@ -679,6 +680,7 @@ const shoppage = async (req, res) => {
             paginated.map(async (p) => {
                 const offer = await getBestOfferForProduct(p);
                 let discount = 0;
+                console.log(offer,'offer1')
                 if (offer) {
                     discount = offer.discountType === "percentage"
                         ? (offer.discountValue / 100) * p.salePrice
@@ -686,6 +688,7 @@ const shoppage = async (req, res) => {
 
                     if (offer.maxDiscount) discount = Math.min(discount, offer.maxDiscount);
                 }
+                console.log(offer,'offere amerear')
                 return {
                     ...p.toObject(),
                     bestOffer: offer,

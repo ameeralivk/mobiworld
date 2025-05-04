@@ -10,7 +10,7 @@ const offersPage = async(req,res)=>{
     const categories = await categoryschema.find({})
     const brands = await brandSchema.find({})
     const users = await userschema.find({})
-    const products = await productSchema.find({})
+    const products = await productSchema.find({isDeleted:false})
     try {
         const page = parseInt(req.query.page) || 1;  
         const limit = 6; 

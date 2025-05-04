@@ -2757,15 +2757,17 @@ const addOffer = async (req, res) => {
       });
     }
     const cartTotalWithGST = total 
-    const maxAllowedDiscount = Math.min(find.maxDiscount, cartTotalWithGST / 4);
+    const maxAllowedDiscount = Math.min(find.maxDiscount || find.discountValue, cartTotalWithGST / 4);
 
     if (couponDiscount > maxAllowedDiscount) {
       couponDiscount = maxAllowedDiscount;
     }
-    if (couponDiscount > find.maxDiscount) {
-      couponDiscount = find.maxDiscount;
+    // if (couponDiscount > find.maxDiscount) {
+    //   couponDiscount = find.maxDiscount;
+    // }
+    if(couponDiscount > cartTotalWithGST * 0.25){
+      couponDiscount = cartTotalWithGST * 0.25
     }
-
     console.log(couponDiscount, 'discount')
     cart.couponDiscount = couponDiscount
     console.log(req.session.offerprice, '1', couponDiscount, 'coupon discount')
