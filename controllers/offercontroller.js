@@ -81,7 +81,7 @@ const addOffer = async(req,res)=>{
                     brandId: offerType === "brand" ? brandId : null,
                     discountType,
                     discountValue,
-                    maxDiscount: discountType === "percentage" ? maxDiscount : null,
+                    maxDiscount: discountType === "percentage" ? maxDiscount : 0,
                     expiredOn,
                     startDate,
                   });

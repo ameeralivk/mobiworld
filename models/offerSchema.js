@@ -27,6 +27,7 @@ const OfferSchema = new Schema({
     },
     maxDiscount: {
         type: Number,
+        default: 0
     },
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,

@@ -139,6 +139,7 @@ const getTotalOffers = async (product) => {
   if (!bestOffer) return 0;
   if (maxDiscountValue && maxDiscountValue > product.salePrice * 0.25) {
     maxDiscountValue = product.salePrice * 0.25 
+    bestOffer.discountValue = product.salePrice * 0.25
   } 
   console.log(bestOffer, "Selected Offer");
   console.log(maxDiscountValue, "Final Discount Value");
@@ -317,7 +318,7 @@ const getfilterpage = async (req, res) => {
       .sort(sortOption)
       .skip(skip)
       .limit(parseInt(limit));
-
+    const isSearch = true;
     return res.render('shoppage', {
       product: products,
       category: categories,
@@ -328,7 +329,8 @@ const getfilterpage = async (req, res) => {
       selectedPriceTo: priceTo || '',
       currentPage: parseInt(page),
       totalPages,
-      search
+      search,
+      isSearch,
     });
 
   } catch (error) {
@@ -744,7 +746,6 @@ const deleteaddress = async (req, res) => {
               if (parsedQuantity > product.quantity) {
                 return res.status(400).json({ errormessage: 'Out of Stock' });
               }
-              console.log(bestOffer,'ameer bestoffer')
               const bestOffer = await getBestOfferForProducts(product);
               cart = new cartSchema({
                 userId: user._id,
@@ -2717,7 +2718,7 @@ const addOffer = async (req, res) => {
     const total = cart.items.reduce((sum, item) => {
       return sum + item.productId.salePrice * item.quantity;
     }, 0);
-    if (total + cart.totalGST < find.minimumPrice) {
+    if (total  < find.minimumPrice) {
       req.session.message = `Minimum cart value should be ₹${find.minimumPrice}`;
       return res.redirect('/user/getcart');
     }
@@ -2754,6 +2755,12 @@ const addOffer = async (req, res) => {
           couponDiscount += productDiscount * item.quantity;
         }
       });
+    }
+    const cartTotalWithGST = total 
+    const maxAllowedDiscount = Math.min(find.maxDiscount, cartTotalWithGST / 4);
+
+    if (couponDiscount > maxAllowedDiscount) {
+      couponDiscount = maxAllowedDiscount;
     }
     if (couponDiscount > find.maxDiscount) {
       couponDiscount = find.maxDiscount;

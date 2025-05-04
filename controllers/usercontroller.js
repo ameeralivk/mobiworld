@@ -700,7 +700,7 @@ const shoppage = async (req, res) => {
             const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
             wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
         }
-
+       const  isSearch = true;
         res.render("shoppage", {
             product: enhancedProducts,
             category,
@@ -711,7 +711,8 @@ const shoppage = async (req, res) => {
             selectedPriceFrom: '',
             selectedPriceTo: '',
             currentPage: page,
-            totalPages: Math.ceil(totalProducts / limit)
+            totalPages: Math.ceil(totalProducts / limit),
+            isSearch,
         });
 
     } catch (error) {

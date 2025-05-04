@@ -19,11 +19,15 @@
                 <p>MObiWorld</p>
             </a>
           
-            <div class="search-box d-none d-md-block">
-                <input id="searchval" type="text" placeholder="Search">
-                <i class="bi bi-search" id="searchicon"></i>
-            </div>
-            
+            <% if (typeof isSearch !== 'undefined' && isSearch) { %>
+                <div class="search-box d-none d-md-block">
+                  <input id="searchval" type="text" placeholder="Search">
+                  <i class="bi bi-search" id="searchicon"></i>
+                </div>
+              <% } else { %>
+                <!-- Search bar hidden -->
+              <% } %>
+              
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
