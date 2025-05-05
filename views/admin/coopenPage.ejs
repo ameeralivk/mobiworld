@@ -405,52 +405,103 @@
                     });
                 });
          
-            function validateCouponForm(event) {
-                event.preventDefault();
-                const form = document.getElementById('form');
+            // function validateCouponForm(event) {
+            //     event.preventDefault();
+            //     const form = document.getElementById('form');
 
-                const name = document.getElementById("name").value.trim();
-                const discountType = document.getElementById("discountType").value;
-                const discountValue = document.getElementById("discountValue").value;
-                const expiredOn = document.getElementById("expiredOn").value;
-                const minimumPrice = document.getElementById("minimumPrice").value;
-                const maxDiscount = document.getElementById("maxDiscount").value;
-                const appliesTo = document.getElementById("appliesTo").value;
+            //     const name = document.getElementById("name").value.trim();
+            //     const discountType = document.getElementById("discountType").value;
+            //     const discountValue = document.getElementById("discountValue").value;
+            //     const expiredOn = document.getElementById("expiredOn").value;
+            //     const minimumPrice = document.getElementById("minimumPrice").value;
+            //     const maxDiscount = document.getElementById("maxDiscount").value;
+            //     const appliesTo = document.getElementById("appliesTo").value;
 
-                const categoryId = document.getElementById("categoryId");
-                const brandId = document.getElementById("brandId");
-                const productId = document.getElementById("productId");
-
-                const today = new Date().toISOString().split("T")[0];
+            //     const categoryId = document.getElementById("categoryId");
+            //     const brandId = document.getElementById("brandId");
+            //     const productId = document.getElementById("productId");
+              
+            //     const today = new Date().toISOString().split("T")[0];
                 
-                function showError(message) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops!',
-                        text: message,
-                        confirmButtonColor: '#3085d6'
-                    });
-                }
+            //     function showError(message) {
+            //         Swal.fire({
+            //             icon: 'error',
+            //             title: 'Oops!',
+            //             text: message,
+            //             confirmButtonColor: '#3085d6'
+            //         });
+            //     }
 
-                // Validation checks
-                if (name === "") return showError("Coupon name is required.");
-                if (!discountType) return showError("Please select a discount type.");
-                if (discountValue <= 0) return showError("Discount value must be greater than 0.");
-                if (minimumPrice <= 0) return showError("Minimum price must be greater than 0.");
-                if (maxDiscount <= 0 && discountType === "Percentage") return showError("Max discount must be greater than 0.");
-                if (expiredOn < today) return showError("Expiry date must be today or in the future.");
+            //     // Validation checks
+            //     if (name === "") return showError("Coupon name is required.");
+            //     if (!discountType) return showError("Please select a discount type.");
+            //     if (discountValue <= 0) return showError("Discount value must be greater than 0.");
+            //     if (minimumPrice <= 0) return showError("Minimum price must be greater than 0.");
+            //     if (maxDiscount <= 0 && discountType === "Percentage") return showError("Max discount must be greater than 0.");
+            //     if (expiredOn < today) return showError("Expiry date must be today or in the future.");
+            //     if(discountType === "Percentage" && discountValue > 25) return showError('percentage should not be above 25%')
+            //     if(discountValue > minimumPrice && discountType != "Percentage") return showError("Discount cannot be greater than the minimum price.")
+            //     if (appliesTo === "category" && !categoryId.value) return showError("Please select a category.");
+            //     if (appliesTo === "brand" && !brandId.value) return showError("Please select a brand.");
+            //     if (appliesTo === "Product" && !productId.value) return showError("Please select a product.");
 
-                if (appliesTo === "category" && !categoryId.value) return showError("Please select a category.");
-                if (appliesTo === "brand" && !brandId.value) return showError("Please select a brand.");
-                if (appliesTo === "Product" && !productId.value) return showError("Please select a product.");
+            //     // Disable unused fields so they don't get submitted
+            //     if (appliesTo !== "category") categoryId.disabled = true;
+            //     if (appliesTo !== "brand") brandId.disabled = true;
+            //     if (appliesTo !== "Product") productId.disabled = true;
 
-                // Disable unused fields so they don't get submitted
-                if (appliesTo !== "category") categoryId.disabled = true;
-                if (appliesTo !== "brand") brandId.disabled = true;
-                if (appliesTo !== "Product") productId.disabled = true;
+            //     form.submit();
+            // }
 
-                form.submit();
-            }
+                    function validateCouponForm(event) {
+                        event.preventDefault();
+                        const form = document.getElementById('form');
+
+                        const name = document.getElementById("name").value.trim();
+                        const discountType = document.getElementById("discountType").value.toLowerCase();
+                        const discountValue = parseFloat(document.getElementById("discountValue").value);
+                        const expiredOn = document.getElementById("expiredOn").value;
+                        const minimumPrice = parseFloat(document.getElementById("minimumPrice").value);
+                        const maxDiscount = parseFloat(document.getElementById("maxDiscount").value);
+                        const appliesTo = document.getElementById("appliesTo").value.toLowerCase();
+
+                        const categoryId = document.getElementById("categoryId");
+                        const brandId = document.getElementById("brandId");
+                        const productId = document.getElementById("productId");
+
+                        const today = new Date().toISOString().split("T")[0];
+
+                        function showError(message) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops!',
+                                text: message,
+                                confirmButtonColor: '#3085d6'
+                            });
+                        }
+
+                        // Validation checks
+                        if (name === "") return showError("Coupon name is required.");
+                        if (!discountType) return showError("Please select a discount type.");
+                        if (isNaN(discountValue) || discountValue <= 0) return showError("Discount value must be greater than 0.");
+                        if (isNaN(minimumPrice) || minimumPrice <= 0) return showError("Minimum price must be greater than 0.");
+                        if (discountType === "percentage" && (isNaN(maxDiscount) || maxDiscount <= 0)) return showError("Max discount must be greater than 0.");
+                        if (expiredOn < today) return showError("Expiry date must be today or in the future.");
+                        if (discountType === "percentage" && discountValue > 25) return showError("Percentage should not be above 25%.");
+                        if (discountValue > minimumPrice) return showError("Discount cannot be greater than the minimum price.");
+                        if (discountType === "percentage" && maxDiscount > minimumPrice) return showError("Max discount cannot be greater than the minimum price.");
+                        if (appliesTo === "category" && !categoryId.value) return showError("Please select a category.");
+                        if (appliesTo === "brand" && !brandId.value) return showError("Please select a brand.");
+                        if (appliesTo === "product" && !productId.value) return showError("Please select a product.");
+
+                        // Disable unused fields
+                        categoryId.disabled = appliesTo !== "category";
+                        brandId.disabled = appliesTo !== "brand";
+                        productId.disabled = appliesTo !== "product";
+
+                        form.submit();
+                    }
+
 
 
             // Show/hide category/brand fields based on appliesTo selection

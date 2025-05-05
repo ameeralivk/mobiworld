@@ -429,8 +429,8 @@
                         errorMessage += "<li>Please select a Brand.</li>";
                         isValid = false;
                     }
-                    if(discountType.value === "percentage" && parseFloat(discountValue.value.trim()) >= 50){
-                        errorMessage += "<li>Discount percentage must be below 50%.</li>";
+                    if(discountType.value === "percentage" && parseFloat(discountValue.value.trim()) >= 25){
+                        errorMessage += "<li>Discount percentage must be below 25%.</li>";
                         isValid = false;
                     }
                     // Validate Discount Value

@@ -614,7 +614,7 @@ const addCoupon = async (req, res) => {
             discountValue: req.body.discountValue,
             expiredOn: req.body.expiredOn,
             minimumPrice: req.body.minimumPrice,
-            maxDiscount: req.body.maxDiscount,
+            maxDiscount: req.body.maxDiscount || 0,
             categoryId: req.body.categoryId ? req.body.categoryId : null,
             brandId: req.body.brandId ? req.body.brandId : null,
             productId: req.body.productId ? req.body.productId : null,

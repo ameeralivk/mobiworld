@@ -17,56 +17,128 @@ const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
 
-const getBestOfferForProduct = async (product) => {
-  // if (!product.category && !product.brand) return null;
-  if (!product || (!product.category && !product.brand)) return null;
-  const filterConditions = [];
+// const getBestOfferForProduct = async (product) => {
+//   // if (!product.category && !product.brand) return null;
+//   if (!product || (!product.category && !product.brand)) return null;
+//   const filterConditions = [];
 
-  if (product.category != null) {
-    filterConditions.push({ categoryId: new mongoose.Types.ObjectId(product.category) });
-  }
-  if (product.brand != null) {
-    filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
-  }
-  if (product._id != null) {
-    filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
-  }
-  console.log(filterConditions, 'filtercondition')
-  const offers = await offerschema.find({
-    $or: filterConditions,
-    status: true,
-    startDate: { $lte: new Date().setHours(0, 0, 0, 0) }, 
-    expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) }  
-  });
+//   if (product.category != null) {
+//     filterConditions.push({ categoryId: new mongoose.Types.ObjectId(product.category) });
+//   }
+//   if (product.brand != null) {
+//     filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+//   }
+//   if (product._id != null) {
+//     filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
+//   }
+//   console.log(filterConditions, 'filtercondition') 
+//   const offers = await offerschema.find({
+//     $or: filterConditions,
+//     status: true,
+//     startDate: { $lt: new Date().setHours(0, 0, 0, 0) }, 
+//     expiredOn: { $gte: new Date().setHours(0, 0, 0, 0) }  
+//   });
   
-  console.log(offers, 'offers')
-  if (!offers || offers.length === 0) return null; // No offers available
+//   console.log(offers, 'offers')
+//   if (!offers || offers.length === 0) return null; // No offers available
 
-  let bestOffer = null;
-  let maxDiscountValue = 0;
+//   let bestOffer = null;
+//   let maxDiscountValue = 0;
 
-  offers.forEach((offer) => {
-    let discountValue =
-      offer.discountType === "percentage"
+//   offers.forEach((offer) => {
+//     let discountValue =
+//       offer.discountType === "percentage"
+//         ? (offer.discountValue / 100) * product.salePrice
+//         : offer.discountValue;
+
+//     if (offer.maxDiscount) {
+//       discountValue = Math.min(discountValue, offer.maxDiscount);
+//     }
+//     console.log(discountValue,'discountValue')
+//     if (discountValue > maxDiscountValue) {
+//       if(discountValue < product.salePrice * 0.25 ){
+//         maxDiscountValue = discountValue; 
+//         bestOffer = offer;
+//       }
+//       bestOffer = offer
+//     }
+//      if (
+//     bestOffer &&
+//     ( discountValue >= product.salePrice * 0.25)
+//   ) {
+//     bestOffer.discountValue = product.salePrice * 0.25;
+//     bestOffer.maxDiscount = product.salePrice * 0.25;
+//   }
+//   });
+
+//   return bestOffer;  
+// };
+
+const getBestOfferForProduct = async (product) => {
+    if (!product || (!product.category && !product.brand)) return null;
+  
+    const filterConditions = [];
+  
+    if (product.category) {
+      filterConditions.push({ categoryId: new mongoose.Types.ObjectId(product.category) });
+    }
+    if (product.brand) {
+      filterConditions.push({ brandId: new mongoose.Types.ObjectId(product.brand) });
+    }
+    if (product._id) {
+      filterConditions.push({ productId: new mongoose.Types.ObjectId(product._id) });
+    }
+  
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
+  
+    // const offers = await offerschema.find({
+    //   $or: filterConditions,
+    //   status: true,
+    //   startDate: { $lte: today },
+    //   expiredOn: { $gte: today }
+    // });
+     const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+    
+        const endOfDay = new Date();
+        endOfDay.setHours(23, 59, 59, 999);
+    
+      const offers = await offerschema.find({
+        $or: filterConditions,
+        status: true,
+        startDate: { $lte: endOfDay },
+        expiredOn: { $gte: startOfDay },
+      });
+    
+  
+    if (!offers || offers.length === 0) return null;
+  
+    let bestOffer = null;
+    let maxDiscountValue = 0;
+    const maxAllowedDiscount = product.salePrice * 0.25;
+  
+    offers.forEach((offer) => {
+      let discountValue = offer.discountType === "percentage"
         ? (offer.discountValue / 100) * product.salePrice
         : offer.discountValue;
-
-    if (offer.maxDiscount) {
-      discountValue = Math.min(discountValue, offer.maxDiscount);
-    }
-
-    if (discountValue > maxDiscountValue) {
-      maxDiscountValue = discountValue;
-      bestOffer = offer;
-    }
-  });
-  if (bestOffer && bestOffer.maxDiscount > product.salePrice * 0.25) {
-    bestOffer.discountValue = product.salePrice * 0.25; 
-    bestOffer.maxDiscount = product.salePrice * 0.25;  
-  }
-  console.log("best",bestOffer)
-  return bestOffer;
-};
+  
+      if (offer.maxDiscount) {
+        discountValue = Math.min(discountValue, offer.maxDiscount);
+      }
+  
+      // Cap discount at 25% of salePrice
+      const cappedDiscount = Math.min(discountValue, maxAllowedDiscount);
+  
+      if (cappedDiscount > maxDiscountValue) {
+        maxDiscountValue = cappedDiscount;
+        bestOffer = { ...offer.toObject(), discountValue: cappedDiscount, maxDiscount: cappedDiscount };
+      }
+    });
+  
+    return bestOffer;
+  };
+  
 
 const passresetpage = async (req,res)=>{
     if(req.session.message){
