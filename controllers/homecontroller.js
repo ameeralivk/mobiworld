@@ -394,9 +394,91 @@ const getBestOfferForProduct = async (product) => {
 //   }
 // }
 
+// const getfilterpage = async (req, res) => {
+//   const user = req.session.User;
+//   let search=''
+
+//   try {
+//     if (!user) {
+//       req.session.message = "Please Login";
+//       return res.redirect('/login');
+//     }
+
+//     const { sort, category, priceFrom, priceTo, page = 1, limit = 6,search } = req.query; // Default page=1, limit=6
+
+//     const categories = await brandschema.find({});
+//     let filter = {};
+
+//     if (search) {
+//       filter.productName = { $regex: search, $options: "i" }; // case-insensitive match
+//     }
+//     // Brand filter
+//     if (category) {
+//       const cat = await brandschema.findOne({ brandName: category });
+//       if (cat) {
+//         filter.brand = cat._id;
+//       }
+//     }
+
+//     // Price filter
+//     if (priceFrom || priceTo) {
+//       filter.salePrice = {};
+//       if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
+//       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
+//     }
+
+//     // Wishlist
+//     const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
+//     const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
+
+//     // Sorting
+//     let sortOption = {};
+//     if (sort === 'A to Z') sortOption = { productName: 1 };
+//     else if (sort === 'Z to A') sortOption = { productName: -1 };
+//     else if (sort === 'Low To High') sortOption = { salePrice: 1 };
+//     else if (sort === 'High To Low') sortOption = { salePrice: -1 };
+
+//     const skip = (parseInt(page) - 1) * parseInt(limit);
+//     const totalProducts = await Product.countDocuments(filter);
+//     const totalPages = Math.ceil(totalProducts / limit);
+
+//     // const products = await Product.find(filter)
+//     //   .sort(sortOption)
+//     //   .skip(skip)
+//     //   .limit(parseInt(limit));
+//     const products = await Product.find({
+//       ...filter,
+//       isDeleted: false,
+//       isBlocked: false,
+//     })
+//       .sort(sortOption)
+//       .skip(skip)
+//       .limit(parseInt(limit));
+//     const isSearch = true;
+//     return res.render('shoppage', {
+//       product: products,
+//       category: categories,
+//       wishlistProductIds,
+//       selectedSort: sort || '',
+//       selectedCategory: category || '',
+//       selectedPriceFrom: priceFrom || '',
+//       selectedPriceTo: priceTo || '',
+//       currentPage: parseInt(page),
+//       totalPages,
+//       search,
+//       isSearch,
+//     });
+
+//   } catch (error) {
+//     console.error('Error from homecontroller getfilterpage:', error);
+//     return res.status(500).send('Server Error');
+//   }
+// };
+
+
 const getfilterpage = async (req, res) => {
   const user = req.session.User;
-  let search=''
+  let search = '';
 
   try {
     if (!user) {
@@ -404,34 +486,30 @@ const getfilterpage = async (req, res) => {
       return res.redirect('/login');
     }
 
-    const { sort, category, priceFrom, priceTo, page = 1, limit = 6,search } = req.query; // Default page=1, limit=6
+    const { sort, category, priceFrom, priceTo, page = 1, limit = 6, search: searchQuery } = req.query;
+    search = searchQuery;
 
     const categories = await brandschema.find({});
-    let filter = {};
+    let filter = { isDeleted: false, isBlocked: false };
 
     if (search) {
-      filter.productName = { $regex: search, $options: "i" }; // case-insensitive match
-    }
-    // Brand filter
-    if (category) {
-      const cat = await brandschema.findOne({ brandName: category });
-      if (cat) {
-        filter.brand = cat._id;
-      }
+      filter.productName = { $regex: search, $options: "i" };
     }
 
-    // Price filter
+    if (category) {
+      const cat = await brandschema.findOne({ brandName: category });
+      if (cat) filter.brand = cat._id;
+    }
+
     if (priceFrom || priceTo) {
       filter.salePrice = {};
       if (priceFrom) filter.salePrice.$gte = parseInt(priceFrom);
       if (priceTo) filter.salePrice.$lte = parseInt(priceTo);
     }
 
-    // Wishlist
     const wishlist = await wishlistSchema.findOne({ userId: user._id }).populate("Products.productId");
     const wishlistProductIds = wishlist ? wishlist.Products.map(item => item.productId._id.toString()) : [];
 
-    // Sorting
     let sortOption = {};
     if (sort === 'A to Z') sortOption = { productName: 1 };
     else if (sort === 'Z to A') sortOption = { productName: -1 };
@@ -442,21 +520,41 @@ const getfilterpage = async (req, res) => {
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    // const products = await Product.find(filter)
-    //   .sort(sortOption)
-    //   .skip(skip)
-    //   .limit(parseInt(limit));
-    const products = await Product.find({
-      ...filter,
-      isDeleted: false,
-      isBlocked: false,
-    })
+    let products = await Product.find(filter)
+      .populate("brand")
+      .populate("category")
       .sort(sortOption)
       .skip(skip)
       .limit(parseInt(limit));
+
+    // Filter out products with deleted brands/categories
+    products = products.filter(p => p.brand && !p.brand.isDeleted && p.category && !p.category.isDeleted);
+
+    // Enhance with offer and final price
+    const enhancedProducts = await Promise.all(
+      products.map(async (p) => {
+        const offer = await getBestOfferForProduct(p);
+        let discount = 0;
+
+        if (offer) {
+          discount = offer.discountType === "percentage"
+            ? (offer.discountValue / 100) * p.salePrice
+            : offer.discountValue;
+
+          if (offer.maxDiscount) discount = Math.min(discount, offer.maxDiscount);
+        }
+
+        return {
+          ...p.toObject(),
+          bestOffer: offer,
+          finalPrice: p.salePrice - discount,
+        };
+      })
+    );
+
     const isSearch = true;
     return res.render('shoppage', {
-      product: products,
+      product: enhancedProducts,
       category: categories,
       wishlistProductIds,
       selectedSort: sort || '',
@@ -474,6 +572,7 @@ const getfilterpage = async (req, res) => {
     return res.status(500).send('Server Error');
   }
 };
+
 
 
 
