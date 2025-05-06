@@ -68,7 +68,9 @@ const registerbrand = async(req,res)=>{
     const {brandname,description,Offer} = req.body
     console.log(brandname,description,Offer)
    try {
-    const duplicate = await brandschema.findOne({brandName:brandname})
+    const duplicate = await brandschema.findOne({
+        brandName: { $regex: new RegExp(`^${brandname}$`, 'i') } 
+      });
     console.log(duplicate,'dup')
     if(duplicate){
         req.session.msg = 'No duplicate brandname is allowed'

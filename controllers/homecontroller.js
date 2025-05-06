@@ -1700,6 +1700,7 @@ const getpaymentpage = async (req, res) => {
   }
 }
 const orderplacedpage = async (req, res) => {
+  console.log('orderpalced page')
   const user = req.session.User
   const payment = req.body.paymentMethod
   const isexit = await userschema.find({ _id: user._id, isBlocked: false })
@@ -1709,12 +1710,24 @@ const orderplacedpage = async (req, res) => {
     if (payment === 'cash') {
       console.log('caghtdasdafdsaf',req.session.appliedCoupon)
       if (isexit.length > 0) {
-        if(items?.totalPrice >= 1000){
-          req.session.message = "Above 1000 is not allowed for the Cash ON Delivery"
+        console.log('ready')
+        if(items?.totalPrice >= 20000){
+          req.session.message = "Above 20000 is not allowed for the Cash ON Delivery"
           return res.redirect('/user/getpaymentpage')
         }
         if (req.session.address) {
           console.log('hi')
+          const coupon = req.session.appliedCoupon 
+          if(coupon && coupon.couponId){
+            const id = coupon?.couponId
+            const find = await couponSchema.findOne({_id:id})
+            if(!find){
+              req.session.appliedCoupon = null;
+            req.session.message = "Coupon Not Found"
+            return res.redirect('/user/getpaymentpage')
+            
+            }
+          }
           if (req.session.appliedCoupon && req.session.appliedCoupon?.couponId) {
             try {
               const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId);
@@ -1723,6 +1736,16 @@ const orderplacedpage = async (req, res) => {
               if (couponfind) {
               
                 const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+                console.log(orderededuser,'useramm')
+                const invalidItems = orderededuser.items.filter(item =>
+                  item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
+                );
+                console.log(invalidItems,'invalid items1')
+                if (invalidItems.length > 0) {
+                  console.log('hi')
+                  req.session.message = "Some products are out of stock or unavailable";
+                   return res.redirect('/user/getcart')
+                }
                 const totalPrice = orderededuser.totalPrice
                 const totalGST = orderededuser.totalGST
                 const addressId = new mongoose.Types.ObjectId(req.session.address);
@@ -1774,8 +1797,16 @@ const orderplacedpage = async (req, res) => {
             }
           }
           else{
-            const orderededuser = await cartSchema.findOne({ userId: user._id })
-
+            const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+            const invalidItems = orderededuser.items.filter(item =>
+              item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
+            );
+            console.log(invalidItems,'invalid items2')
+            if (invalidItems.length > 0) {
+              console.log('hi')
+              req.session.message = "Some products are out of stock or unavailable";
+               return res.redirect('/user/getcart')
+            }
             const totalPrice = orderededuser.totalPrice
             const totalGST = orderededuser.totalGST
             const addressId = new mongoose.Types.ObjectId(req.session.address);
@@ -1837,7 +1868,16 @@ const orderplacedpage = async (req, res) => {
 
         }
         else {
-          const orderededuser = await cartSchema.findOne({ userId: user._id })
+          const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+          const invalidItems = orderededuser.items.filter(item =>
+            item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
+          );
+          console.log(invalidItems,'invalid items3')
+          if (invalidItems.length > 0) {
+            console.log('hi')
+            req.session.message = "Some products are out of stock or unavailable";
+             return res.redirect('/user/getcart')
+          }
           if (orderededuser) {
             const totalPrice = orderededuser.totalPrice
           }
@@ -1845,10 +1885,21 @@ const orderplacedpage = async (req, res) => {
             return res.redirect('/user/getcart')
           }
           const address = await addressSchema.Address.findOne({'address._id':req.session.newaddress})
-          console.log(address.address[0],'new addresfdas ----')
-          req.session.newaddress = null
+          // req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
+          const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+          const coupon = req.session.appliedCoupon 
+          if(coupon && coupon.couponId){
+            const id = coupon?.couponId
+            const find = await couponSchema.findOne({_id:id})
+            if(!find){
+              req.session.appliedCoupon = null;
+            req.session.message = "Coupon Not Found"
+            return res.redirect('/user/getpaymentpage')
+            
+            }
+          }
           // const orderedItems = orderededuser.items.map(item => ({
           //   product: item.productId,
           //   quantity: item.quantity,
@@ -1884,7 +1935,6 @@ const orderplacedpage = async (req, res) => {
           await newOrder.save();
           updateQuantities(orderededuser.items)
           req.session.offerprice = null
-          const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
           await cartSchema.deleteOne({ userId: user._id });
           return res.redirect('/user/paymentsuccesspage')
           if(couponfind){
@@ -1905,7 +1955,16 @@ const orderplacedpage = async (req, res) => {
       if (isexit.length > 0) {
         if (req.session.address) {
           console.log('121')
-          const orderededuser = await cartSchema.findOne({ userId: user._id })
+          const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+          const invalidItems = orderededuser.items.filter(item =>
+            item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
+          );
+          console.log(invalidItems,'invalid items4')
+          if (invalidItems.length > 0) {
+            console.log('hi')
+            req.session.message = "Some products are out of stock or unavailable";
+             return res.redirect('/user/getcart')
+          }
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
           // const orderedItems = orderededuser.items.map(item => ({
@@ -1932,6 +1991,7 @@ const orderplacedpage = async (req, res) => {
           const addressId = new mongoose.Types.ObjectId(req.session.address);
           const address = await addressSchema.Address.findOne({'address._id':addressId });
           console.log(address.address,'addresdaf +++++')
+
           req.session.address = null
           if (findwallet && findwallet.WalletTotal >= totalAmount) {
             const newOrder = new orderSchema({
@@ -1951,6 +2011,15 @@ const orderplacedpage = async (req, res) => {
             });
             const saved = await newOrder.save()
             const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+            const invalidItems = orderededuser.items.filter(item =>
+              item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
+            );
+            console.log(invalidItems,'invalid items5')
+            if (invalidItems.length > 0) {
+              console.log('hi')
+              req.session.message = "Some products are out of stock or unavailable";
+               return res.redirect('/user/getcart')
+            }
             updateQuantities(orderededuser.items)
             findwallet.transaction.push({
               Total: totalAmount,
@@ -1979,7 +2048,16 @@ const orderplacedpage = async (req, res) => {
         }
         else  {
           console.log('12,33')
-          const orderededuser = await cartSchema.findOne({ userId: user._id })
+          const orderededuser = await cartSchema.findOne({ userId: user._id }).populate('items.productId')
+          const invalidItems = orderededuser.items.filter(item =>
+            item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
+          );
+          console.log(invalidItems,'invalid items6')
+          if (invalidItems.length > 0) {
+            console.log('hi')
+            req.session.message = "Some products are out of stock or unavailable";
+             return res.redirect('/user/getcart')
+          }
           if (orderededuser) {
             const totalPrice = orderededuser.totalPrice
           }
@@ -1987,8 +2065,20 @@ const orderplacedpage = async (req, res) => {
             return res.redirect('/user/getcart')
           }
           const address = await addressSchema.Address.findOne({'address._id':req.session.newaddress})
-          console.log(address.address[0],'new addresfdas ----')
-          req.session.newaddress = null
+          const couponfind = await couponSchema.findById(req.session.appliedCoupon?.couponId)
+          const coupon = req.session.appliedCoupon 
+          if(coupon && coupon.couponId){
+            const id = coupon?.couponId
+            const find = await couponSchema.findOne({_id:id})
+            if(!find){
+              req.session.appliedCoupon = null;
+            req.session.message = "Coupon Not Found"
+            return res.redirect('/user/getpaymentpage')
+            
+            }
+          }
+          
+          // req.session.newaddress = null
           const totalPrice = orderededuser.totalPrice
           const totalGST = orderededuser.totalGST
           // const orderedItems = orderededuser.items.map(item => ({
@@ -2099,6 +2189,8 @@ const getpaymentsuccesspage = async (req, res) => {
       console.log(orderdetails,'orderdetals')
       const offer = orderdetails.discount
       console.log(offer,"offer",coupon,"coupon")
+      req.session.newaddress = null
+      req.session.appliedCoupon = null
       res.render('paymentsuccesspage', { orderdetails, offer,coupon  })
     }
     else {
@@ -2109,6 +2201,8 @@ const getpaymentsuccesspage = async (req, res) => {
       const offer = orderdetails.discount
       console.log(orderdetails, 'orderdetails')
       console.log(offer,"offer",coupon,"coupon")
+      req.session.newaddress = null
+      req.session.appliedCoupon = null
       res.render('paymentsuccesspage', { orderdetails, offer,coupon })
     }
 
@@ -2413,11 +2507,11 @@ const createRazorpayOrder = async (req, res) => {
       const invalidItems = cart.items.filter(item =>
         item.productId?.isDeleted === true || item.productId?.quantity < item.quantity
       );
-      console.log(invalidItems,'invalid items')
+      console.log(invalidItems,'invalid items7')
       if (invalidItems.length > 0) {
         console.log('hi')
         req.session.message = "Some products are out of stock or unavailable";
-        return res.json({ redirect: '/user/getpaymentpage' });
+        return res.json({ redirect: '/user/getcart' });
       }
       // const offer = req.session.offerprice || 0;
       const offerPrice = await getUserCartOfferPrice(user._id);
@@ -2564,7 +2658,7 @@ const verifypayment = async (req, res) => {
         }
         const offerPrice = await getUserCartOfferPrice(user._id);
         const address = await addressSchema.Address.findOne({'address._id':req.session.newaddress})
-        req.session.newaddress = null
+        // req.session.newaddress = null
         const newOrder = new orderSchema({
           razorpayOrderId: orderDetails.orderId,
           userId: orderDetails.userId,

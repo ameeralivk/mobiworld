@@ -11,6 +11,15 @@
             color-scheme: dark;
             /* Ensures white icon on supported browsers */
         }
+        .btn-close {
+            /* margin-left: auto; */
+            display: flex;
+            align-items: end;
+        }
+        .aTag {
+            width: 100%;
+            
+        }
     </style>
     <!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -37,9 +46,9 @@
             <div class="modal-dialog modal-dialog-centered bg-dark">
                 <div class="modal-content bg-dark">
                     <div class="modal-header border-bottom-0">
-                        <h2 class="modal-title w-100 text-center text-white" id="editOfferModalLabel">ADD Offer</h2>
-                        <button type="button" class="btn-close bg-white" data-bs-dismiss="modal"
-                            aria-label="Close"></button>
+                        <!-- <h2 class="modal-title w-100 text-center text-white" id="editOfferModalLabel">ADD Offer</h2> -->
+                        <a href="/admin/offersPage" class="aTag"><button type="button" class="btn-close bg-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button></a>
                     </div>
                     <div class="modal-body">
                         <form id="form" action="/admin/addOffer" method="post">
@@ -53,7 +62,7 @@
                             <!-- Description -->
                             <div class="mb-3">
                                 <label for="description" class="form-label text-white">Description:</label>
-                                <textarea class="form-control bg-dark text-white" name="description"
+                                <textarea class="form-control bg-dark text-white"   name="description"
                                     id="description"></textarea>
                             </div>
                             <!-- <div class="mb-3">

@@ -598,7 +598,10 @@ const couponPage = async (req, res) => {
 
 const addCoupon = async (req, res) => {
     try {
-        const findCoupon = await CouponSchema.findOne({name:req.body.name.trim()})
+        // const findCoupon = await CouponSchema.findOne({name:req.body.name.trim()})
+        const findCoupon = await CouponSchema.findOne({
+            name: { $regex: new RegExp(`^${req.body.name.trim()}$`, 'i') }
+          });
         if(findCoupon){
             req.session.message = {
                 type: 'error',

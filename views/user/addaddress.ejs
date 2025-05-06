@@ -128,61 +128,131 @@
                 message.style.display = 'none'
             }
         }, 3000);
-        form.addEventListener('submit',function(event){
-            const name = document.getElementById('name').value.trim()
-            const parent = document.getElementById('name')
-        const state = document.getElementById('state').value.trim()
-        const address = document.getElementById('streetAddress').value.trim()
-        const city = document.getElementById('city').value.trim()
-        const pincode = document.getElementById('postcode').value.trim()
-        const phone = document.getElementById('phone').value.trim()
-        const altphone = document.getElementById('altPhone').value.trim()
-            event.preventDefault()
-            if(name == '' || state == '' || address == '' || city == '' || pincode == '' || phone == '' || altphone == ''){
-                Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'All fields are required!',
-                confirmButtonText: 'Okay'
-            });
-            }
-            const nameRegex = /^[A-Za-z\s]+$/; 
-            if(!nameRegex.test(name)){
-                Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Name should contains letters or space',
-                confirmButtonText: 'Okay'
-                })
-            }
-            const phoneRegex = /^\+?\d{10,15}$/;
-            if(!phoneRegex.test(phone)){
-                Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Enter a valid phone number',
-                confirmButtonText: 'Okay'
-                })
-            }
-            if(!phoneRegex.test(altphone)){
-                Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Enter a valid phone number',
-                confirmButtonText: 'Okay'
-                })
-            }
-            const pincodeRegex = /^\d{6}$/;
-            if(!pincodeRegex.test(pincode)){
-                Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Enter a valid pincode',
-                confirmButtonText: 'Okay'
-                })
-            }
-            form.submit()
-        })
+        // form.addEventListener('submit',function(event){
+        //     const name = document.getElementById('name').value.trim()
+        //     const parent = document.getElementById('name')
+        // const state = document.getElementById('state').value.trim()
+        // const address = document.getElementById('streetAddress').value.trim()
+        // const city = document.getElementById('city').value.trim()
+        // const pincode = document.getElementById('postcode').value.trim()
+        // const phone = document.getElementById('phone').value.trim()
+        // const altphone = document.getElementById('altPhone').value.trim()
+        //     event.preventDefault()
+        //     if(name == '' || state == '' || address == '' || city == '' || pincode == '' || phone == '' || altphone == ''){
+        //         Swal.fire({
+        //         icon: 'error',
+        //         title: 'Oops...',
+        //         text: 'All fields are required!',
+        //         confirmButtonText: 'Okay'
+        //     });
+        //     }
+        //     const nameRegex = /^[A-Za-z\s]+$/; 
+        //     if(!nameRegex.test(name)){
+        //         Swal.fire({
+        //         icon: 'error',
+        //         title: 'Oops...',
+        //         text: 'Name should contains letters or space',
+        //         confirmButtonText: 'Okay'
+        //         })
+        //     }
+        //     const phoneRegex = /^\+?\d{10,15}$/;
+        //     if(!phoneRegex.test(phone)){
+        //         Swal.fire({
+        //         icon: 'error',
+        //         title: 'Oops...',
+        //         text: 'Enter a valid phone number',
+        //         confirmButtonText: 'Okay'
+        //         })
+        //     }
+        //     if(!phoneRegex.test(altphone)){
+        //         Swal.fire({
+        //         icon: 'error',
+        //         title: 'Oops...',
+        //         text: 'Enter a valid phone number',
+        //         confirmButtonText: 'Okay'
+        //         })
+        //     }
+        //     const pincodeRegex = /^\d{6}$/;
+        //     if(!pincodeRegex.test(pincode)){
+        //         Swal.fire({
+        //         icon: 'error',
+        //         title: 'Oops...',
+        //         text: 'Enter a valid pincode',
+        //         confirmButtonText: 'Okay'
+        //         })
+        //     }
+        //     form.submit()
+        // })
+
+        form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    const name = document.getElementById('name').value.trim();
+                    const state = document.getElementById('state').value.trim();
+                    const address = document.getElementById('streetAddress').value.trim();
+                    const city = document.getElementById('city').value.trim();
+                    const pincode = document.getElementById('postcode').value.trim();
+                    const phone = document.getElementById('phone').value.trim();
+                    const altphone = document.getElementById('altPhone').value.trim();
+
+                    const nameRegex = /^[A-Za-z\s]+$/;
+                    const phoneRegex = /^\d{10}$/;
+                    const pincodeRegex = /^\d{6}$/;
+
+                    // Required fields check
+                    if (!name || !state || !address || !city || !pincode || !phone || !altphone) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'All fields are required!',
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+
+                    // Name validation
+                    if (!nameRegex.test(name)) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Name should contain only letters and spaces',
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+
+                    // Phone validation
+                    if (!phoneRegex.test(phone)) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Enter a valid 10-digit phone number',
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+
+                    // Alternate phone validation
+                    if (!phoneRegex.test(altphone)) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Enter a valid 10-digit alternate phone number',
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+
+                    // Pincode validation
+                    if (!pincodeRegex.test(pincode)) {
+                        return Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'Enter a valid 6-digit pincode',
+                            confirmButtonText: 'Okay'
+                        });
+                    }
+
+                    // All validations passed
+                    form.submit();
+});
+
     </script>
 </body>
 </html>

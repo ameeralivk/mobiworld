@@ -39,7 +39,11 @@ const addOffer = async(req,res)=>{
         const brands = await brandSchema.find({})
         const { name, description, offerType, categoryId, brandId, discountType, discountValue, maxDiscount, expiredOn,startDate,productId } = req.body;
         console.log(req.body,'req.body')
-        const findOffer = await offerschema.findOne({name:name.trim()})
+        // const findOffer = await offerschema.findOne({name:name.trim()})
+        const findOffer = await offerschema.findOne({
+            name: { $regex: new RegExp(`^${name.trim()}$`, 'i') }
+          });
+          
         if(findOffer){
             req.session.error = "Offer is already exist"
             return   res.redirect('/admin/offersPage')

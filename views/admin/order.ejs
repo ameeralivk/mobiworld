@@ -187,7 +187,7 @@
                             ${order.status === "Return Request" ? `
                                 <option value="Returned">Returned</option>
                                 <option value="ReturnCancelled">Return Cancelled</option>
-                            ` : (order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Cancelled") ? `
+                            ` : (order.status === "Returned" || order.status === "ReturnCancelled" || order.status === "Cancelled" || order.status === "Failed") ? `
                                 <option disabled>No further actions</option>
                             ` : `
                                 ${statuses
@@ -333,8 +333,16 @@
                     const row = button.closest('tr');
                     const statusDropdown = row.querySelector('.status-dropdown');
                     const orderId = row.querySelector('.id').value;
-
+                    
                     if (!statusDropdown || !statusDropdown.value) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No status selected or status cannot be updated!',
+                        });
+                        return;
+                    }
+                    if (statusDropdown.value === "Failed" || statusDropdown.value === "Cancelled" || statusDropdown.value === "Returned") {
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',

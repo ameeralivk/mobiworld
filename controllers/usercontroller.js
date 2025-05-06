@@ -204,7 +204,7 @@ const resetpassOtp = async (req,res)=>{
         return Math.floor(100000 + Math.random() * 900000).toString();
     } 
     const {email} = req.body
-    const isexist = await userschema.findOne({email:email})
+    const isexist = await userschema.findOne({email:email,isAdmin:false,isGoogleUser:false})
     req.session.data = isexist
     try {
         if(req.session.User){

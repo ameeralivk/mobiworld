@@ -14,11 +14,13 @@
             <div class="mb-4">
               <label for="categoryName" class="form-label">Category Name:</label>
               <input name="name" value="<%= category.name %>" type="text" class="form-control" id="categoryName" placeholder="">
+              <div id="categoryerror" class="text-danger" style="display: none;"></div>
             </div>
             <input type="hidden" name="id" value="<%= category._id %>">
             <div class="mb-4">
               <label for="description" class="form-label">Description:</label>
               <textarea name="description"  class="form-control" id="description" rows="4"><%= category.description %></textarea>
+              <div id="descriptionerror" class="text-danger" style="display: none;"></div>
             </div>
             
             <button type="submit" class="btn update-btn">Update</button>
@@ -30,5 +32,39 @@
 
   <!-- Bootstrap JS Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const form = document.querySelector('form'); // Select the form
+  
+    form.addEventListener('submit', function(event) {
+      const category = document.getElementById('categoryName').value.trim();
+      const description = document.getElementById('description').value.trim();
+  
+      const categoryRegex = /^[A-Za-z ]{2,}$/; // Only letters and spaces, min 2 characters
+      const descriptionRegex = /^[\w\s.,'-]{10,}$/; // Letters, numbers, some punctuation, min 10 characters
+  
+      let isValid = true;
+  
+      // Validate category name
+      if (!categoryRegex.test(category)) {
+        event.preventDefault();
+        document.getElementById('categoryerror').innerText = "Enter a valid category (letters only, min 2 characters)";
+        document.getElementById('categoryerror').style.display = "block";
+        isValid = false;
+      } else {
+        document.getElementById('categoryerror').style.display = "none";
+      }
+  
+      // Validate description
+      if (!descriptionRegex.test(description)) {
+        event.preventDefault();
+        document.getElementById('descriptionerror').innerText = "Description must be at least 10 characters and valid";
+        document.getElementById('descriptionerror').style.display = "block";
+        isValid = false;
+      } else {
+        document.getElementById('descriptionerror').style.display = "none";
+      }
+    });
+  </script>
+  
 </body>
 </html>

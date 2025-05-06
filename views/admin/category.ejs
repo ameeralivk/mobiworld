@@ -2,20 +2,14 @@
 <link rel="stylesheet" href="\css\admin css\category.css">
 <body>
  
-  <% if (msg === 'new category created successfully') { %>
-    <div id="message"
-         class="alert alert-success alert-dismissible fade show"
-         role="alert">
-        <strong>Success!</strong> <%= msg %>
-    </div>
-<% } else if (msg) { %>
-    <div id="message"
-         class="alert alert-danger alert-dismissible fade show"
-         role="alert">
-        <strong>Error!</strong> <%= msg %>
-    </div>
+   <% if (msg) { 
+    const isSuccess = msg === 'new category created successfully' || msg === 'category edited successfully';
+%>
+ <div id="message" class="alert <%= isSuccess ? 'alert-success' : 'alert-danger' %> alert-dismissible fade show" role="alert">
+   <strong><%= isSuccess ? 'Success!' : 'Error!' %></strong> <%= msg %>
+   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+ </div>
 <% } %>
-
 
   <div class="container-fluid mb-4">
     <div class="row">

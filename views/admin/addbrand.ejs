@@ -27,11 +27,11 @@
         <p id="descriptionerror" class="error-message" style="display: none" ></p>
       </div>
 
-      <div class="mb-3">
+      <!-- <div class="mb-3">
         <label for="categoryName" class="form-label">Offer:</label>
         <input name="Offer" type="text" class="form-control" id="categoryName" >
         <p id="categoryerror" class="error-message" style="display: none" ></p>
-      </div>
+      </div> -->
       
       <div class="text-end">
         <button type="submit" class="btn btn-add-category">Add Brand</button>
@@ -46,25 +46,57 @@
    const descriptionerror = document.getElementById('descriptionerror')
   
 
-   form.addEventListener('submit',function(event){
-    const category =  document.getElementById('categoryName').value
-    const description = document.getElementById('description').value
-    console.log(category)
-    console.log(description)
-    if(category.trim() == '' || description.trim() == ''){
-      if(category.trim() == ''){
-      event.preventDefault()
-      document.getElementById('categoryerror').innerText = "brand field is not empty"
+  //  form.addEventListener('submit',function(event){
+  //   const category =  document.getElementById('categoryName').value
+  //   const description = document.getElementById('description').value
+  //   console.log(category)
+  //   console.log(description)
+  //   if(category.trim() == '' || description.trim() == ''){
+  //     if(category.trim() == ''){
+  //     event.preventDefault()
+  //     document.getElementById('categoryerror').innerText = "brand field is not empty"
       
-      document.getElementById('categoryerror').style.display = "block"
+  //     document.getElementById('categoryerror').style.display = "block"
       
-    }
-     if(description.trim() == ""){
-      event.preventDefault()
-      document.getElementById('descriptionerror').innerText = "description field is not empty"
-      document.getElementById('descriptionerror').style.display = "block"
-    }
-    }
+  //   }
+  //    if(description.trim() == ""){
+  //     event.preventDefault()
+  //     document.getElementById('descriptionerror').innerText = "description field is not empty"
+  //     document.getElementById('descriptionerror').style.display = "block"
+  //   }
+  //   }
+    //  })
+  form.addEventListener('submit', function(event) {
+  const category = document.getElementById('categoryName').value.trim();
+  const description = document.getElementById('description').value.trim();
+
+  // Regex patterns
+  const categoryRegex = /^[A-Za-z ]{2,}$/; // only letters and spaces, min 2 chars
+  const descriptionRegex = /^[\w\s.,'-]{10,}$/; // min 10 chars, letters, numbers, basic punctuation
+
+  let isValid = true;
+
+  // Category validation
+  if (!categoryRegex.test(category)) {
+    event.preventDefault();
+    document.getElementById('categoryerror').innerText = "Please enter a valid brand name (letters only, min 2 characters)";
+    document.getElementById('categoryerror').style.display = "block";
+    isValid = false;
+  } else {
+    document.getElementById('categoryerror').style.display = "none";
+  }
+
+  // Description validation
+  if (!descriptionRegex.test(description)) {
+    event.preventDefault();
+    document.getElementById('descriptionerror').innerText = "Description must be at least 10 characters";
+    document.getElementById('descriptionerror').style.display = "block";
+    isValid = false;
+  } else {
+    document.getElementById('descriptionerror').style.display = "none";
+  }
+});
+
    
     setTimeout(()=>{
           if(categoryerror.style.display == 'block'){
@@ -76,7 +108,7 @@
      },3000)
   
 
-   })
+
   
    
   </script>

@@ -299,35 +299,121 @@
             });
 
             // Save address button (just hides the form for now)
-            saveAddressBtn.addEventListener('click', function() {
-                // Here you would typically validate the form first
-                const requiredFields = ['name', 'streetAddress', 'state', 'city', 'postcode', 'phone', 'altphone'];
-                let isValid = true;
+            // saveAddressBtn.addEventListener('click', function() {
+            //     // Here you would typically validate the form first
+            //     const requiredFields = ['name', 'streetAddress', 'state', 'city', 'postcode', 'phone', 'altphone'];
+            //     let isValid = true;
                 
-                requiredFields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    if (field && field.value === '') {
-                        isValid = false;
-                    }
-                });
+            //     requiredFields.forEach(fieldId => {
+            //         const field = document.getElementById(fieldId);
+            //         if (field && field.value === '') {
+            //             isValid = false;
+            //         }
+            //     });
                 
-                if (isValid) {
-                    // This is just visual feedback - in a real implementation you might want to actually save the address
-                    Swal.fire({
-                        title: 'Address Ready',
-                        text: 'Your new address has been added and will be used for this order',
-                        icon: 'success',
-                        confirmButtonText: 'Continue'
+            //     if (isValid) {
+            //         // This is just visual feedback - in a real implementation you might want to actually save the address
+            //         Swal.fire({
+            //             title: 'Address Ready',
+            //             text: 'Your new address has been added and will be used for this order',
+            //             icon: 'success',
+            //             confirmButtonText: 'Continue'
+            //         });
+            //     } else {
+            //         Swal.fire({
+            //             title: 'Info!',
+            //             text: 'Please fill all the fields',
+            //             icon: 'info',
+            //             confirmButtonText: 'Okay'
+            //         });
+            //     }
+            // });
+            saveAddressBtn.addEventListener('click', function () {
+                            const name = document.getElementById('name').value.trim();
+                            const address = document.getElementById('streetAddress').value.trim();
+                            const state = document.getElementById('state').value.trim();
+                            const city = document.getElementById('city').value.trim();
+                            const pincode = document.getElementById('postcode').value.trim();
+                            const phone = document.getElementById('phone').value.trim();
+                            const altphone = document.getElementById('altPhone').value.trim();
+
+                            const nameRegex = /^[A-Za-z\s]+$/;
+                            const stateCityRegex = /^[A-Za-z\s]+$/;
+                            const phoneRegex = /^\d{10}$/;
+                            const pincodeRegex = /^\d{6}$/;
+
+                            if (!name || !address || !state || !city || !pincode || !phone || !altphone) {
+                                return Swal.fire({
+                                    title: 'Info!',
+                                    text: 'Please fill all the fields',
+                                    icon: 'info',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            if (!nameRegex.test(name)) {
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid Name',
+                                    text: 'Name should contain only letters and spaces',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            if (!stateCityRegex.test(state)) {
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid State',
+                                    text: 'State should contain only letters and spaces',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            if (!stateCityRegex.test(city)) {
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid City',
+                                    text: 'City should contain only letters and spaces',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            if (!phoneRegex.test(phone)) {
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid Phone',
+                                    text: 'Phone must be a 10-digit number',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            if (!phoneRegex.test(altphone)) {
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid Alternate Phone',
+                                    text: 'Alternate phone must be a 10-digit number',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            if (!pincodeRegex.test(pincode)) {
+                                return Swal.fire({
+                                    icon: 'error',
+                                    title: 'Invalid Pincode',
+                                    text: 'Pincode must be a 6-digit number',
+                                    confirmButtonText: 'Okay'
+                                });
+                            }
+
+                            // All checks passed
+                            Swal.fire({
+                                title: 'Address Ready',
+                                text: 'Your new address has been added and will be used for this order',
+                                icon: 'success',
+                                confirmButtonText: 'Continue'
+                            });
                     });
-                } else {
-                    Swal.fire({
-                        title: 'Info!',
-                        text: 'Please fill all the fields',
-                        icon: 'info',
-                        confirmButtonText: 'Okay'
-                    });
-                }
-            });
+
 
             // Hide new address form, disable fields and reset to existing addresses
             cancelAddressBtn.addEventListener('click', function () {

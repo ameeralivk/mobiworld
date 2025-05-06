@@ -14,16 +14,19 @@
             <div class="mb-4">
               <label for="categoryName" class="form-label">Brand Name:</label>
               <input name="brandname" value="<%= brand.brandName %>" type="text" class="form-control" id="categoryName" placeholder="">
+              <div id="branderror" class="text-danger" style="display: none;"></div>
             </div>
             <input type="hidden" name="id" value="<%= brand._id %>">
             <div class="mb-4">
               <label for="description" class="form-label">Description:</label>
               <textarea name="description"  class="form-control" id="description" rows="4"><%= brand.description %></textarea>
+              <div id="descriptionerror" class="text-danger" style="display: none;"></div>
+
             </div>
-            <div class="mb-4">
+            <!-- <div class="mb-4">
                 <label for="categoryName" class="form-label">Offer:</label>
                 <input name="Offer" value="<%= brand.Offer %>" type="text" class="form-control" id="categoryName" placeholder="">
-              </div>
+              </div> -->
             
             <button type="submit" class="btn update-btn">Update</button>
           </form>
@@ -34,5 +37,40 @@
 
   <!-- Bootstrap JS Bundle with Popper -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const form = document.querySelector('form'); // Selects the first form on the page
+  
+    form.addEventListener('submit', function(event) {
+      const brand = document.getElementById('categoryName').value.trim();
+      const description = document.getElementById('description').value.trim();
+  
+      // Regex patterns
+      const brandRegex = /^[A-Za-z ]{2,}$/; // Only letters and spaces, at least 2 characters
+      const descriptionRegex = /^[\w\s.,'-]{10,}$/; // Letters, numbers, punctuation, min 10 chars
+  
+      let isValid = true;
+  
+      // Brand name validation
+      if (!brandRegex.test(brand)) {
+        event.preventDefault();
+        document.getElementById('branderror').innerText = "Enter a valid brand name (letters only, min 2 characters)";
+        document.getElementById('branderror').style.display = "block";
+        isValid = false;
+      } else {
+        document.getElementById('branderror').style.display = "none";
+      }
+  
+      // Description validation
+      if (!descriptionRegex.test(description)) {
+        event.preventDefault();
+        document.getElementById('descriptionerror').innerText = "Description must be at least 10 characters";
+        document.getElementById('descriptionerror').style.display = "block";
+        isValid = false;
+      } else {
+        document.getElementById('descriptionerror').style.display = "none";
+      }
+    });
+  </script>
+  
 </body>
 </html>
