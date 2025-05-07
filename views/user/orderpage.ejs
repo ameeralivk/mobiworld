@@ -251,7 +251,7 @@
                                         orderRow.innerHTML = `
                                             <div class="col-3a"><a class='text-decoration-none text-dark order-link' href='#'>#ORD-${order.orderId}</a></div> 
                                             <div class="col-3">${item.quantity}</div>
-                                            <div class="col-3">${new Date(order.createdOn).toLocaleString('en-IN')}</div>
+                                            <div class="col-3">${new Date(order.createdOn).toLocaleDateString('en-IN')}</div>
                                             <div class="col-2">
                                                 <span class="badge rounded-pill ${badgeClass}">${status}</span>
                                             </div>
@@ -412,7 +412,7 @@ function modalopen(id) {
                     <div class="row mb-3">
                         <div class="col-8">
                             <h5 class="mb-1 text-white">Order #ORD-${orderDetails.order.orderId}</h5>
-                            <p class="text-white mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString()}</p>
+                            <p class="text-white mb-0">Placed on ${new Date(orderDetails.order.createdOn).toLocaleDateString('en-IN')}</p>
                         </div>
                         <div class="col-4 text-end">
                             <span class="badge ${orderDetails.order.status === 'Shipped' ? 'bg-success' : 'bg-warning'}">${orderDetails.order.status}</span>

@@ -62,7 +62,7 @@
               <th width="25%">BRANDS</th>
               <th width="20%">BRAND DESCRIPTION</th>
               <th width="10%">STATUS</th>
-              <th width="20%">LAST UPDATED</th>
+              <th width="20%">CREATED</th>
               <th width="10%">ACTIONS</th>
             </tr>
           </thead>
@@ -73,7 +73,7 @@
               <td><%= category.brandName %></td>
               <td><%= category.description %></td>
               <td><%= category.isDeleted? "Deleted" : "Active" %></td>
-              <td><%= new Date(category.createdAt).toLocaleString() %></td>
+              <td><%= new Date(category.createdAt).toLocaleDateString() %></td>
               <td>
                 <button id="edit" onclick="editroute('<%= category._id %>')" class="action-btn" data-id="<%= category._id %>" ><i class="bi bi-pencil"></i></button>
                 <button id="delete" onclick="deleteroute(this)" class="action-btn" data-id="<%= category._id %>"><i class="bi bi-trash"></i></button>

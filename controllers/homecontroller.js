@@ -1810,8 +1810,8 @@ const orderplacedpage = async (req, res) => {
       console.log('caghtdasdafdsaf',req.session.appliedCoupon)
       if (isexit.length > 0) {
         console.log('ready')
-        if(items?.totalPrice >= 20000){
-          req.session.message = "Above 20000 is not allowed for the Cash ON Delivery"
+        if(items?.totalPrice >= 1000){
+          req.session.message = "Above 1000 is not allowed for the Cash ON Delivery"
           return res.redirect('/user/getpaymentpage')
         }
         if (req.session.address) {
