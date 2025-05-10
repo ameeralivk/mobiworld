@@ -22,6 +22,7 @@ const mongoose = require('mongoose')
 const walletSchema = require('../models/walletSchem')
 const couponSchema = require('../models/couponSchema')
 const { ObjectId } = require('mongoose').Types;
+const statusCode = require('../config/statusCode')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
@@ -209,7 +210,6 @@ const getTotalOffers = async (product) => {
       maxDiscountValue = cappedDiscount;
     }
   });
-
   return maxDiscountValue;
 };
 
@@ -471,7 +471,7 @@ const getBestOfferForProduct = async (product) => {
 
 //   } catch (error) {
 //     console.error('Error from homecontroller getfilterpage:', error);
-//     return res.status(500).send('Server Error');
+//     return res.status(statusCode.INTERNAL_SERVER_ERROR).send('Server Error');
 //   }
 // };
 
@@ -569,7 +569,7 @@ const getfilterpage = async (req, res) => {
 
   } catch (error) {
     console.error('Error from homecontroller getfilterpage:', error);
-    return res.status(500).send('Server Error');
+    return res.status(statusCode.INTERNAL_SERVER_ERROR).send('Server Error');
   }
 };
 
@@ -700,7 +700,7 @@ const checkotp = async (req, res) => {
 
   } catch (error) {
     console.error("Error Verifying OTP", error)
-    res.status(500).json({ success: false, message: "An Error Occured" })
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "An Error Occured" })
   }
 
 
@@ -949,7 +949,7 @@ const deleteaddress = async (req, res) => {
 
 //   }
 //   req.session.message = 'user not found'
-//   return res.status(200).json({redirectUrl:'/user/login'})
+//   return res.status(statusCode.OK).json({redirectUrl:'/user/login'})
 // }
 
 
@@ -959,19 +959,19 @@ const deleteaddress = async (req, res) => {
           const parsedQuantity = parseInt(quantity);
 
           if (parsedQuantity > 5) {
-            return res.status(404).json({ errormessage: 'Only 5 product is allowed at a time' });
+            return res.status(statusCode.NOT_FOUND).json({ errormessage: 'Only 5 product is allowed at a time' });
           }
 
           const user = req.session.User;
           if (!user) {
             req.session.message = 'User not found';
-            return res.status(200).json({ redirectUrl: '/user/login' });
+            return res.status(statusCode.OK).json({ redirectUrl: '/user/login' });
           }
 
           try {
             const product = await Product.findOne({ _id: productId });
             if (!product) {
-              return res.status(404).json({ message: 'Product not found' });
+              return res.status(statusCode.NOT_FOUND).json({ message: 'Product not found' });
             }
 
             let cart = await cartSchema.findOne({ userId: user._id });
@@ -1001,7 +1001,7 @@ const deleteaddress = async (req, res) => {
                 const newTotalQuantity = existingItem.quantity + parsedQuantity;
 
                 if (newTotalQuantity > 5) {
-                  return res.status(404).json({ errormessage: 'Only 5 product is allowed at a time' });
+                  return res.status(statusCode.NOT_FOUND).json({ errormessage: 'Only 5 product is allowed at a time' });
                 }
 
                 if (newTotalQuantity > product.quantity) {
@@ -1040,7 +1040,7 @@ const deleteaddress = async (req, res) => {
 
           } catch (error) {
             console.error('Error in addtocart:', error);
-            return res.status(500).json({ message: 'An error occurred' });
+            return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: 'An error occurred' });
           }
         };
 
@@ -1304,7 +1304,7 @@ const deleteaddress = async (req, res) => {
 
 //   } catch (error) {
 //     console.error('Error in getcart controller:', error);
-//     res.status(500).send("Server error");
+//     res.status(statusCode.INTERNAL_SERVER_ERROR).send("Server error");
 //   }
 // };
 const getcart = async (req, res) => {
@@ -1401,7 +1401,7 @@ const getcart = async (req, res) => {
 
   } catch (error) {
     console.error('Error in getcart controller:', error);
-    res.status(500).send("Server error");
+    res.status(statusCode.INTERNAL_SERVER_ERROR).send("Server error");
   }
 };
 
@@ -1417,13 +1417,13 @@ const updatequantity = async (req, res) => {
     let cart = await cartSchema.findOne({ userId: user._id });
 
     if (!cart) {
-      return res.status(404).json({ success: false, message: "Cart not found" });
+      return res.status(statusCode.NOT_FOUND).json({ success: false, message: "Cart not found" });
     }
 
     const item = cart.items.find(item => item._id == id);
      
     if (!item) {
-      return res.status(404).json({ success: false, message: "Item not found in cart" });
+      return res.status(statusCode.NOT_FOUND).json({ success: false, message: "Item not found in cart" });
     }
     item.quantity = quantity;
     item.totalPrice = item.quantity * item.price;
@@ -1452,10 +1452,10 @@ const updatequantity = async (req, res) => {
     req.session.offerprice = offerprice
     const coupon = req.session.appliedCoupon || '';
     console.log(coupon,'here the coupond')
-    res.status(200).json({ success: true, total, totalGST, offerprice, coupon:coupon.couponDiscount});
+    res.status(statusCode.OK).json({ success: true, total, totalGST, offerprice, coupon:coupon.couponDiscount});
   } catch (error) {
     console.error("Error from updatequantity:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -1472,7 +1472,6 @@ const getUserCartOfferPrice = async (userId) => {
   );
 
   const discounts = await Promise.all(products.map(getTotalOffers));
-
   const totalOffer = discounts.reduce((acc, discount, index) => {
     const productId = products[index]._id.toString();
     const quantity = productQuantityMap.get(productId) || 0;
@@ -1577,7 +1576,7 @@ const checkoutpage = async (req, res) => {
         return res.render('checkoutpage', { product, total, totalGST, address: addresses, message, offerPrice, coupon ,estimatedDelivery });
       }
       const cart = await cartSchema.findOne({ userId: userid._id }).populate('items.productId')
-      const product = cart.items.map(item => item.productId)
+      const product = cart.items.map(item => item)
       const total = cart.totalPrice
       const totalGST = cart.totalGST
       const address = await addressSchema.Address.find({ userId: userid._id })
@@ -1597,7 +1596,7 @@ const checkoutpage = async (req, res) => {
 
   } catch (error) {
     console.error('Error in checkout page:', error);
-    return res.status(500).send('An error occurred.');
+    return res.status(statusCode.INTERNAL_SERVER_ERROR).send('An error occurred.');
   }
 };
 
@@ -1609,7 +1608,7 @@ const deletecartbutton = async (req, res) => {
     let cart = await cartSchema.findOne({ userId: user._id });
     
     if (!cart) {
-      return res.status(404).json({ success: false, message: "Cart not found" });
+      return res.status(statusCode.NOT_FOUND).json({ success: false, message: "Cart not found" });
     }
     cart.items = cart.items.filter(item => item.productId.toString() !== productId);
 
@@ -1673,7 +1672,7 @@ const deletecartbutton = async (req, res) => {
 
   } catch (error) {
     console.error("Error from deletecartbutton:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -2443,7 +2442,7 @@ const pagination = async (req, res) => {
 //     doc.end(); 
 //   } catch (error) {
 //     console.error('Error generating the PDF:', error);
-//     res.status(500).send('An error occurred while generating the PDF');
+//     res.status(statusCode.INTERNAL_SERVER_ERROR).send('An error occurred while generating the PDF');
 //   }
 // };
 
@@ -2466,7 +2465,7 @@ const pdfdownload = async (req, res) => {
     const cart = await orderSchema.findOne({ _id: id }).populate('userId').populate('orderedItems.product');
     console.log(cart, 'cart')
     if (!cart) {
-      return res.status(404).json({ message: 'Cart not found' });
+      return res.status(statusCode.NOT_FOUND).json({ message: 'Cart not found' });
     }
 
     const totalPriceWithGST = cart.totalPrice
@@ -2489,7 +2488,7 @@ const pdfdownload = async (req, res) => {
     ejs.renderFile(templatePath, invoiceData, async (err, htmlContent) => {
       if (err) {
         console.error('Error rendering EJS:', err);
-        return res.status(500).json({ message: 'Error rendering template' });
+        return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: 'Error rendering template' });
       }
 
       console.log('EJS rendering successful, launching Puppeteer...');
@@ -2519,7 +2518,7 @@ const pdfdownload = async (req, res) => {
 
   } catch (error) {
     console.error('Error generating the PDF:', error);
-    res.status(500).send('An error occurred while generating the PDF');
+    res.status(statusCode.INTERNAL_SERVER_ERROR).send('An error occurred while generating the PDF');
   }
 };
 
@@ -2661,7 +2660,7 @@ const createRazorpayOrder = async (req, res) => {
   }
   catch (error) {
     console.error("Error creating Razorpay order:", error);
-    res.status(500).json({ message: "Error processing payment" });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: "Error processing payment" });
   }
 
 };
@@ -2898,7 +2897,7 @@ const verifypayment = async (req, res) => {
   
   } catch (error) {
     console.error("Payment verification failed:", error);
-    res.status(500).send("Payment verification failed");
+    res.status(statusCode.INTERNAL_SERVER_ERROR).send("Payment verification failed");
   }
 };
 
@@ -2953,7 +2952,7 @@ const paymentfailedpage = async (req, res) => {
 
   } catch (error) {
     console.error('Error in paymentfailedpage controller:', error);
-    res.status(500).send("Something went wrong");
+    res.status(statusCode.INTERNAL_SERVER_ERROR).send("Something went wrong");
   }
 }
 
@@ -3069,7 +3068,7 @@ const returnorder = async (req, res) => {
     }
   } catch (error) {
     console.error('Error from homecontroller returnorder:', error);
-    res.status(500).send('Internal Server Error');
+    res.status(statusCode.INTERNAL_SERVER_ERROR).send('Internal Server Error');
   }
 };
 
@@ -3230,13 +3229,13 @@ const toggleWishlist = async (req, res) => {
     const userId = req.session.User?._id;
     const { productId } = req.body;
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ success: false, message: "Product not found" });
+    if (!product) return res.status(statusCode.NOT_FOUND).json({ success: false, message: "Product not found" });
 
     if (product.quantity <= 0) {
       return res.json({ success: false, message: "Cannot add out-of-stock product to wishlist" });
     }
     const user = await userschema.findById(userId);
-    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    if (!user) return res.status(statusCode.NOT_FOUND).json({ success: false, message: "User not found" });
 
     let action = '';
     let wishlist = await wishlistSchema.findOne({ userId });
@@ -3269,7 +3268,7 @@ const toggleWishlist = async (req, res) => {
     return res.json({ success: true, action, message: `Product ${action} from wishlist` });
   } catch (error) {
     console.error("Toggle Wishlist Error:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
   }
 };
 
@@ -3291,7 +3290,7 @@ const removeFromWishlist = async (req, res) => {
     res.json({ success: true, message: "Item removed from wishlist" });
   } catch (err) {
     console.error("Error removing wishlist item:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
   }
 };
 
@@ -3345,7 +3344,7 @@ const retryPayment = async (req, res) => {
 
   } catch (error) {
     console.error("Retry payment error:", error);
-    res.status(500).send("Error retrying payment");
+    res.status(statusCode.INTERNAL_SERVER_ERROR).send("Error retrying payment");
   }
 };
 
@@ -3355,7 +3354,7 @@ const retryverify = async(req,res)=>{
     const { razorpay_order_id } = req.body;
     const order = await orderSchema.findOne({ razorpayOrderId: razorpay_order_id });
     if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(statusCode.NOT_FOUND).json({ message: "Order not found" });
     }
     if (order.status !== "Failed") {
       return res.status(400).json({ message: "Order is not eligible for retry verification" });
@@ -3370,11 +3369,11 @@ const retryverify = async(req,res)=>{
     }
 
     await order.save();
-    res.status(200).json({ message: "Order updated to Pending and stock adjusted" });
+    res.status(statusCode.OK).json({ message: "Order updated to Pending and stock adjusted" });
 
   } catch (error) {
     console.error("Error from retryverify:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: "Internal server error" });
   }
 }
 

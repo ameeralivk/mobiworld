@@ -297,7 +297,9 @@ const productclear =async(req,res)=>{
        
 }
 
-
+async () => {
+   
+}
 
 module.exports = {
     addproductpage,

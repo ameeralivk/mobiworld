@@ -1,7 +1,3 @@
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,15 +7,62 @@
     <link rel="stylesheet" href="\css\profilepage.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="\css\shoppage_header.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="\css\shoppage_footer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elevatezoom/3.0.8/jquery.elevateZoom.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.17.2/dist/sweetalert2.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="\css\shoppage_footer.css">
+    <style>
+        .profile-picture-container {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .profile-picture {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #f8b500;
+        }
+        .profile-picture-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #adb5bd;
+            border: 3px solid #f8b500;
+        }
+        .upload-button {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: #f8b500;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .upload-button i {
+            color: #fff;
+        }
+        #profilePictureInput {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <%- include("../../views/partials/user/shoppage_header") %>
     
-
     <% if (typeof message !== 'undefined' && message) { %>
         <p id="mess" class="error-message" ><%= message %></p>
     <% } %>
@@ -37,19 +80,31 @@
                 <%- include("../../views/partials/user/sidebar") %>
             </div>
            
-
             <!-- Content Area -->
             <div class="col-md-9">
                 <!-- Basic Info Section -->
                 <div class="mb-5">
                     <h2 class="section-heading">Basic Info</h2>
                     <div class="row mb-4">
-                        <!-- <div class="col-md-3">
-                            <p>Image</p>
-                            <div class="image-upload">
-                              
+                        <div class="col-md-3">
+                            <p>Profile Picture</p>
+                            <div class="profile-picture-container">
+                                <% if (user.profilePic) { %>
+                                    <img src="<%= user.profilePic %>" alt="Profile Picture" class="profile-picture" id="profilePicturePreview">
+                                <% } else { %>
+                                    <div class="profile-picture-placeholder" id="profilePicturePreview">
+                                        <i class="bi bi-person"></i>
+                                    </div>
+                                <% } %>
+                                <label for="profilePictureInput" class="upload-button">
+                                    <i class="bi bi-camera"></i>
+                                </label>
+                                <input type="file" id="profilePictureInput" accept="image/*" onchange="previewProfilePicture(this)">
                             </div>
-                        </div> -->
+                            <div class="text-center">
+                                <button class="btn btn-sm btn-primary me-5" onclick="uploadProfilePicture()">Save Picture</button>
+                            </div>
+                        </div>
 
                         <div class="col-md-9">
                             <div class="row">
@@ -57,25 +112,12 @@
                                     <label for="firstName" class="form-label">Name</label>
                                     <input value="<%= user.name %>" type="text" class="form-control" id="firstName" readonly>
                                 </div>
-                                <!-- <div class="col-md-6 mb-3">
-                                    <label for="lastName" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="lastName">
-                                </div> -->
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="phone" class="form-label">Phone</label>
                                     <input value="<%= user.phone %>" type="tel" class="form-control" id="phone" readonly>
                                 </div>
-                                <!-- <div class="col-md-6 mb-3">
-                                    <label for="gender" class="form-label">Gender</label>
-                                    <select class="form-select form-control" id="gender">
-                                        <option selected>Select gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div> -->
                             </div>
                         </div>
                     </div>
@@ -109,15 +151,6 @@
                         <% } %>
                       
                                 <% if (user.referalCode) { %>
-                        
-                                    <!-- <div class="mt-3  bg-warning">
-                                        <label for="referralLink" class="form-label">Referral Link:</label>
-                                        <div class="input-group">
-                                            <input type="text" id="referralLink" class="form-control" value="http://localhost:4000/user/register?ref=<%= user.referalCode %>" readonly>
-                                            <button class="btn btn-outline-success" onclick="copyReferralLink()">Copy Link</button>
-                                        </div>
-                                        <p>Referr and Win 500 Rupees</p>
-                                    </div> -->
                                     <div class="card mt-4 border-0 shadow" style="background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%); color: #212529;">
                                         <div class="card-body">
                                           <h4 class="card-title fw-bold text-white mb-3">
@@ -154,27 +187,136 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
     <script>
-
-function copyReferralLink() {
-    console.log('hi')
-    const link = document.getElementById('referralLink').value;
-    navigator.clipboard.writeText(link).then(() => {
-        alert('Referral link copied!');
-    });
-}
-
-
-
-const mess = document.getElementById('mess')
-    setTimeout(() => {
-        if(mess){
-            mess.style.display = 'none'
+        function previewProfilePicture(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const fileInput = document.getElementById('profilePictureInput');
+                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif','image/webp'];
+                    const file = fileInput.files[0];
+                    console.log(file,'file')
+                    if(!allowedTypes.includes(file.type)){
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'File Format is Not Allowed',
+                            text: 'Please change the image.',
+                            confirmButtonColor: '#f8b500'
+                        });
+                        return
+                    }
+                    var previewElement = document.getElementById('profilePicturePreview');
+                    
+                    if (previewElement.tagName === 'IMG') {
+                        previewElement.src = e.target.result;
+                    } else {
+                        // Replace the placeholder with an actual image
+                        var imgElement = document.createElement('img');
+                        imgElement.src = e.target.result;
+                        imgElement.classList.add('profile-picture');
+                        imgElement.id = 'profilePicturePreview';
+                        
+                        previewElement.parentNode.replaceChild(imgElement, previewElement);
+                    }
+                }
+                
+                reader.readAsDataURL(input.files[0]);
+            }
         }
-    }, 3000);
+        
+        function uploadProfilePicture() {
+            const fileInput = document.getElementById('profilePictureInput');
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif','image/webp'];
+            console.log(fileInput.files,'fileinput')
+            if (!fileInput.files || fileInput.files.length === 0) {
+                console.log(fileInput.files,'fileinput')
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No Image Selected',
+                    text: 'Please select an image to upload.',
+                    confirmButtonColor: '#f8b500'
+                });
+                return;
+            }
+            const file = fileInput.files[0];
+            console.log(file,'file')
+             if(!allowedTypes.includes(file.type)){
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'File Format is Not Allowed',
+                    text: 'Please change the image.',
+                    confirmButtonColor: '#f8b500'
+                });
+                return
+            }
+            if(file.size > 1000000){
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'File Size is Greater Than 1MB',
+                    text: 'Please Reduce the Size and Upload',
+                    confirmButtonColor: '#f8b500'
+                });
+                return
+            }
+            
+            const formData = new FormData();
+            formData.append('profilePicture', fileInput.files[0]);
+            
+            fetch('/user/upload-profile-picture', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data,'data')
+                if (data.success) {
+                    console.log('hi')
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Profile picture updated successfully.',
+                        confirmButtonColor: '#f8b500'
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to upload profile picture');
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Upload Failed',
+                    text: error.message || 'There was an error uploading your profile picture.',
+                    confirmButtonColor: '#f8b500'
+                });
+            });
+        }
 
+        function copyReferralLink() {
+            const link = document.getElementById('referralLink').value;
+            navigator.clipboard.writeText(link).then(() => {
+                Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: ' copied!',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true,
+                background: '#e6ffed'
+            });
+            });
+        }
+
+        const mess = document.getElementById('mess')
+        setTimeout(() => {
+            if(mess){
+                mess.style.display = 'none'
+            }
+        }, 3000);
 
         // Function to toggle active state for sidebar navigation
         function toggleNavActive(element) {
@@ -203,32 +345,21 @@ const mess = document.getElementById('mess')
         window.onload = function() {
             // Apply clicked style to the Orders link by default
             const ordersLink = document.getElementById('ordersLink');
-            ordersLink.classList.add('clicked');
+            if (ordersLink) {
+                ordersLink.classList.add('clicked');
+            }
             
             // Apply clicked effect to the Edit button briefly
             const editButton = document.getElementById('editButton');
-            editButton.classList.add('clicked');
-            
-            // Remove clicked effect from Edit button after 500ms
-            setTimeout(() => {
-                editButton.classList.remove('clicked');
-            }, 500);
+            if (editButton) {
+                editButton.classList.add('clicked');
+                
+                // Remove clicked effect from Edit button after 500ms
+                setTimeout(() => {
+                    editButton.classList.remove('clicked');
+                }, 500);
+            }
         };
     </script>
-
-
 </body>
 </html>
-
-
-
-
-
-
-
-<!-- 
-<body>
-
-  
-</body>
-</html> -->

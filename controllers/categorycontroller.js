@@ -1,6 +1,9 @@
 const { trusted } = require("mongoose");
 const Category = require("../models/categorySchema");
+const productschema = require('../models/productSchema')
+const offerschema = require('../models/offerSchema')
 const { deserializeUser } = require("passport");
+const statusCode = require('../config/statusCode')
 const categoryInfo = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
@@ -141,12 +144,9 @@ const deleteCategory = async(req,res)=>{
         else{
             await Category.findByIdAndUpdate(id,{isDeleted:true})
            return res.redirect('/admin/deleteCategory')
-        }
-     
-       
-       
+        }  
     } catch (error) {
-        res.status(500).send('Error deleting category');
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send('Error deleting category');
     }
 }
 

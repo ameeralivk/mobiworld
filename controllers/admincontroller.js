@@ -18,6 +18,7 @@ const CouponSchema = require('../models/couponSchema')
 const offerschema = require('../models/offerSchema')
 const { resendOtp } = require('./usercontroller')
 const walletSchema = require('../models/walletSchem')
+const statuscode  = require('../config/statusCode')
 connectDB()
 
 const loadlogin = async (req, res) => {
@@ -358,7 +359,7 @@ const SalesReport = async (req, res) => {
 
     } catch (error) {
         console.error('Error from salesReport admincontroller:', error);
-        res.status(500).render('errorPage', { message: 'Something went wrong while loading the sales report.' });
+        res.status(statuscode.INTERNAL_SERVER_ERROR).render('errorPage', { message: 'Something went wrong while loading the sales report.' });
     }
 }
 
@@ -379,7 +380,7 @@ const filterSalesReport = async (req, res) => {
         });
         req.session.date = { from: fromDate, to: ToDate }
         req.session.filterdata = filteredOrders
-        res.status(200).json({ success: true, orders: filteredOrders });
+        res.status(statuscode.OK).json({ success: true, orders: filteredOrders });
     } catch (error) {
         console.log('error from filtersalesReport', error)
     }
@@ -402,7 +403,7 @@ const downloadSalesReport = async (req, res) => {
         ejs.renderFile(templatePath, { orders: filterdata, date }, async (err, htmlContent) => {
             if (err) {
                 console.error('Error rendering EJS:', err);
-                return res.status(500).json({ message: 'Error rendering template' });
+                return res.status(statuscode.INTERNAL_SERVER_ERROR).json({ message: 'Error rendering template' });
             }
             req.session.filterdata = null
             req.session.date = null
@@ -433,7 +434,7 @@ const downloadSalesReport = async (req, res) => {
 
     } catch (error) {
         console.error('Error generating the PDF:', error);
-        res.status(500).send('An error occurred while generating the PDF');
+        res.status(statuscode.INTERNAL_SERVER_ERROR).send('An error occurred while generating the PDF');
     }
 };
 
@@ -591,7 +592,7 @@ const couponPage = async (req, res) => {
         });
     } catch (error) {
         console.log('Error from couponPage:', error);
-        res.status(500).send("Internal Server Error");
+        res.status(statuscode.INTERNAL_SERVER_ERROR).send("Internal Server Error");
     }
 };
 
@@ -638,7 +639,7 @@ const getOffer = async (req, res) => {
         const offer = await offerschema.findById(req.params.id)
         res.json(offer);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to load offer' });
+        res.status(statuscode.INTERNAL_SERVER_ERROR).json({ error: 'Failed to load offer' });
     }
 }
 const editOffer = async (req, res) => {
@@ -680,7 +681,7 @@ const couponEditDetails = async (req, res) => {
         const coupon = await CouponSchema.findById(req.params.id);
         res.json(coupon);
     } catch (err) {
-        res.status(500).json({ error: 'Coupon not found' });
+        res.status(statuscode.INTERNAL_SERVER_ERROR).json({ error: 'Coupon not found' });
     }
 }
 
@@ -745,7 +746,7 @@ const deleteCoupon = async (req, res) => {
         await CouponSchema.findByIdAndDelete(id);
         res.json({ success: true, message: 'Coupon deleted successfully' });
     } catch (err) {
-        res.status(500).json({ success: false, message: 'Error deleting coupon' });
+        res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error deleting coupon' });
     }
 }
 
@@ -1013,7 +1014,7 @@ const deleteOffer = async (req, res) => {
 
 //   } catch (error) {
 //     console.error("Error fetching chart data:", error);
-//     res.status(500).json({ error: 'Internal Server Error' });
+//     res.status(statuscode.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
 //   }
 // };
 
@@ -1226,7 +1227,7 @@ const getChartData = async (req, res) => {
   
     } catch (error) {
       console.error("Error fetching chart data:", error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(statuscode.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
   };
   
@@ -1241,7 +1242,7 @@ const returnProduct = async(req,res)=>{
             });
         console.log(order,'order is here')
         if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+            return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order not found' });
         }
         
         // Filter items with return requests
@@ -1257,7 +1258,7 @@ const returnProduct = async(req,res)=>{
         });
     } catch (error) {
         console.error('Error fetching return details:', error);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
     }
 }
 
@@ -1312,12 +1313,12 @@ const getBestOfferForProduct = async (product) => {
 //     try {
 //         const order = await orderschema.findOne({ orderId });
 //         if (!order) {
-//             return res.status(404).json({ success: false, message: 'Order not found' });
+//             return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order not found' });
 //         }
 
 //         const item = order.orderedItems.id(itemId);
 //         if (!item) {
-//             return res.status(404).json({ success: false, message: 'Order item not found' });
+//             return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order item not found' });
 //         }
 //         if (item.returnStatus === "Returned" || item.returnStatus === "Rejected") {
 //             return res.status(400).json({
@@ -1327,7 +1328,7 @@ const getBestOfferForProduct = async (product) => {
 //         }
 //         const product = await productschema.findOne({ _id: item.product });
 //         if (!product) {
-//             return res.status(404).json({ success: false, message: 'Product not found' });
+//             return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Product not found' });
 //         }
 
 //         if (status === "Rejected") {
@@ -1413,7 +1414,7 @@ const getBestOfferForProduct = async (product) => {
 
 //     } catch (err) {
 //         console.error('Error updating return status:', err);
-//         res.status(500).json({ success: false, message: 'Server error' });
+//         res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
 //     }
 // };
 
@@ -1425,12 +1426,12 @@ const updateReturnStatus = async (req, res) => {
     try {
         const order = await orderschema.findOne({ orderId });
         if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+            return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order not found' });
         }
 
         const item = order.orderedItems.id(itemId);
         if (!item) {
-            return res.status(404).json({ success: false, message: 'Order item not found' });
+            return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order item not found' });
         }
 
         if (item.returnStatus === "Returned" || item.returnStatus === "Rejected") {
@@ -1442,7 +1443,7 @@ const updateReturnStatus = async (req, res) => {
 
         const product = await productschema.findOne({ _id: item.product });
         if (!product) {
-            return res.status(404).json({ success: false, message: 'Product not found' });
+            return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Product not found' });
         }
 
         if (status === "Rejected") {
@@ -1539,7 +1540,7 @@ const updateReturnStatus = async (req, res) => {
 
     } catch (err) {
         console.error('Error updating return status:', err);
-        res.status(500).json({ success: false, message: 'Server error' });
+        res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
     }
 };
 

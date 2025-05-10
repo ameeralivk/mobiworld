@@ -7,6 +7,12 @@ const {userAuth,login} = require('../middlewares/auth')
 const homecontroller = require('../controllers/homecontroller')
 const { rotate } = require('pdfkit')
 const  {fetchAuth} = require('../middlewares/auth')
+const multer = require('multer');
+const storage = multer.memoryStorage(); // or diskStorage
+const singleUpload = require('../config/multer')
+
+
+
 router.get('/register',usercontroller.loadregisterpage)
 router.get('/verify-otp',usercontroller.loadverify)
 router.post('/register',usercontroller.register)
@@ -80,3 +86,4 @@ router.post('/toggle-wishlist',fetchAuth,homecontroller.toggleWishlist)
 router.delete('/remove-from-wishlist', userAuth, homecontroller.removeFromWishlist);
 
 router.get('/aboutus',homecontroller.aboutUs)
+router.post('/upload-profile-picture',singleUpload.single('profilePicture'),usercontroller.profilePitcherUpload)

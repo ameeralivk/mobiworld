@@ -20,6 +20,10 @@ const userschema = new Schema ({
         sparse:true,
         default:null,
     },
+    profilePic:{
+        type:String,
+        required:false,
+    },
     // googleId:{
     //     type : String,
     //     required:false,

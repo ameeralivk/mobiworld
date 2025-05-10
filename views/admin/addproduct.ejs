@@ -85,10 +85,11 @@
                                 <div class="mb-3">
                                     <label for="brand" class="form-label">Brand:</label>
                                     <select name="brand" class="form-control" id="brand">
+                                        <option value="" disabled selected>Select a brand</option>
                                         <% brand.forEach(brand => { %>
                                         <option value="<%=brand.brandName%>"><%=brand.brandName%></option>
                                         <% }); %>
-                                    </select>
+                                    </select> 
                                     <p id="branderror" class="error-message" style="display: none"></p>
                                 </div>
                             </div>

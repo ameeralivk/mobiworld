@@ -149,7 +149,7 @@
                                     <%= trans.Type %>
                                 </span>
                             </td>
-                            <td><%= new Date(trans.createdOn).toDateString() %></td>
+                            <td><%= new Date(trans.createdOn).toLocaleDateString() %></td>
                             <td><%= trans.orderId?.orderId || '-' %></td>
                             <td><%= trans.orderId?.paymentMethod || '-' %></td>
                             <td><%= trans.description %></td>

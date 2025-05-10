@@ -1,5 +1,6 @@
 
 const brandschema = require('../models/brandSchema')
+const statusCode = require('../config/statusCode')
 const getbrands = async(req,res)=>{
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
@@ -130,7 +131,7 @@ const deletebrand = async(req,res)=>{
        
        
     } catch (error) {
-        res.status(500).send('Error deleting category');
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send('Error deleting category');
     }
 }
 const loadDeletebrand = async(req,res)=>{

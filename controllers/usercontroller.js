@@ -13,6 +13,7 @@ const wishlistSchema = require('../models/wishlistSchema')
 const walletSchema = require('../models/walletSchem')
 const mongoose = require('mongoose')
 const offerschema = require('../models/offerSchema')
+const statusCode = require('../config/statusCode')
 const loadverify = async(req,res)=>{
    return res.render('verify-otp')
 }
@@ -192,7 +193,7 @@ const forgetOtp = async(req,res)=>{
         
     } catch (error) {
         console.error("Error in forgetOtp:", error);
-        res.status(500).send({
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send({
             success: false,
             message: "An error occurred while processing your request. Please try again later.",
         });
@@ -327,7 +328,7 @@ const loadhome = async (req,res)=>{
       
     } catch (error) {
       console.log("home page not loading",error);
-      res.status(500).send('Server Error');
+      res.status(statusCode.INTERNAL_SERVER_ERROR).send('Server Error');
     }
   
   }
@@ -355,7 +356,7 @@ const loadregisterpage = async(req,res)=>{
         
     } catch (error) {
         console.log('home page not found')
-        res.status(500).send('server error')
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send('server error')
         
     }
 }
@@ -446,16 +447,16 @@ const resendOtp = async (req,res)=>{
       try {
        sendemail = sendVerificationEmail(email,otp)
        if(sendemail){
-        res.status(200).json({
+        res.status(statusCode.OK).json({
             success: true,
             message: "OTP resended successfully",
             redirectUrl: "verify-otp"  // Change this to the desired URL
         });
-        // res.status(200).json({ success: true, message: "OTP resended successfully" });
+        // res.status(statusCode.OK).json({ success: true, message: "OTP resended successfully" });
        }
       } catch (error) {
         console.error("Error in resetOtp function:", error);
-        res.status(500).json({ success: false, message: "An Error Occurred" });
+        res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "An Error Occurred" });
       }
  
 }
@@ -469,11 +470,11 @@ const resetOtp = async (req, res) => {
         req.session.userOtp = newpass;
         console.log('New OTP:', newpass); 
         console.log('Session OTP:', req.session.userOtp); 
-        res.status(200).json({ success: true, message: "OTP reset successfully" });
+        res.status(statusCode.OK).json({ success: true, message: "OTP reset successfully" });
 
     } catch (error) {
         console.error("Error in resetOtp function:", error);
-        res.status(500).json({ success: false, message: "An Error Occurred" });
+        res.status(statusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "An Error Occurred" });
     }
 }
 function generateReferralCode(length = 8) {
@@ -620,7 +621,7 @@ const verifyOtp = async (req,res)=>{
         }
     } catch (error) {  
         console.error("Error Verifying OTP",error)
-        res.status(500).json({success:false,message:"An Error Occured"})
+        res.status(statusCode.INTERNAL_SERVER_ERROR).json({success:false,message:"An Error Occured"})
     }
 }
 
@@ -671,7 +672,7 @@ const logout = async (req,res)=>{
 
 //     } catch (error) {
 //         console.error('error from usercontroller', error);
-//         res.status(500).send("Something went wrong");
+//         res.status(statusCode.INTERNAL_SERVER_ERROR).send("Something went wrong");
 //     }
 // }
 // const shoppage = async (req, res) => {
@@ -725,7 +726,7 @@ const logout = async (req,res)=>{
 
 //     } catch (error) {
 //         console.error('error from usercontroller', error);
-//         res.status(500).send("Something went wrong");
+//         res.status(statusCode.INTERNAL_SERVER_ERROR).send("Something went wrong");
 //     }
 // }
 
@@ -792,11 +793,29 @@ const shoppage = async (req, res) => {
 
     } catch (error) {
         console.error("error from usercontroller", error);
-        res.status(500).send("Something went wrong");
+        res.status(statusCode.INTERNAL_SERVER_ERROR).send("Something went wrong");
     }
 };
 
-
+const profilePitcherUpload = async(req,res)=>{
+    const user = req.session.User
+    try {
+        
+        console.log(req.file,'file')
+        const finduser = await userschema.findOne({_id:user._id})
+        if(!finduser){
+           return  res.status(statusCode.NOT_FOUND).json({success:false,message:"user not found"})
+        }
+        finduser.profilePic = req.file.path.replace('public', '');
+       const saved = await finduser.save()
+        if(saved){
+            return res.status(statusCode.OK).json({success:true,message:"profile Pitcher Added"})
+        }
+    } catch (error) {
+        console.log(error,'error from profilecontroller')
+        res.status(500).json({success:false,message:"error occured"})
+    }
+}
 
 
 module.exports = { 
@@ -816,4 +835,5 @@ module.exports = {
     passresetpage,
     passreset,
     shoppage,
+    profilePitcherUpload,
 }

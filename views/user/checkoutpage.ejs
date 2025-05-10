@@ -173,9 +173,9 @@
                     <div class="mb-4">
                         <% product.forEach(function(product) { %>
                         <div class="d-flex align-items-center mb-2">
-                            <img src="<%= product.productImage[0] %>" alt="Product" class="item-image">
+                            <img src="<%= product.productId.productImage[0] %>" alt="Product" class="item-image">
                             <div>
-                                <div class="fw-semibold"><%= product.productName %></div>
+                                <div class="fw-semibold"><%= product.productId.productName %></div>
                                 <div class="text-muted small">Qty: <%= product.quantity %></div>
                             </div>
                         </div>

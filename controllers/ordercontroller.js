@@ -5,6 +5,8 @@ const productschema = require('../models/productSchema')
 const walletSchema = require('../models/walletSchem')
 const Product = require('../models/productSchema')
 const couponSchema = require('../models/couponSchema')
+const mongoose = require('mongoose')
+const statusCode = require('../config/statusCode')
 const getorders = async (req, res) => {
     console.log("hi")
     const ITEMS_PER_PAGE = 10; 
@@ -79,7 +81,7 @@ const updatestatus = async (req, res) => {
             //         console.log('Wallet updated:', wallet);
             //     }
             //     }
-            // return res.status(200).json({ message: 'status updated successfully', order: order })
+            // return res.status(statusCode.OK).json({ message: 'status updated successfully', order: order })
             if (order.status === "Returned") {
                 let totalReturnAmount = 0;
 
@@ -121,7 +123,7 @@ const updatestatus = async (req, res) => {
                 }
             }
 
-            return res.status(200).json({ message: 'Status updated successfully', order });
+            return res.status(statusCode.OK).json({ message: 'Status updated successfully', order });
         }
 
     } catch (error) {
@@ -139,7 +141,7 @@ const orderdetails = async (req, res) => {
     }).exec();
     console.log(order, 'order')
     try {
-        res.status(200).json({ order: order, address })
+        res.status(statusCode.OK).json({ order: order, address })
     } catch (error) {
         console.error(error)
     }
@@ -171,12 +173,12 @@ const searchorder = async (req, res) => {
 //         if(status == "All"){
 //             const order = await orderSchema.find({}).populate('userId')
 //             if(order){
-//               return  res.status(200).json({data:order})
+//               return  res.status(statusCode.OK).json({data:order})
 //             }
 //         }
 //         const order = await orderSchema.find({status:status}).populate('userId')
 //         if(order){
-//           return  res.status(200).json({data:order})
+//           return  res.status(statusCode.OK).json({data:order})
 //         }
 //     } catch (error) {
 //         console.error('error from statusfilter',error)
@@ -231,14 +233,14 @@ const statusfilter = async (req, res) => {
           );
         }
       
-        return res.status(200).json({ data: baseOrders });
+        return res.status(statusCode.OK).json({ data: baseOrders });
       }
   
-      return res.status(200).json({ data: orders });
+      return res.status(statusCode.OK).json({ data: orders });
   
     } catch (error) {
       console.error('Error from statusfilter:', error);
-      return res.status(500).json({ message: 'Internal server error' });
+      return res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
     }
   };
   
@@ -250,11 +252,11 @@ const Datefilter = async(req,res)=>{
         if(DateFilter === 'New-Old'){
             console.log('ready')
             orders.sort((a, b) => new Date(a.createdOn) - new Date(b.createdOn));
-            res.status(200).json({data:orders})
+            res.status(statusCode.OK).json({data:orders})
         }
         else{
             orders.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn));
-            res.status(200).json({data:orders})
+            res.status(statusCode.OK).json({data:orders})
         }
      } catch (error) {
          console.error('error from statusfilter',error)
@@ -271,7 +273,7 @@ const Datefilter = async(req,res)=>{
 //             .populate('orderedItems.product');
 
 //         if (!order) {
-//             return res.status(404).json({ message: 'Order not found' });
+//             return res.status(statusCode.NOT_FOUND).json({ message: 'Order not found' });
 //         }
 
 //         if (order.status === 'Cancelled') {
@@ -323,11 +325,11 @@ const Datefilter = async(req,res)=>{
 //         );
 
 //         const orders = await orderSchema.find({}).populate('userId').populate('orderedItems.product');
-//         res.status(200).json({ message: "Order cancelled successfully", data: orders });
+//         res.status(statusCode.OK).json({ message: "Order cancelled successfully", data: orders });
 
 //     } catch (error) {
 //         console.error('Error from ordercontroller:', error);
-//         res.status(500).json({ message: 'Server error' });
+//         res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
 //     } 
 // };
 
@@ -337,14 +339,13 @@ const cancelorder = async (req, res) => {
     const { orderId, items } = req.body;
 
     try {
-        console.log(items,'item')
         const order = await orderSchema.findOne({ orderId })
             .populate('userId')
             .populate('orderedItems.product')
             .populate('couponId')
 
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(statusCode.NOT_FOUND).json({ message: 'Order not found' });
         }
         const alreadyCancelledItems = order.orderedItems
         .filter(item => items.includes(item.product?._id?.toString()) && item.cancelledStatus === "Cancelled")
@@ -362,7 +363,7 @@ const cancelorder = async (req, res) => {
         for (let item of order.orderedItems) {
             const productId = item.product?._id?.toString();
             if(items.includes(productId) && item.cancelledStatus == "Cancelled"){
-                return res.status(404).json({ message: 'Item alread Cancelled' });
+                return res.status(statusCode.NOT_FOUND).json({ message: 'Item alread Cancelled' });
             }
             if (
                 items.includes(productId) &&
@@ -426,7 +427,7 @@ const cancelorder = async (req, res) => {
                 });
                 await newWallet.calculateWalletTotal();
                 await newWallet.save();
-            } else {
+            } else {    
                 wallet.transaction.push(refundTransaction);
                 await wallet.calculateWalletTotal();
                 await wallet.save();
@@ -448,7 +449,7 @@ const cancelorder = async (req, res) => {
         await order.save();
 
         const orders = await orderSchema.find({}).populate('userId').populate('orderedItems.product');
-        res.status(200).json({ 
+        res.status(statusCode.OK).json({ 
             message: "Selected items cancelled successfully", 
             data: orders, 
             couponRevoked: order.couponRevoked || false 
@@ -456,7 +457,7 @@ const cancelorder = async (req, res) => {
 
     } catch (error) {
         console.error('Error from ordercontroller:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(statusCode.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
     }
 };
 
