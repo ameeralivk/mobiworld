@@ -109,6 +109,7 @@
                                 <div class="mb-3">
                                     <label for="brand" class="form-label">Categories:</label>
                                     <select name="category" class="form-control" id="cat">
+                                        <option value="" disabled selected>Select Category</option>
                                         <% Category.forEach(category => { %>
                                         <option value="<%=category.name%>"><%=category.name%></option>
                                         <% }); %>
