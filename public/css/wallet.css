@@ -291,3 +291,13 @@ body {
         font-size: 0.85rem;
     }
 }
+
+.table-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+}

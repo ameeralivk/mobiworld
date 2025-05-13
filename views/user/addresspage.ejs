@@ -22,9 +22,13 @@
     <%- include("../../views/partials/user/shoppage_header") %>
 
     <link rel="stylesheet" href="\css\profilepage.css">
-    <% if (typeof message !== 'undefined' && message) { %>
-        <p id="mess" class="error-message" ><%= message %></p>
+   <% if (typeof message !== 'undefined' && message) { %>
+    <% if (message === "You are not authorized to use this address") { %>
+        <p id="mess" style="background-color: red;" class="error-message"><%= message %></p>
+    <% } else { %>
+        <p id="mess" class="error-message"><%= message %></p>
     <% } %>
+   <% } %>
     <!-- Account Header -->
     <div class="account-header">
         <div class="container">

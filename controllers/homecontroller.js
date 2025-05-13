@@ -796,11 +796,25 @@ const registeraddress = async (req, res) => {
 }
 
 const editaddress = async (req, res) => {
+
+  const user = req.session.User
   const { id } = req.params
   console.log(id)
-  const address = await addressSchema.Address.findOne({ _id: id })
   try {
-    res.render('editaddress', { address: address.address[0] })
+  const userAddress = await addressSchema.Address.find({userId:user._id})
+   const address = await addressSchema.Address.findOne({ _id: id })
+  console.log(userAddress,'addresfdafa ready')
+  const addressess = userAddress.map((add)=>add)
+  console.log(address,"add")
+  const find = addressess.some(item => item._id.toString() === address._id.toString());
+  console.log(find,'find')
+  console.log(addressess,'ready')
+  if(find){
+      res.render('editaddress', { address: address.address[0] })
+  }else{
+    req.session.message = "You are not authorized to use this address"
+    res.redirect('/addresspage')
+  }
   } catch (error) {
     console.log('error from homecontroller', error)
   }
@@ -1321,13 +1335,18 @@ const getcart = async (req, res) => {
     //   req.session.couponUsed = null;
     // }
 
-    const coupon = req.session.appliedCoupon || '';
+    // let coupon = req.session.appliedCoupon || '';
     const message = req.session.message || '';
     req.session.message = null;
     if (req.session.appliedCoupon) {
       req.session.couponUsed = true;
     }
 
+    let coupon=''
+    console.log("first",coupon)
+    if(req.session.appliedCoupon){
+      coupon=req.session.appliedCoupon
+    }
     const isexist = await cartSchema.findOne({ userId: user._id });
 
     if (!isexist) {
@@ -3196,6 +3215,20 @@ const addOffer = async (req, res) => {
   }
 }
 
+const removeoffer =async (req,res)=>{
+  try {
+    req.session.appliedCoupon=null
+    await req.session.save(); 
+    req.session.message = "coupon removed successfully"
+res.redirect("/user/getcart")
+  } catch (error) {
+    console.log("error in removeOffer page",error)
+  }
+}
+
+
+
+
 
 
 
@@ -3412,6 +3445,7 @@ module.exports = {
   returnorder,
   getwallet,
   addOffer,
+  removeoffer,
   walletfilter,
   toggleWishlist,
   removeFromWishlist,

@@ -150,6 +150,7 @@
 
     <!-- Bootstrap JS and dependencies -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         const messageElement = document.getElementById('mess');
@@ -179,7 +180,6 @@
         document.getElementById("pay-btn").addEventListener("click", async function(event) {
             event.preventDefault();
             const selectedPayment = document.querySelector('input[name="paymentMethod"]:checked').value;
-            
             if (selectedPayment === "cash") {
                 // Submit the form normally for Cash on Delivery
                 document.getElementById("payment-form").submit();
@@ -253,8 +253,19 @@
                     console.error("Payment error:", error);
                 }
             } else if (selectedPayment === "wallet") {
-                // Handle wallet payment
-                document.getElementById("payment-form").submit();
+                     Swal.fire({
+                title: 'Pay using Wallet?',
+                text: 'The amount will be deducted from your wallet.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Pay',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                // Submit the form only after confirmation
+                document.getElementById('payment-form').submit();
+                }
+            });
             }
         });
     </script>

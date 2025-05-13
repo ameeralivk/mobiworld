@@ -10,8 +10,7 @@ const  {fetchAuth} = require('../middlewares/auth')
 const multer = require('multer');
 const storage = multer.memoryStorage(); // or diskStorage
 const singleUpload = require('../config/multer')
-
-
+const footercontroller = require('../controllers/footercontroller')
 
 router.get('/register',usercontroller.loadregisterpage)
 router.get('/verify-otp',usercontroller.loadverify)
@@ -81,9 +80,13 @@ router.get('/wallet/filter',homecontroller.walletfilter)
 
 //add offer
 router.post('/addoffer',userAuth,homecontroller.addOffer)
+router.post('/removeoffer',userAuth,homecontroller.removeoffer)
 
 router.post('/toggle-wishlist',fetchAuth,homecontroller.toggleWishlist)
 router.delete('/remove-from-wishlist', userAuth, homecontroller.removeFromWishlist);
 
 router.get('/aboutus',homecontroller.aboutUs)
 router.post('/upload-profile-picture',singleUpload.single('profilePicture'),usercontroller.profilePitcherUpload)
+router.get('/shippingPage',footercontroller.shippingPage)
+router.get('/returnPolicy',footercontroller.returnPolicyPage)
+router.get('/termsAndCondition',footercontroller.termsAndCondition)
