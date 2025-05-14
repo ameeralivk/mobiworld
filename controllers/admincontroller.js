@@ -19,6 +19,8 @@ const offerschema = require('../models/offerSchema')
 const { resendOtp } = require('./usercontroller')
 const walletSchema = require('../models/walletSchem')
 const statuscode  = require('../config/statusCode')
+const Product = require('../models/productSchema')
+const cartSchema = require('../models/cartSchema')
 connectDB()
 
 const loadlogin = async (req, res) => {
@@ -167,7 +169,7 @@ const loginverification = async (req, res) => {
     }
 }
 const blockUnblock = async (req, res) => {
-    const users = await user.findById(req.params.id)
+    const users = await user.findById(req.params.userId)
     try {
         if (users.isBlocked == true) {
             users.isBlocked = false;
@@ -636,7 +638,7 @@ const addCoupon = async (req, res) => {
 
 const getOffer = async (req, res) => {
     try {
-        const offer = await offerschema.findById(req.params.id)
+        const offer = await offerschema.findById(req.params.OfferId)
         res.json(offer);
     } catch (error) {
         res.status(statuscode.INTERNAL_SERVER_ERROR).json({ error: 'Failed to load offer' });
@@ -645,6 +647,7 @@ const getOffer = async (req, res) => {
 const editOffer = async (req, res) => {
     const offerId = req.body.offerid;
     try {
+        const oldOffer = await offerschema.findById(offerId);
         console.log(req.body)
         const updatedData = {
             _id: req.body.offerid,
@@ -666,6 +669,40 @@ const editOffer = async (req, res) => {
             res.redirect('/admin/offersPage')
         }
         await offerschema.findByIdAndUpdate(offerId, updatedData);
+        
+          let affectedProducts = [];
+
+        if (req.body.offerType === 'category') {
+            affectedProducts = await Product.find({ category: req.body.categoryId });
+        } else if (req.body.offerType === 'brand') {
+            affectedProducts = await Product.find({ brand: req.body.brandId });
+        } else if (req.body.offerType === 'product') {
+            const ids = Array.isArray(req.body.productId)
+                ? req.body.productId
+                : req.body.productId.split(',').map(id => id.trim());
+            affectedProducts = await Product.find({ _id: { $in: ids } });
+        }
+        console.log(affectedProducts,'products')
+        for (const product of affectedProducts) {
+            const bestOffer = await getBestOfferForProduct(product);
+            let discount = 0;
+
+            if (bestOffer) {
+                const price = product.salePrice;
+                discount = bestOffer.discountType === "percentage"
+                    ? Math.min((price * bestOffer.discountValue) / 100, bestOffer.maxDiscount || Infinity)
+                    : bestOffer.discountValue;
+                discount = Math.floor(discount);
+            }
+
+            // Update this product's offer in every user's cart
+            await cartSchema.updateMany(
+            { "items.productId": product._id },
+            { $set: { "items.$[elem].bestOffer": discount } },
+            { arrayFilters: [{ "elem.productId": product._id }] }
+            );
+        }
+
         req.session.message = "Offer updated successfully!";
         res.redirect('/admin/offersPage');
         console.log(find, 'find')
@@ -678,7 +715,7 @@ const editOffer = async (req, res) => {
 const couponEditDetails = async (req, res) => {
     console.log("Hi")
     try {
-        const coupon = await CouponSchema.findById(req.params.id);
+        const coupon = await CouponSchema.findById(req.params.couponId);
         res.json(coupon);
     } catch (err) {
         res.status(statuscode.INTERNAL_SERVER_ERROR).json({ error: 'Coupon not found' });
@@ -687,7 +724,7 @@ const couponEditDetails = async (req, res) => {
 
 
 const editCoupon = async (req, res) => {
-    const id = req.params.id
+    const couponId = req.params.couponId
     try {
         const {
             name,
@@ -729,7 +766,7 @@ const editCoupon = async (req, res) => {
             updateData.productId = null;
         }
 
-        await CouponSchema.findByIdAndUpdate(id, updateData);
+        await CouponSchema.findByIdAndUpdate(couponId, updateData);
         req.session.message = {
             type: 'success',
             text: 'Coupon updated successfully!'
@@ -741,9 +778,9 @@ const editCoupon = async (req, res) => {
 }
 
 const deleteCoupon = async (req, res) => {
-    const id = req.params.id
+    const couponId = req.params.couponId
     try {
-        await CouponSchema.findByIdAndDelete(id);
+        await CouponSchema.findByIdAndDelete(couponId);
         res.json({ success: true, message: 'Coupon deleted successfully' });
     } catch (err) {
         res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error deleting coupon' });
@@ -753,8 +790,8 @@ const deleteCoupon = async (req, res) => {
 const deleteOffer = async (req, res) => {
     try {
         try {
-            const id = req.params.id;
-            await offerschema.findByIdAndDelete(id);
+            const offerId = req.params.offerId;
+            await offerschema.findByIdAndDelete(offerId);
             res.json({ success: true, message: 'Offer deleted successfully.' });
         } catch (error) {
             console.error(error);
@@ -1419,6 +1456,131 @@ const getBestOfferForProduct = async (product) => {
 // };
 
 
+// const updateReturnStatus = async (req, res) => {
+//     const { orderId, itemId } = req.params;
+//     const { status } = req.body;
+
+//     try {
+//         const order = await orderschema.findOne({ orderId });
+//         if (!order) {
+//             return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order not found' });
+//         }
+
+//         const item = order.orderedItems.id(itemId);
+//         if (!item) {
+//             return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Order item not found' });
+//         }
+
+//         if (item.returnStatus === "Returned" || item.returnStatus === "Rejected") {
+//             return res.status(400).json({
+//                 success: false,
+//                 message: `Product already marked as ${item.returnStatus}`
+//             });
+//         }
+
+//         const product = await productschema.findOne({ _id: item.product });
+//         if (!product) {
+//             return res.status(statuscode.NOT_FOUND).json({ success: false, message: 'Product not found' });
+//         }
+
+//         if (status === "Rejected") {
+//             item.returnStatus = "Rejected";
+//             await order.save();
+//             return res.json({ success: true, message: 'Return status updated to Rejected' });
+//         }
+
+//         // Restock product
+//         product.quantity += item.quantity;
+//         await product.save();
+
+//         // Get best offer and calculate discount
+//         const offer = await getBestOfferForProduct(product);
+//         let offerDiscount = 0;
+
+//         if (offer) {
+//             let discountPerItem = offer.discountType === "percentage"
+//                 ? (offer.discountValue / 100) * item.price
+//                 : offer.discountValue;
+
+//             if (offer.maxDiscount) {
+//                 discountPerItem = Math.min(discountPerItem, offer.maxDiscount);
+//             }
+
+//             offerDiscount = discountPerItem * item.quantity;
+
+          
+//         }
+
+//         // Calculate proportional coupon deduction
+//         // let  = order.couponDiscount;
+//         // if (order.couponDiscount && order.totalPrice) {
+//         //     const itemValue = item.quantity * item.price;
+//         //     const proportion = itemValue / order.totalPrice;
+//         //     couponAdjustment = Math.round(order.couponDiscount * proportion);
+//         // }
+//         const itemTotal = item.quantity * item.price;
+//         const remainingTotal = (order.totalPrice - order.discount) - itemTotal;
+//         let couponDiscount = order.couponDiscount
+//         if(order.couponRevoked == 0){
+//             couponDiscount = order.couponDiscount
+//         }
+//         else{
+//             couponDiscount = 0
+//         }
+//         if (order.couponId && order.couponRevoked == 0) {
+//             const coupon = await CouponSchema.findById(order.couponId);
+        
+//             if (coupon) {
+//                 if (remainingTotal < coupon.minimumPrice) {
+//                     order.couponId = null;
+//                     order.couponRevoked = couponDiscount;
+//                 }
+//                 else{
+//                     couponDiscount = 0 ;
+//                 }
+                 
+//             }
+//         }
+//         const refundAmount = (item.quantity * item.price) - offerDiscount - couponDiscount;
+
+//         const transactionEntry = {
+//             Total: refundAmount,
+//             Type: "Credit",
+//             description: `Amount refunded on return of ${product.productName}`,
+//             orderId: order._id,
+//         };
+
+//         const wallet = await walletSchema.findOne({ userId: order.userId });
+//         if (wallet) {
+//             wallet.transaction.push(transactionEntry);
+//             wallet.calculateWalletTotal();
+//             await wallet.save();
+//         } else {
+//             const newWallet = new walletSchema({
+//                 userId: order.userId,
+//                 transaction: [transactionEntry]
+//             });
+//             newWallet.calculateWalletTotal();
+//             await newWallet.save();
+//         }
+//         item.returnStatus = status;
+//         const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
+//         if (allReturned) {
+//             order.couponCode = null;
+//             order.status = "Returned";
+//         }
+//         order.returnAmound += refundAmount;
+
+//         await order.save();
+
+//         res.json({ success: true, message: 'Return status updated successfully' });
+
+//     } catch (err) {
+//         console.error('Error updating return status:', err);
+//         res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
+//     }
+// };
+
 const updateReturnStatus = async (req, res) => {
     const { orderId, itemId } = req.params;
     const { status } = req.body;
@@ -1452,11 +1614,9 @@ const updateReturnStatus = async (req, res) => {
             return res.json({ success: true, message: 'Return status updated to Rejected' });
         }
 
-        // Restock product
         product.quantity += item.quantity;
         await product.save();
 
-        // Get best offer and calculate discount
         const offer = await getBestOfferForProduct(product);
         let offerDiscount = 0;
 
@@ -1470,46 +1630,37 @@ const updateReturnStatus = async (req, res) => {
             }
 
             offerDiscount = discountPerItem * item.quantity;
-
-          
         }
 
-        // Calculate proportional coupon deduction
-        // let  = order.couponDiscount;
-        // if (order.couponDiscount && order.totalPrice) {
-        //     const itemValue = item.quantity * item.price;
-        //     const proportion = itemValue / order.totalPrice;
-        //     couponAdjustment = Math.round(order.couponDiscount * proportion);
-        // }
+     
         const itemTotal = item.quantity * item.price;
-        const remainingTotal = (order.totalPrice - order.discount) - itemTotal;
-        let couponDiscount = order.couponDiscount
-        if(order.couponRevoked == 0){
-            couponDiscount = order.couponDiscount
-        }
-        else{
-            couponDiscount = 0
-        }
-        if (order.couponId && order.couponRevoked == 0) {
-            const coupon = await CouponSchema.findById(order.couponId);
-        
-            if (coupon) {
-                if (remainingTotal < coupon.minimumPrice) {
-                    order.couponId = null;
-                    order.couponRevoked = couponDiscount;
-                }
-                else{
-                    couponDiscount = 0 ;
-                }
-                 
-            }
-        }
-        const refundAmount = (item.quantity * item.price) - offerDiscount - couponDiscount;
+        let refundAmount = itemTotal - offerDiscount;
 
+     
+        const remainingTotal = (order.totalPrice - order.discount) - itemTotal;
+        let couponDiscount = order.couponDiscount || 0;
+
+        if (order.couponId && order.couponRevoked === 0) {
+            const coupon = await CouponSchema.findById(order.couponId);
+
+            if (coupon && remainingTotal < coupon.minimumPrice) {
+                order.couponId = null;
+                order.couponRevoked = couponDiscount;
+                refundAmount -= couponDiscount;  // apply deduction
+            } else {
+                couponDiscount = 0; // not revoked
+            }
+        } else {
+            couponDiscount = 0;
+        }
+
+       
         const transactionEntry = {
             Total: refundAmount,
             Type: "Credit",
-            description: `Amount refunded on return of ${product.productName}`,
+            description: order.couponRevoked
+                ? `Refund for returned item ${product.productName} (Coupon Revoked)`
+                : `Refund for returned item ${product.productName}`,
             orderId: order._id,
         };
 
@@ -1526,13 +1677,16 @@ const updateReturnStatus = async (req, res) => {
             newWallet.calculateWalletTotal();
             await newWallet.save();
         }
+
+       
         item.returnStatus = status;
+        order.returnAmound += refundAmount;
+
         const allReturned = order.orderedItems.every(i => i.returnStatus === 'Returned');
         if (allReturned) {
             order.couponCode = null;
             order.status = "Returned";
         }
-        order.returnAmound += refundAmount;
 
         await order.save();
 
@@ -1543,7 +1697,6 @@ const updateReturnStatus = async (req, res) => {
         res.status(statuscode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
     }
 };
-
 
   
 

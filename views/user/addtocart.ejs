@@ -83,7 +83,7 @@
                                     <td class="text-center">
                                         <div class="price-section">
                                             <span class="original-price">₹<%= product.productId.salePrice %></span>
-                                            <span class="current-price">₹<%= (product.productId.salePrice - (offerPrice ? offerPrice : product.bestOffer)).toLocaleString('en-IN') %></span>
+                                            <span class="current-price">₹<%= (product.productId.salePrice - product.bestOffer).toLocaleString('en-IN') %></span>
                                         </div>
                                     </td>
                                     <td>

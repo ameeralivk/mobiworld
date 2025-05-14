@@ -258,16 +258,19 @@
             });
 
 
-            function showOrderModal(orderId) {
-                fetch(`/admin/orderdetails/${orderId}`)
-                    .then(response => response.json())
-                    .then(orderDetails => {
-                        if (orderDetails) {
-                            const modalBody = document.getElementById('modalBodyContent');
-                            const returnedItems = orderDetails.order.orderedItems.filter(item => item.returnStatus === 'Returned');
-                            const cancelledItems = orderDetails.order.orderedItems.filter(item => item.cancelledStatus === 'Cancelled');
+           function showOrderModal(orderId) {
+    fetch(`/admin/orderdetails/${orderId}`)
+        .then(response => response.json())
+        .then(orderDetails => {
+            if (orderDetails) {
+                const modalBody = document.getElementById('modalBodyContent');
+                const returnedItems = orderDetails.order.orderedItems.filter(item => item.returnStatus === 'Returned');
+                const cancelledItems = orderDetails.order.orderedItems.filter(item => item.cancelledStatus === 'Cancelled');
 
-                            let modalContent = `
+                // Coupon Revoked Display Flag
+                let couponRevokedShown = false;
+
+                let modalContent = `
                 <!-- Order Header -->
                 <div class="row mb-3">
                     <div class="col-8">
@@ -355,12 +358,22 @@
                                 const offer = item.bestOffer || 0;
                                 const subtotal = actualPrice * item.quantity;
                                 const afterDiscount = subtotal - (offer * item.quantity);
+                                const couponRevoked = orderDetails.order.couponRevoked || 0;
 
-                                // Check if couponRevoked exists and apply it
-                                const couponRevoked = orderDetails.order.couponRevoked || 0;  // Assuming couponRevoked is available in orderDetails
+                                let finalRefundValue;
+                                let couponRevokedHtml = '';
 
-                                // If couponRevoked exists, subtract it from the refund value
-                                const finalRefundValue = couponRevoked > 0 ? afterDiscount - couponRevoked : afterDiscount;
+                                if (couponRevoked > 0 && !couponRevokedShown) {
+                                    finalRefundValue = afterDiscount - couponRevoked;
+                                    couponRevokedHtml = `
+                                    <div class="d-flex justify-content-between small">
+                                        <span>Coupon Revoked:</span>
+                                        <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
+                                    </div>`;
+                                    couponRevokedShown = true;
+                                } else {
+                                    finalRefundValue = afterDiscount;
+                                }
 
                                 return `
                                 <div class="mb-2">
@@ -372,12 +385,8 @@
                                         <span>Price: ₹${actualPrice.toLocaleString('en-IN')} x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}</span>
                                         <span>Discount: ₹${(offer * item.quantity).toLocaleString('en-IN')}</span>
                                     </div>
-                                    ${couponRevoked > 0 ? `
-                                    <div class="d-flex justify-content-between small">
-                                        <span>Coupon Revoked:</span>
-                                        <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
-                                    </div>` : ''}
-                                    <div class="text-end fw-semibold ${couponRevoked > 0 ? 'text-danger' : ''}">
+                                    ${couponRevokedHtml}
+                                    <div class="text-end fw-semibold ${couponRevokedHtml ? 'text-danger' : ''}">
                                         Final Refund Value: ₹${finalRefundValue.toLocaleString('en-IN')}
                                     </div>
                                     <hr class="my-2">
@@ -390,56 +399,62 @@
                     </div>
                 </div>
                 ` : ''}
-                
-                 ${cancelledItems.length > 0 ? `
+
+                <!-- Cancelled Items -->
+              ${cancelledItems.length > 0 ? `
                 <div class="row mb-3">
                     <div class="col-12">
                         <div class="card border-danger">
                             <div class="card-body">
                                 <h6 class="mb-3 text-danger">Cancelled Items</h6>
-                               ${cancelledItems.map(item => {
-                                const actualPrice = item.price || item.product.salePrice;
-                                const offer = item.bestOffer || 0;
-                                const subtotal = actualPrice * item.quantity;
-                                const afterDiscount = subtotal - (offer * item.quantity);
+                                ${cancelledItems.map(item => {
+                                    const actualPrice = item.price || item.product.salePrice;
+                                    const offer = item.bestOffer || 0;
+                                    const subtotal = actualPrice * item.quantity;
+                                    const afterDiscount = subtotal - (offer * item.quantity);
+                                    const couponRevoked = orderDetails.order.couponRevoked || 0;
 
-                                // Check if couponRevoked exists and apply it
-                                const couponRevoked = orderDetails.order.couponRevoked || 0;  // Assuming couponRevoked is available in orderDetails
+                                    let finalRefundValue;
+                                    let couponRevokedHtml = '';
 
-                                // If couponRevoked exists, subtract it from the refund value
-                                const finalRefundValue = couponRevoked > 0 ? afterDiscount - couponRevoked : afterDiscount;
+                                    if (couponRevoked > 0 && !couponRevokedShown) {
+                                        finalRefundValue = afterDiscount - couponRevoked;
+                                        couponRevokedHtml = `
+                                        <div class="d-flex justify-content-between small">
+                                            <span>Coupon Revoked:</span>
+                                            <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
+                                        </div>`;
+                                        couponRevokedShown = true;
+                                    } else {
+                                        finalRefundValue = afterDiscount;
+                                    }
 
-                                return `
-                                <div class="mb-2">
-                                    <div class="d-flex justify-content-between">
-                                        <span class="fw-bold">${item.product.productName}</span>
-                                        <span>Qty: ${item.quantity}</span>
+                                    return `
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="fw-bold">${item.product.productName}</span>
+                                            <span>Qty: ${item.quantity}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between small">
+                                            <span>Price: ₹${actualPrice.toLocaleString('en-IN')} x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}</span>
+                                            <span>Discount: ₹${(offer * item.quantity).toLocaleString('en-IN')}</span>
+                                        </div>
+                                        ${couponRevokedHtml}
+                                        <div class="text-end fw-semibold ${couponRevokedHtml ? 'text-danger' : ''}">
+                                            Final Refund Value: ₹${finalRefundValue.toLocaleString('en-IN')}
+                                        </div>
+                                        <hr class="my-2">
                                     </div>
-                                    <div class="d-flex justify-content-between small">
-                                        <span>Price: ₹${actualPrice.toLocaleString('en-IN')} x ${item.quantity} = ₹${subtotal.toLocaleString('en-IN')}</span>
-                                        <span>Discount: ₹${(offer * item.quantity).toLocaleString('en-IN')}</span>
-                                    </div>
-                                    ${couponRevoked > 0 ? `
-                                    <div class="d-flex justify-content-between small">
-                                        <span>Coupon Revoked:</span>
-                                        <span>- ₹${couponRevoked.toLocaleString('en-IN')}</span>
-                                    </div>` : ''}
-                                    <div class="text-end fw-semibold ${couponRevoked > 0 ? 'text-danger' : ''}">
-                                        Final Refund Value: ₹${finalRefundValue.toLocaleString('en-IN')}
-                                    </div>
-                                    <hr class="my-2">
-                                </div>
-                                `;
-                            }).join('')}
-
+                                    `;
+                                }).join('')}
                             </div>
                         </div>
                     </div>
                 </div>
                 ` : ''}
-            
 
-                <!-- Shipping Information -->
+
+                <!-- Shipping & Payment -->
                 <div class="row">
                     <div class="col-md-6 mb-2 mb-md-0">
                         <div class="card h-100"> 
@@ -464,18 +479,18 @@
                 </div>
                 `;
 
-                            modalBody.innerHTML = modalContent;
-                            var myModal = new bootstrap.Modal(document.getElementById("myModal"));
-                            myModal.show();
-                        } else {
-                            alert('Order not found');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching order details:', error);
-                        alert('Something went wrong!');
-                    });
+                modalBody.innerHTML = modalContent;
+                const myModal = new bootstrap.Modal(document.getElementById("myModal"));
+                myModal.show();
+            } else {
+                alert('Order not found');
             }
+        })
+        .catch(error => {
+            console.error('Error fetching order details:', error);
+            alert('Something went wrong!');
+        });
+}
 
         </script>
 </body>

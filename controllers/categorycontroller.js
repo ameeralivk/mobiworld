@@ -134,18 +134,19 @@ const categoryclear = async(req,res)=>{
     }
 }
 const deleteCategory = async(req,res)=>{
-    const id = req.params.id
-    const category = await Category.findById(id)
+    const categoryId = req.params.categoryId
+    const category = await Category.findById(categoryId)
     try {
         if(category.isDeleted == true){
-            const n = await Category.findByIdAndUpdate(id,{isDeleted:false})
+            const n = await Category.findByIdAndUpdate(categoryId,{isDeleted:false})
           return  res.redirect('/admin/deleteCategory')
         }
         else{
-            await Category.findByIdAndUpdate(id,{isDeleted:true})
+            await Category.findByIdAndUpdate(categoryId,{isDeleted:true})
            return res.redirect('/admin/deleteCategory')
         }  
     } catch (error) {
+        console.log(error,'eroor')
         res.status(statusCode.INTERNAL_SERVER_ERROR).send('Error deleting category');
     }
 }
@@ -158,8 +159,8 @@ const deleteCategory = async(req,res)=>{
   }
 }
 const editcategorypage = async(req,res)=>{
-  const {id} = req.params
-  const category = await Category.findById(id)
+  const {categoryId} = req.params
+  const category = await Category.findById(categoryId)
   console.log(category)
 try {
     res.render('editcategory',{category,msg:''})

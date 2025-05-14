@@ -26,9 +26,9 @@ const statusCode = require('../config/statusCode')
 
 const getproductmainpage = async (req, res) => {
   console.log(req.params)
-  const { id } = req.params
-  req.session.code = id
-  const product = await Product.findOne({ _id: id, isDeleted: false });
+  const { productId } = req.params
+  req.session.code = productId
+  const product = await Product.findOne({ _id: productId, isDeleted: false });
   const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -798,11 +798,11 @@ const registeraddress = async (req, res) => {
 const editaddress = async (req, res) => {
 
   const user = req.session.User
-  const { id } = req.params
-  console.log(id)
+  const { addressId } = req.params
+  console.log(addressId)
   try {
   const userAddress = await addressSchema.Address.find({userId:user._id})
-   const address = await addressSchema.Address.findOne({ _id: id })
+   const address = await addressSchema.Address.findOne({ _id: addressId })
   console.log(userAddress,'addresfdafa ready')
   const addressess = userAddress.map((add)=>add)
   console.log(address,"add")
@@ -820,12 +820,12 @@ const editaddress = async (req, res) => {
   }
 }
 const editaddresspost = async (req, res) => {
-  const { id } = req.params
-  console.log(id)
+  const { addressId } = req.params
+  console.log(addressId)
   const { name, state, address, City, pincode, phone, altphone } = req.body
   try {
     const result = await addressSchema.Address.updateOne(
-      { "address._id": id }, // Match the document with the specific address ID
+      { "address._id": addressId }, // Match the document with the specific address ID
       {
         $set: {
           "address.$.name": name,
@@ -852,9 +852,9 @@ const editaddresspost = async (req, res) => {
 }
 
 const deleteaddress = async (req, res) => {
-  const { id } = req.params
+  const { addressId } = req.params
   try {
-    const isdeleted = await addressSchema.Address.findByIdAndDelete(id)
+    const isdeleted = await addressSchema.Address.findByIdAndDelete(addressId)
     if (isdeleted) {
       req.session.message = 'Address deleted successfully'
       res.redirect('/user/addresspage')
@@ -1620,7 +1620,7 @@ const checkoutpage = async (req, res) => {
 };
 
 const deletecartbutton = async (req, res) => {
-  const productId = req.params.id;
+  const productId = req.params.productId;
   const user = req.session.User;
 
   try {
@@ -2102,7 +2102,7 @@ const orderplacedpage = async (req, res) => {
             })
           );
           
-          const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0)
+          const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0) -(req.session.Coupon?req.session.Coupon:req.session.appliedCoupon?.couponDiscount||0)
           const findwallet = await walletSchema.findOne({ userId: user._id })
           console.log(req.session.address,'address sdfa')
           const addressId = new mongoose.Types.ObjectId(req.session.address);
@@ -2216,7 +2216,8 @@ const orderplacedpage = async (req, res) => {
             })
           );
           
-          const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0)
+          // const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0)
+          const totalAmount = (totalPrice) - (req.session.offerprice ? req.session.offerprice : 0) -(req.session.Coupon?req.session.Coupon:req.session.appliedCoupon?.couponDiscount||0)
           const findwallet = await walletSchema.findOne({ userId: user._id })
           if (findwallet && findwallet.WalletTotal >= totalAmount) {
           const newOrder = new orderSchema({
@@ -2293,9 +2294,8 @@ const getpaymentsuccesspage = async (req, res) => {
   const user = req.session.User
   const orderid = req.session.order
   console.log(orderid, 'orderid1')
-  console.log(req.session.appliedCoupon)
-  const coupon = req.session.appliedCoupon?.couponDiscount || 0
-  
+  console.log(req.session.appliedCoupon,req.session.Coupon,'coupon')
+  let coupon = req.session.appliedCoupon?.couponDiscount || req.session.Coupon || 0
 
   try {
     if (orderid) {
@@ -2303,12 +2303,14 @@ const getpaymentsuccesspage = async (req, res) => {
       console.log('2 hi')
       req.session.orderId = null
       const orderdetails = await orderSchema.findOne({ orderId: orderid})
+      coupon = orderdetails?.couponDiscount
       console.log(orderdetails,'orderdetals')
       const offer = orderdetails.discount
       console.log(offer,"offer",coupon,"coupon")
       req.session.newaddress = null
       req.session.appliedCoupon = null
-      res.render('paymentsuccesspage', { orderdetails, offer,coupon  })
+      req.session.Coupon = null
+      res.render('paymentsuccesspage', { orderdetails, offer, coupon  })
     }
     else {
       console.log('3 hi')
@@ -2317,13 +2319,13 @@ const getpaymentsuccesspage = async (req, res) => {
       console.log(orderdetails,'detals')
       const offer = orderdetails.discount
       console.log(orderdetails, 'orderdetails')
+      coupon = orderdetails?.couponDiscount
       console.log(offer,"offer",coupon,"coupon")
       req.session.newaddress = null
       req.session.appliedCoupon = null
+      req.session.Coupon = null
       res.render('paymentsuccesspage', { orderdetails, offer,coupon })
     }
-
-   req.session.appliedCoupon = null
   } catch (error) {
     console.error('error from getpaymentsuccesspage', error)
   }
@@ -2609,6 +2611,7 @@ const razorpay = new Razorpay({
 const createRazorpayOrder = async (req, res) => {
   try {
     const coupon = req.session.appliedCoupon ? req.session.appliedCoupon : 0
+    req.session.Coupon = req.session.appliedCoupon?.couponDiscount
     const user = req.session.User;
     if (!user) {
       req.session.message = 'please login'
@@ -2803,6 +2806,7 @@ const verifypayment = async (req, res) => {
           discount: offerPrice
   
         });
+        req.session.Coupon = req.session.appliedCoupon?.couponDiscount
         await newOrder.save();
         req.session.order = newOrder.orderId
         console.log(orderDetails, 'orderd details')
@@ -2882,6 +2886,7 @@ const verifypayment = async (req, res) => {
           discount: offerPrice,
   
         });
+        req.session.Coupon = req.session.appliedCoupon?.couponDiscount
         await newOrder.save();
         req.session.order = newOrder.orderId
         console.log(orderDetails, 'orderd details')
@@ -3344,6 +3349,7 @@ const retryPayment = async (req, res) => {
     const { orderId } = req.params;
     console.log(orderId,'orderid')
     const order = await orderSchema.findById(orderId);
+    req.session.Coupon = order?.couponDiscount
     console.log(order,'order')
     if (!order || order.status !== "Failed") {
       return res.status(400).send("Invalid or non-retryable order");

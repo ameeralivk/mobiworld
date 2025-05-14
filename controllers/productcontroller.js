@@ -8,6 +8,7 @@ const { triggerAsyncId } = require('async_hooks')
 const { findByIdAndUpdate } = require('../models/user')
 const brandschema = require('../models/brandSchema')
 const Category = require('../models/categorySchema')
+const cartSchema = require('../models/cartSchema')
 
 const addproductpage = async(req,res)=>{
        const Category = await category.find({isDeleted:false})
@@ -101,10 +102,12 @@ const addproduct = async (req,res)=>{
 
 
 const editproduct = async(req,res)=>{
-   const {id} = req.params
-   const prod = await Product.findById(id)
+   const {productId} = req.params
+   const prod = await Product.findById(productId)
    const fullproduct = await Product.find({})
+   console.log(productId,'id')
    try {
+
      upload(req, res,async(err) => {
       console.log(req.body,'req.body')
       const brand = await brandschema.findOne({brandName:req.body.brand})
@@ -138,6 +141,20 @@ const editproduct = async(req,res)=>{
                Tax:parseInt(req.body.tax)
 
              })
+
+            const carts = await cartSchema.find({ 'items.productId': prod._id });
+
+            for(let cart of carts){
+               cart.items.forEach((item)=>{
+                  if(item.productId.toString() === prod._id.toString()){
+                     item.price = req.body.price
+                     item.totalPrice = item.quantity * req.body.price
+                  }
+               })
+               cart.calculateTotalPrice()
+               await cart.save()
+            }
+
              req.session.msg = 'product updated successfull'
              res.redirect('/admin/product')
             }
@@ -151,6 +168,74 @@ const editproduct = async(req,res)=>{
       console.log('productcontroler errorr',error)
    }
 }
+
+// const editproduct = async (req, res) => {
+//   const { productId } = req.params;
+//   const prod = await Product.findById(productId);
+
+//   try {
+//     upload(req, res, async (err) => {
+//       console.log(req.body, 'req.body');
+
+//       const brand = await brandschema.findOne({ brandName: req.body.brand });
+//       const category = await Category.findOne({ name: req.body.category });
+
+//       if (err) {
+//         console.log(err);
+//         return res.redirect('/admin/product');
+//       }
+
+//       if (req.files) {
+//         let imagePaths = prod.productImage;
+
+//         if (req.files.productImage1) {
+//           imagePaths[0] = `/cardimages/${req.files.productImage1[0].filename}`;
+//         }
+//         if (req.files.productImage2) {
+//           imagePaths[1] = `/cardimages/${req.files.productImage2[0].filename}`;
+//         }
+//         if (req.files.productImage3) {
+//           imagePaths[2] = `/cardimages/${req.files.productImage3[0].filename}`;
+//         }
+
+//         // Update product
+//         await Product.findByIdAndUpdate(prod._id, {
+//           productName: req.body.productName,
+//           description: req.body.productDescription,
+//           productImage: imagePaths,
+//           brand: brand._id,
+//           category: category._id,
+//           salePrice: req.body.price,
+//           quantity: req.body.count,
+//           Tax: parseInt(req.body.tax),
+//         });
+
+//         // ✅ Update carts that contain this product
+//         const carts = await cartSchema.find({ 'items.productId': prod._id });
+
+//         for(let cart of carts){
+//          cart.items.forEach((item)=>{
+//             if(item.productId.toString() === prod._id.toString()){
+//                item.price = req.body.price
+//                item.totalPrice = item.quantity * req.body.price
+//             }
+//          })
+//          cart.calculateTotalPrice()
+//          await cart.save()
+//         }
+
+//         req.session.msg = 'Product updated successfully';
+//         return res.redirect('/admin/product');
+//       } else {
+//         return res.redirect('/admin/product');
+//       }
+//     });
+//   } catch (error) {
+//     console.log('Product controller error', error);
+//     res.redirect('/admin/product');
+//   }
+// };
+
 
 function checkFileType(file, cb) {
    const filetypes = /jpeg|jpg|png|gif|webp/;
@@ -194,15 +279,15 @@ const upload = multer({
  }).array('productImage', 3);
 
 const deleteProduct = async(req,res)=>{
-     const id = req.params.id
-     const prod = await product.findById(id)
+     const productId = req.params.productId
+     const prod = await product.findById(productId)
 try {
    if(prod.isDeleted == false){
-      await product.findByIdAndUpdate(id,{isDeleted:true})
+      await product.findByIdAndUpdate(productId,{isDeleted:true})
       return res.redirect('/admin/product')
    }
    else{
-      await product.findByIdAndUpdate(id,{isDeleted:false})
+      await product.findByIdAndUpdate(productId,{isDeleted:false})
       return res.redirect('/admin/product')
    }
    
@@ -260,8 +345,8 @@ const productclear =async(req,res)=>{
 
 
  const editproductpage = async(req,res)=>{
-   const id =  req.params.id
-   const product = await Product.findById(id).populate('category').populate('brand')
+   const productId =  req.params.productId
+   const product = await Product.findById(productId).populate('category').populate('brand')
    console.log(product,'product')
    const fullproduct = await brandschema.find({})
    const fullcategory = await category.find({})

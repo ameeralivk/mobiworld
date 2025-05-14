@@ -133,7 +133,7 @@ const updatestatus = async (req, res) => {
 const orderdetails = async (req, res) => {
     const orderid = req.params
     console.log(orderid,'orderid')
-    const order = await orderSchema.findOne({ orderId: orderid.id }).populate('orderedItems.product')
+    const order = await orderSchema.findOne({ orderId: orderid.orderId }).populate('orderedItems.product')
     console.log(order,'order')
     const addressIdFromOrder = order.address
     const address = await addressschema.Address.findOne({

@@ -89,8 +89,8 @@ const registerbrand = async(req,res)=>{
 }
 
 const editbrandpage = async(req,res)=>{
-    const {id} = req.params
-    const brand = await brandschema.findById(id)
+    const {brandId} = req.params
+    const brand = await brandschema.findById(brandId)
   try {
       res.render('editbrand',{brand,msg:''})
   } catch (error) {
@@ -116,15 +116,15 @@ const editbrandpage = async(req,res)=>{
 
 
 const deletebrand = async(req,res)=>{
-    const id = req.params.id
-    const category = await brandschema.findById(id)
+    const brandId = req.params.brandId
+    const category = await brandschema.findById(brandId)
     try {
         if(category.isDeleted == true){
-            const n = await brandschema.findByIdAndUpdate(id,{isDeleted:false})
+            const n = await brandschema.findByIdAndUpdate(brandId,{isDeleted:false})
           return  res.redirect('/admin/deletebrand')
         }
         else{
-            await brandschema.findByIdAndUpdate(id,{isDeleted:true})
+            await brandschema.findByIdAndUpdate(brandId,{isDeleted:true})
            return res.redirect('/admin/deletebrand')
         }
      

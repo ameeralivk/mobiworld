@@ -36,13 +36,13 @@ router.get('/auth/google/callback',passport.authenticate('google',{failureRedire
 module.exports = router;
 
 //home routes
-router.get('/productmainpage/:id',homecontroller.getproductmainpage)
+router.get('/productmainpage/:productId',homecontroller.getproductmainpage)
 router.get('/getfilterpage',homecontroller.getfilterpage)
 router.post('/add-to-cart',homecontroller.addtocart)
 router.get('/getcart',userAuth,homecontroller.getcart)
 router.post('/updatequantity',homecontroller.updatequantity)
 router.get('/checkoutpage',homecontroller.checkoutpage)
-router.delete('/cartdelete/:id',homecontroller.deletecartbutton)
+router.delete('/cartdelete/:productId',homecontroller.deletecartbutton)
 router.get('/searchmain/search',homecontroller.searchmain)
 router.post('/paymentpage',homecontroller.paymentpage)
 router.get('/getpaymentpage',userAuth,homecontroller.getpaymentpage)
@@ -69,9 +69,9 @@ router.post('/otpcheck',homecontroller.checkotp)
 router.get('/addresspage',userAuth,homecontroller.addresspage)
 router.get('/addaddress',userAuth,homecontroller.addaddress)
 router.post('/registeraddress',homecontroller.registeraddress)
-router.get('/editaddress/:id',userAuth,homecontroller.editaddress)
-router.post('/editaddress/:id',homecontroller.editaddresspost)
-router.get('/deleteaddress/:id',userAuth,homecontroller.deleteaddress)
+router.get('/editaddress/:addressId',userAuth,homecontroller.editaddress)
+router.post('/editaddress/:addressId',homecontroller.editaddresspost)
+router.get('/deleteaddress/:addressId',userAuth,homecontroller.deleteaddress)
 
 //wallet routes
 router.get('/getwallet',userAuth,homecontroller.getwallet)
