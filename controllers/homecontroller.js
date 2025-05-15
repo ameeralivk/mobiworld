@@ -1405,6 +1405,16 @@ const getcart = async (req, res) => {
     const validCoupons = matchingCoupons.filter(coupon => {
       return isexist.totalPrice >= coupon.minimumPrice;
     });
+     const updatedItems = await Promise.all(
+      populatedCart.items.map(async (item) => {
+        const product = await Product.findById(item.productId);
+        const offer = await getBestOfferForProduct(product);
+        console.log(offer,'offer,a,,')
+        item.bestOffer = offer.discountValue
+        return item;
+      })
+    );
+     populatedCart.items = updatedItems;
     // 🛒 Render cart page
     console.log(offerPrice,'offerpordsaofiasdjf')
     return res.render('addtocart', {

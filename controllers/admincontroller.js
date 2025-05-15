@@ -669,40 +669,6 @@ const editOffer = async (req, res) => {
             res.redirect('/admin/offersPage')
         }
         await offerschema.findByIdAndUpdate(offerId, updatedData);
-        
-          let affectedProducts = [];
-
-        if (req.body.offerType === 'category') {
-            affectedProducts = await Product.find({ category: req.body.categoryId });
-        } else if (req.body.offerType === 'brand') {
-            affectedProducts = await Product.find({ brand: req.body.brandId });
-        } else if (req.body.offerType === 'product') {
-            const ids = Array.isArray(req.body.productId)
-                ? req.body.productId
-                : req.body.productId.split(',').map(id => id.trim());
-            affectedProducts = await Product.find({ _id: { $in: ids } });
-        }
-        console.log(affectedProducts,'products')
-        for (const product of affectedProducts) {
-            const bestOffer = await getBestOfferForProduct(product);
-            let discount = 0;
-
-            if (bestOffer) {
-                const price = product.salePrice;
-                discount = bestOffer.discountType === "percentage"
-                    ? Math.min((price * bestOffer.discountValue) / 100, bestOffer.maxDiscount || Infinity)
-                    : bestOffer.discountValue;
-                discount = Math.floor(discount);
-            }
-
-            // Update this product's offer in every user's cart
-            await cartSchema.updateMany(
-            { "items.productId": product._id },
-            { $set: { "items.$[elem].bestOffer": discount } },
-            { arrayFilters: [{ "elem.productId": product._id }] }
-            );
-        }
-
         req.session.message = "Offer updated successfully!";
         res.redirect('/admin/offersPage');
         console.log(find, 'find')
