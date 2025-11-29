@@ -64,7 +64,7 @@ function generateReferralCode(length = 8) {
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: 'http://moobiworld.shop/user/auth/google/callback'
+  callbackURL: 'https://mobiworld-j7qy.vercel.app/user/auth/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
   try {
     const googleId = profile.id.toString(); // Ensure googleId is explicitly cast to a string
